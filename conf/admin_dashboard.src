@@ -1,0 +1,6 @@
+SOURCE_URL=https://github.com/pi-hole/AdminLTE/archive/v3.1.tar.gz
+SOURCE_SUM=2c0bf61ec96bdb85edeb9fd2cc2f330b
+SOURCE_SUM_PRG=md5sum
+SOURCE_FORMAT=tar.gz
+SOURCE_IN_SUBDIR=true
+SOURCE_FILENAME=

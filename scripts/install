@@ -1,0 +1,265 @@
+#!/bin/bash
+
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# MANAGE FAILURE OF THE SCRIPT
+#=================================================
+
+ynh_clean_setup () {
+# Nettoyage des résidus d'installation non pris en charge par le script remove.
+# Pas de nettoyage supplémentaire nécessaire ici...
+	echo ""
+}
+ynh_abort_if_errors	# Active trap pour arrêter le script si une erreur est détectée.
+
+#=================================================
+# RETRIEVE ARGUMENTS FROM THE MANIFEST
+#=================================================
+
+domain=$YNH_APP_ARG_DOMAIN
+path_url=$YNH_APP_ARG_PATH
+admin=$YNH_APP_ARG_ADMIN
+query_logging=$YNH_APP_ARG_QUERY_LOGGING
+
+app=$YNH_APP_INSTANCE_NAME
+
+#=================================================
+# CHECK IF THE APP CAN BE INSTALLED WITH THIS ARGS
+#=================================================
+
+path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du path.
+CHECK_DOMAINPATH	# Vérifie la disponibilité du path et du domaine.
+CHECK_FINALPATH	# Vérifie que le dossier de destination n'est pas déjà utilisé.
+
+#=================================================
+# STORE SETTINGS FROM MANIFEST
+#=================================================
+
+ynh_app_setting_set $app domain $domain
+ynh_app_setting_set $app path $path_url
+ynh_app_setting_set $app admin $admin
+ynh_app_setting_set $app query_logging $query_logging
+
+#=================================================
+# STANDARD MODIFICATIONS
+#=================================================
+# FIND AND OPEN A PORT
+#=================================================
+
+port=$(ynh_find_port 4711)	# Cherche un port libre.
+if [ $port -gt 4720 ]
+then
+	ynh_die "The ports 4711 to 4720 are already in use. Pi-hole can't works on another port. Please try to free one of this ports."
+fi
+# Ouvre le port dans le firewall
+ALL_QUIET yunohost firewall allow --no-upnp TCP $port
+ynh_app_setting_set $app port $port
+
+# Désactive le port 53 en upnp
+ALL_QUIET yunohost firewall disallow Both 53 --no-reload
+ALL_QUIET yunohost firewall allow Both 53 --no-upnp
+
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
+
+# ynh_install_app_dependencies dhcpcd5 dialog netcat php5-cgi
+ynh_install_app_dependencies dhcpcd5
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+
+ynh_app_setting_set $app final_path $final_path
+# Créer une copie du repo de pihole (nécessaire pour Gravity)
+pihole_local_repo="/etc/.pihole"
+ynh_setup_source "$pihole_local_repo"
+# Installe le dashboard admin
+ynh_setup_source "$final_path" admin_dashboard
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
+ynh_add_nginx_config
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+
+ynh_system_user_create $app	# Créer un utilisateur système dédié à l'app
+
+#=================================================
+# PHP-FPM CONFIGURATION
+#=================================================
+
+ynh_add_fpm_config	# Créer le fichier de configuration du pool php-fpm et le configure.
+
+#=================================================
+# SPECIFIC SETUP
+#=================================================
+# CREATE THE DIRECTORIES AND POPULATE THEM
+#=================================================
+
+pihole_storage="/etc/pihole"
+mkdir -p "$pihole_storage"
+chown $app: -R "$pihole_storage"
+
+pihole_dir="/opt/pihole"
+mkdir -p "$pihole_dir"
+
+# Copie les scripts de Pi-hole
+cp -a "$pihole_local_repo/gravity.sh" "$pihole_dir/"
+cp -a $pihole_local_repo/advanced/Scripts/*.sh "$pihole_dir/"
+
+#=================================================
+# COPY THE PI-HOLE MAIN SCRIPT
+#=================================================
+
+cp -a "$pihole_local_repo/pihole" /usr/local/bin/
+cp -a "$pihole_local_repo/advanced/bash-completion/pihole" /etc/bash_completion.d/pihole
+
+#=================================================
+# CREATE LOG FILES
+#=================================================
+
+touch /var/log/pihole.log
+chmod 644 /var/log/pihole.log
+dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
+chown $dnsmasq_user:root /var/log/pihole.log
+
+#=================================================
+# CREATE SUDOER FILE
+#=================================================
+
+# Cette configuration sudoers autorise pihole à exécuter /usr/local/bin/pihole en root sans mot de passe. Pas plus.
+cp "$pihole_local_repo/advanced/pihole.sudo" /etc/sudoers.d/pihole
+echo "$app ALL=NOPASSWD: /usr/local/bin/pihole" >> /etc/sudoers.d/pihole
+# echo "Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin" >> /etc/sudoers.d/pihole
+chmod 0440 /etc/sudoers.d/pihole
+
+#=================================================
+# INSTALL LOGROTATE SCRIPT FOR PI-HOLE
+#=================================================
+
+cp "$pihole_local_repo/advanced/logrotate" "$pihole_storage/logrotate"
+sed -i "s/# su #/su $dnsmasq_user/g;" "$pihole_storage/logrotate"
+
+#=================================================
+# INSTALLATION OF PIHOLE-FTL
+#=================================================
+
+git clone https://github.com/pi-hole/FTL
+# Plutôt que télécharger le binaire C, on le compile nous-même.
+( cd FTL
+SUPPRESS_WARNING make
+SUPPRESS_WARNING make install )
+cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
+chmod +x /etc/init.d/pihole-FTL
+SUPPRESS_WARNING systemctl enable pihole-FTL
+
+#=================================================
+# BUILD THE VARIABLES FILE
+#=================================================
+
+setupVars="$pihole_storage/setupVars.conf"
+
+# Trouve l'interface réseau par défaut
+main_iface=$(route | grep default | awk '{print $8;}' | head -n1)
+echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
+# Trouve l'ipv4 associée à l'interface trouvée
+localipv4=$(ifconfig | grep -A 1 "$main_iface" | tail -1 | awk '{print $2;}' | cut -d: -f2)
+echo "IPV4_ADDRESS=$localipv4" >> $setupVars
+echo "IPV6_ADDRESS=::/0" >> $setupVars
+echo "PIHOLE_DNS_1=" >> $setupVars
+echo "PIHOLE_DNS_2=" >> $setupVars
+if [ $query_logging -eq 1 ]; then
+	query_logging=true
+else
+	query_logging=false
+fi
+echo "QUERY_LOGGING=$query_logging" >> $setupVars
+echo "INSTALL_WEB=true" >> $setupVars
+
+ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichier de config
+
+#=================================================
+# SET UP THE DNSMASQ CONFIG
+#=================================================
+
+systemctl stop dnsmasq
+
+pihole_dnsmasq_config="/etc/dnsmasq.d/01-pihole.conf"
+cp "$pihole_local_repo/advanced/01-pihole.conf" $pihole_dnsmasq_config
+# On utilise les dns de /etc/resolv.dnsmasq.conf
+ynh_replace_string "@DNS1@" "" $pihole_dnsmasq_config
+ynh_replace_string "@DNS2@" "" $pihole_dnsmasq_config
+ynh_replace_string "^no-resolv" "#no-resolv" $pihole_dnsmasq_config
+
+ynh_replace_string "@INT@" "$main_iface" $pihole_dnsmasq_config
+if [ "$query_logging" = "true" ]; then
+	ynh_replace_string "^#log-queries" "log-queries" $pihole_dnsmasq_config
+else
+	ynh_replace_string "^log-queries" "#log-queries" $pihole_dnsmasq_config
+fi
+
+ynh_store_file_checksum "$pihole_dnsmasq_config"	# Enregistre la somme de contrôle du fichier de config
+
+# Pour éviter un conflit entre les config de dnsmasq, il faut commenter cache-size dans la config par défaut.
+ynh_replace_string "^cache-size=" "#pihole# cache-size=" /etc/dnsmasq.conf
+
+systemctl start dnsmasq
+
+#=================================================
+# INSTALL THE CRON JOB
+#=================================================
+
+cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
+
+#=================================================
+# BUILD THE LISTS WITH GRAVITY
+#=================================================
+
+cp "$pihole_local_repo/adlists.default" "$pihole_storage/adlists.default"
+SUPPRESS_WARNING /opt/pihole/gravity.sh
+
+#=================================================
+# START PIHOLE-FTL
+#=================================================
+
+systemctl start pihole-FTL
+
+#=================================================
+# GENERIC FINALISATION
+#=================================================
+# SETUP LOGROTATE
+#=================================================
+
+ynh_use_logrotate /var/log/pihole.log
+ynh_use_logrotate /var/log/pihole-FTL.log
+
+#=================================================
+# ENABLE SERVICE IN ADMIN PANEL
+#=================================================
+
+sudo yunohost service add pihole-FTL --log "/var/log/pihole-FTL.log"
+
+#=================================================
+# RESTRAIN THE ACCESS TO THE ADMIN ONLY
+#=================================================
+
+sudo yunohost app addaccess --users=$admin $app
+
+#=================================================
+# RELOAD NGINX
+#=================================================
+
+sudo systemctl reload nginx

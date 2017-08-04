@@ -1,0 +1,124 @@
+#!/bin/bash
+
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+
+domain=$(ynh_app_setting_get $app domain)
+port=$(ynh_app_setting_get $app port)
+
+#=================================================
+# STANDARD REMOVE
+#=================================================
+# DISABLE SERVICE IN ADMIN PANEL
+#=================================================
+
+if sudo yunohost service status | grep -q pihole-FTL	# Test l'existence du service dans Yunohost
+then
+	echo "Remove pihole-FTL service"
+	sudo yunohost service remove pihole-FTL
+fi
+
+#=================================================
+# STOP THE SERVICE PIHOLE-FTL
+#=================================================
+
+systemctl stop pihole-FTL
+systemctl disable pihole-FTL
+rm -f "/etc/init.d/pihole-FTL" "/usr/bin/pihole-FTL" "/var/run/pihole-FTL.pid" "/var/run/pihole-FTL.port"
+
+#=================================================
+# REMOVE DEPENDENCIES
+#=================================================
+
+ynh_remove_app_dependencies
+
+#=================================================
+# REMOVE THE DIRECTORIES OF THE APP
+#=================================================
+
+ynh_secure_remove "/etc/pihole"	# Suppression du dossier de stockage l'application
+ynh_secure_remove "/opt/pihole"	# Suppression du dossier l'application
+ynh_secure_remove "/var/www/pihole"	# Suppression de l'interface de l'application
+ynh_secure_remove "/etc/.pihole"	# Suppression du clone local du dépôt
+
+#=================================================
+# REMOVE THE NGINX CONFIGURATION
+#=================================================
+
+ynh_remove_nginx_config	# Suppression de la configuration nginx
+
+#=================================================
+# REMOVE THE PHP-FPM CONFIGURATION
+#=================================================
+
+ynh_remove_fpm_config	# Suppression de la configuration du pool php-fpm
+
+#=================================================
+# REMOVE THE LOGROTATE CONFIG
+#=================================================
+
+ynh_remove_logrotate	# Suppression de la configuration de logrotate
+
+#=================================================
+# CLOSE A PORT
+#=================================================
+
+if sudo yunohost firewall list | grep -q "\- $port$"
+then
+	echo "Close port $port"
+	QUIET sudo yunohost firewall disallow TCP $port
+fi
+
+#=================================================
+# SPECIFIC REMOVE
+#=================================================
+# REMOVE THE CRON FILE
+#=================================================
+
+ynh_secure_remove "/etc/cron.d/pihole"
+
+#=================================================
+# REMOVE OTHER FILES
+#=================================================
+
+# Suppression des log
+ynh_secure_remove "/var/log/pihole.log"
+ynh_secure_remove "/var/log/pihole-FTL.log"
+
+# Remove the main script
+ynh_secure_remove "/usr/local/bin/pihole"
+ynh_secure_remove "/etc/bash_completion.d/pihole"
+
+# Remove the sudoer file
+ynh_secure_remove "/etc/sudoers.d/pihole"
+
+#=================================================
+# REMOVE THE DNSMASQ CONFIG
+#=================================================
+
+systemctl stop dnsmasq
+ynh_secure_remove "/etc/dnsmasq.d/01-pihole.conf"
+
+ynh_replace_string "#pihole# " "" /etc/dnsmasq.conf
+
+systemctl start dnsmasq
+
+#=================================================
+# GENERIC FINALISATION
+#=================================================
+# REMOVE DEDICATED USER
+#=================================================
+
+ynh_system_user_delete $app

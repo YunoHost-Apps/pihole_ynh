@@ -1,0 +1,70 @@
+{
+	"name": "Pi-hole",
+	"id": "pihole",
+	"packaging_format": 1,
+	"requirements": {
+		"yunohost": ">= 2.6.4"
+	},
+	"description": {
+		"en": "Network-wide ad blocking via your own DNS server.",
+		"fr": "Filtrage publicitaire sur l'ensemble du réseau via votre propre serveur DNS."
+	},
+	"version": "3.1.4",
+	"url": "https://pi-hole.net/",
+	"license": " EUPL-1.2",
+	"maintainer": {
+		"name": "Maniack Crudelis",
+		"email": "maniackc_dev@crudelis.fr"
+	},
+	"multi_instance": false,
+	"services": [
+		"nginx",
+		"php5-fpm",
+		"dnsmasq"
+	],
+	"arguments": {
+		"install" : [
+			{
+				"name": "domain",
+				"type": "domain",
+				"ask": {
+					"en": "Choose a domain for the admin interface of Pi-hole",
+					"fr": "Choisissez un domaine pour l'interface admin de Pi-hole"
+				},
+				"example": "domain.org"
+			},
+			{
+				"name": "path",
+				"type": "path",
+				"ask": {
+					"en": "Choose a path for the admin interface of Pi-hole",
+					"fr": "Choisissez un chemin pour l'interface admin de Pi-hole"
+				},
+				"example": "/pihole",
+				"default": "/pihole"
+			},
+			{
+				"name": "admin",
+				"type": "user",
+				"ask": {
+					"en": "Choose the Pi-hole administrator (must be an existing YunoHost user)",
+					"fr": "Administrateur de Pi-hole (doit être un utilisateur YunoHost existant)"
+				},
+				"example": "john"
+			},
+			{
+				"name": "query_logging",
+				"type": "boolean",
+				"ask": {
+					"en": "Do you want to log queries ?",
+					"fr": "Voulez-vous enregistrer les requêtes dns ?"
+				},
+				"help": {
+					"en": "Disabling will render graphs on the admin page useless. But will respect the privacy of the other users.",
+					"fr": "La désactivation rendra les graphiques sur la page d'administration inutiles. Mais respectera la vie privée des autres utilisateurs."
+				},
+				"default": false
+			}
+		]
+	}
+}

@@ -1,0 +1,92 @@
+#!/bin/bash
+
+#=================================================
+# GENERIC STARTING
+#=================================================
+# MANAGE FAILURE OF THE SCRIPT
+#=================================================
+
+# Exit on command errors and treat unset variables as an error
+set -eu
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+if [ ! -e _common.sh ]; then
+	# Rapatrie le fichier de fonctions si il n'est pas dans le dossier courant
+	sudo cp ../settings/scripts/_common.sh ./_common.sh
+	sudo chmod a+rx _common.sh
+fi
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+
+final_path=$(ynh_app_setting_get $app final_path)
+domain=$(ynh_app_setting_get $app domain)
+
+#=================================================
+# STANDARD BACKUP STEPS
+#=================================================
+# BACKUP OF THE MAIN DIRECTORIES OF THE APP
+#=================================================
+
+CHECK_SIZE "$final_path"
+ynh_backup "$final_path" "${YNH_APP_BACKUP_DIR}$final_path"
+
+CHECK_SIZE "/etc/.pihole"
+ynh_backup "/etc/.pihole" "${YNH_APP_BACKUP_DIR}/etc/.pihole"
+
+CHECK_SIZE "/etc/pihole"
+ynh_backup "/etc/pihole" "${YNH_APP_BACKUP_DIR}/etc/pihole"
+
+CHECK_SIZE "/opt/pihole"
+ynh_backup "/opt/pihole" "${YNH_APP_BACKUP_DIR}/opt/pihole"
+
+#=================================================
+# BACKUP OF THE NGINX CONFIGURATION
+#=================================================
+
+ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf" "${YNH_APP_BACKUP_DIR}/etc/nginx/conf.d/$domain.d/$app.conf"
+
+#=================================================
+# BACKUP OF THE PHP-FPM CONFIGURATION
+#=================================================
+
+ynh_backup "/etc/php5/fpm/pool.d/$app.conf" "${YNH_APP_BACKUP_DIR}/etc/php5/fpm/pool.d/$app.conf"
+ynh_backup "/etc/php5/fpm/conf.d/20-$app.ini" "${YNH_APP_BACKUP_DIR}/etc/php5/fpm/conf.d/20-$app.ini"
+
+#=================================================
+# SPECIFIC BACKUP
+#=================================================
+# BACKUP LOGROTATE
+#=================================================
+
+ynh_backup "/etc/logrotate.d/$app" "${YNH_APP_BACKUP_DIR}/etc/logrotate.d/$app"
+
+#=================================================
+# BACKUP OF THE CRON FILE
+#=================================================
+
+ynh_backup "/etc/cron.d/pihole" "${YNH_APP_BACKUP_DIR}/etc/cron.d/pihole"
+
+#=================================================
+# BACKUP OF SPECIFIC FILES
+#=================================================
+
+ynh_backup "/usr/local/bin/pihole" "${YNH_APP_BACKUP_DIR}/usr/local/bin/pihole"
+ynh_backup "/etc/bash_completion.d/pihole" "${YNH_APP_BACKUP_DIR}/etc/bash_completion.d/pihole"
+
+ynh_backup "/etc/sudoers.d/pihole" "${YNH_APP_BACKUP_DIR}/etc/sudoers.d/pihole"
+
+ynh_backup "/etc/init.d/pihole-FTL" "${YNH_APP_BACKUP_DIR}/etc/init.d/pihole-FTL"
+ynh_backup "/usr/bin/pihole-FTL" "${YNH_APP_BACKUP_DIR}/usr/bin/pihole-FTL"
+ynh_backup "/var/run/pihole-FTL.pid" "${YNH_APP_BACKUP_DIR}/var/run/pihole-FTL.pid"
+ynh_backup "/var/run/pihole-FTL.port" "${YNH_APP_BACKUP_DIR}/var/run/pihole-FTL.port"
+
+ynh_backup "/etc/dnsmasq.d/01-pihole.conf" "${YNH_APP_BACKUP_DIR}/etc/dnsmasq.d/01-pihole.conf"

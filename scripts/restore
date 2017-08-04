@@ -1,0 +1,176 @@
+#!/bin/bash
+
+#=================================================
+# GENERIC STARTING
+#=================================================
+# MANAGE FAILURE OF THE SCRIPT
+#=================================================
+
+# Exit on command errors and treat unset variables as an error
+set -eu
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+if [ ! -e _common.sh ]; then
+	# Rapatrie le fichier de fonctions si il n'est pas dans le dossier courant
+	sudo cp ../settings/scripts/_common.sh ./_common.sh
+	sudo chmod a+rx _common.sh
+fi
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+
+domain=$(ynh_app_setting_get $app domain)
+path_url=$(ynh_app_setting_get $app path)
+final_path=$(ynh_app_setting_get $app final_path)
+
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
+
+sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
+	|| ynh_die "Path not available: ${domain}${path_url}"
+test ! -d $final_path \
+	|| ynh_die "There is already a directory: $final_path "
+
+#=================================================
+# STANDARD RESTORE STEPS
+#=================================================
+# RESTORE OF THE NGINX CONFIGURATION
+#=================================================
+
+ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
+
+#=================================================
+# RESTORE OF THE MAIN DIRECTORIES OF THE APP
+#=================================================
+
+ynh_restore_file "$final_path"
+
+ynh_restore_file "/etc/.pihole"
+
+ynh_restore_file "/etc/pihole"
+
+ynh_restore_file "/opt/pihole"
+
+#=================================================
+# RECREATE OF THE DEDICATED USER
+#=================================================
+
+ynh_system_user_create $app	# Recreate the dedicated user, if not exist
+
+#=================================================
+# RESTORE USER RIGHTS
+#=================================================
+
+# Les fichiers appartiennent à root
+chown $app: -R "/etc/pihole"
+
+#=================================================
+# RESTORE OF THE PHP-FPM CONFIGURATION
+#=================================================
+
+ynh_restore_file "/etc/php5/fpm/pool.d/$app.conf"
+ynh_restore_file "/etc/php5/fpm/conf.d/20-$app.ini"
+
+#=================================================
+# SPECIFIC RESTORE
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+
+ynh_install_app_dependencies dhcpcd5
+
+#=================================================
+# ENABLE SERVICE IN ADMIN PANEL
+#=================================================
+
+sudo yunohost service add pihole-FTL --log "/var/log/pihole-FTL.log"
+
+#=================================================
+# RESTORE OF THE CRON FILE
+#=================================================
+
+ynh_restore_file "/etc/cron.d/pihole"
+
+#=================================================
+# RECREATE LOG FILES
+#=================================================
+
+touch /var/log/pihole.log
+chmod 644 /var/log/pihole.log
+dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
+chown $dnsmasq_user:root /var/log/pihole.log
+
+#=================================================
+# RESTORE OF THE LOGROTATE CONFIGURATION
+#=================================================
+
+ynh_restore_file "/etc/logrotate.d/$app"
+
+#=================================================
+# RESTORE OF SPECIFIC FILES
+#=================================================
+
+ynh_restore_file "/usr/local/bin/pihole"
+ynh_restore_file "/etc/bash_completion.d/pihole"
+
+ynh_restore_file "/etc/sudoers.d/pihole"
+
+ynh_restore_file "/etc/init.d/pihole-FTL"
+ynh_restore_file "/usr/bin/pihole-FTL"
+ynh_restore_file "/var/run/pihole-FTL.pid"
+ynh_restore_file "/var/run/pihole-FTL.port"
+
+#=================================================
+# RESTORE OF DNSMASQ CONFIG
+#=================================================
+
+systemctl stop dnsmasq
+
+ynh_restore_file "/etc/dnsmasq.d/01-pihole.conf"
+
+# Pour éviter un conflit entre les config de dnsmasq, il faut commenter cache-size dans la config par défaut.
+ynh_replace_string "^cache-size=" "#pihole# cache-size=" /etc/dnsmasq.conf
+
+systemctl start dnsmasq
+
+#=================================================
+# UPDATE THE VARIABLES FILE
+#=================================================
+
+setupVars="/etc/pihole/setupVars.conf"
+
+# Trouve l'interface réseau par défaut
+main_iface=$(route | grep default | awk '{print $8;}' | head -n1)
+echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
+ynh_replace_string "^PIHOLE_INTERFACE=.*" "PIHOLE_INTERFACE=$main_iface" $setupVars
+
+# Trouve l'ipv4 associée à l'interface trouvée
+localipv4=$(ifconfig | grep -A 1 "$main_iface" | tail -1 | awk '{print $2;}' | cut -d: -f2)
+ynh_replace_string "^IPV4_ADDRESS=.*" "IPV4_ADDRESS=$localipv4" $setupVars
+
+ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichier de config
+
+#=================================================
+# START PIHOLE-FTL
+#=================================================
+
+SUPPRESS_WARNING systemctl enable pihole-FTL
+systemctl start pihole-FTL
+
+#=================================================
+# GENERIC FINALISATION
+#=================================================
+# RELOAD NGINX AND PHP-FPM
+#=================================================
+
+sudo systemctl reload php5-fpm
+sudo systemctl reload nginx
