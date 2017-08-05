@@ -133,7 +133,7 @@ echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 # Trouve l'ipv4 associée à l'interface trouvée
 localipv4=$(ifconfig | grep -A 1 "$main_iface" | tail -1 | awk '{print $2;}' | cut -d: -f2)
 echo "IPV4_ADDRESS=$localipv4" >> $setupVars
-echo "IPV6_ADDRESS=::/0" >> $setupVars
+echo "IPV6_ADDRESS=" >> $setupVars
 echo "PIHOLE_DNS_1=" >> $setupVars
 echo "PIHOLE_DNS_2=" >> $setupVars
 if [ $query_logging -eq 1 ]; then

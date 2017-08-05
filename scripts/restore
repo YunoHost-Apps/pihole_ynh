@@ -136,9 +136,37 @@ ynh_restore_file "/var/run/pihole-FTL.port"
 systemctl stop dnsmasq
 
 ynh_restore_file "/etc/dnsmasq.d/01-pihole.conf"
+test -e "${YNH_APP_BACKUP_DIR}/etc/dnsmasq.d/02-pihole-dhcp.conf" && \
+	ynh_restore_file "/etc/dnsmasq.d/02-pihole-dhcp.conf"
+test -e "${YNH_APP_BACKUP_DIR}/etc/dnsmasq.d/03-pihole-wildcard.conf" && \
+	ynh_restore_file "/etc/dnsmasq.d/03-pihole-wildcard.conf"
 
 # Pour éviter un conflit entre les config de dnsmasq, il faut commenter cache-size dans la config par défaut.
 ynh_replace_string "^cache-size=" "#pihole# cache-size=" /etc/dnsmasq.conf
+
+#=================================================
+# CONFIGURE DNS FOR THE LOCAL DOMAINS
+#=================================================
+
+# Trouve l'interface réseau par défaut
+main_iface=$(route | grep default | awk '{print $8;}' | head -n1)
+# Trouve l'ipv4 associée à l'interface trouvée
+localipv4=$(ifconfig | grep -A 1 "$main_iface" | tail -1 | awk '{print $2;}' | cut -d: -f2)
+
+# Liste les domaines de yunohost
+while read perdomain
+do
+	# Commente les résolutions du domaine sur 127.0.0.1, qui risquerait de bloquer la résolution sur le réseau local
+	sed -i "s/^127.0.0.1.*$perdomain/#Commented by pihole# &/g" /etc/hosts
+
+	# Et ajoute une résolution sur l'ip local à la place, si elle n'existe pas déjà
+	grep -q "^$localipv4.*$perdomain" /etc/hosts || \
+		echo "$localipv4	$perdomain #Added by pihole#" >> /etc/hosts
+done <<< "$(sudo yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
+
+#=================================================
+# RESTART DNSMASQ
+#=================================================
 
 systemctl start dnsmasq
 
@@ -148,13 +176,8 @@ systemctl start dnsmasq
 
 setupVars="/etc/pihole/setupVars.conf"
 
-# Trouve l'interface réseau par défaut
-main_iface=$(route | grep default | awk '{print $8;}' | head -n1)
 echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 ynh_replace_string "^PIHOLE_INTERFACE=.*" "PIHOLE_INTERFACE=$main_iface" $setupVars
-
-# Trouve l'ipv4 associée à l'interface trouvée
-localipv4=$(ifconfig | grep -A 1 "$main_iface" | tail -1 | awk '{print $2;}' | cut -d: -f2)
 ynh_replace_string "^IPV4_ADDRESS=.*" "IPV4_ADDRESS=$localipv4" $setupVars
 
 ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichier de config

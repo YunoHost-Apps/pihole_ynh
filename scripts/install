@@ -178,7 +178,7 @@ echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 # Trouve l'ipv4 associée à l'interface trouvée
 localipv4=$(ifconfig | grep -A 1 "$main_iface" | tail -1 | awk '{print $2;}' | cut -d: -f2)
 echo "IPV4_ADDRESS=$localipv4" >> $setupVars
-echo "IPV6_ADDRESS=::/0" >> $setupVars
+echo "IPV6_ADDRESS=" >> $setupVars
 echo "PIHOLE_DNS_1=" >> $setupVars
 echo "PIHOLE_DNS_2=" >> $setupVars
 if [ $query_logging -eq 1 ]; then
@@ -215,6 +215,25 @@ ynh_store_file_checksum "$pihole_dnsmasq_config"	# Enregistre la somme de contr�
 
 # Pour éviter un conflit entre les config de dnsmasq, il faut commenter cache-size dans la config par défaut.
 ynh_replace_string "^cache-size=" "#pihole# cache-size=" /etc/dnsmasq.conf
+
+#=================================================
+# CONFIGURE DNS FOR THE LOCAL DOMAINS
+#=================================================
+
+# Liste les domaines de yunohost
+while read perdomain
+do
+	# Commente les résolutions du domaine sur 127.0.0.1, qui risquerait de bloquer la résolution sur le réseau local
+	sed -i "s/^127.0.0.1.*$perdomain/#Commented by pihole# &/g" /etc/hosts
+
+	# Et ajoute une résolution sur l'ip local à la place, si elle n'existe pas déjà
+	grep -q "^$localipv4.*$perdomain" /etc/hosts || \
+		echo "$localipv4	$perdomain #Added by pihole#" >> /etc/hosts
+done <<< "$(sudo yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
+
+#=================================================
+# RESTART DNSMASQ
+#=================================================
 
 systemctl start dnsmasq
 
