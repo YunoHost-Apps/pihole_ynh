@@ -151,7 +151,7 @@ chmod 0440 /etc/sudoers.d/pihole
 #=================================================
 
 cp "$pihole_local_repo/advanced/logrotate" "$pihole_storage/logrotate"
-sed -i "s/# su #/su $dnsmasq_user/g;" "$pihole_storage/logrotate"
+sed -i "/# su #/d;" "$pihole_storage/logrotate"
 
 #=================================================
 # INSTALLATION OF PIHOLE-FTL
@@ -258,13 +258,6 @@ systemctl start pihole-FTL
 
 #=================================================
 # GENERIC FINALISATION
-#=================================================
-# SETUP LOGROTATE
-#=================================================
-
-ynh_use_logrotate /var/log/pihole.log
-ynh_use_logrotate /var/log/pihole-FTL.log
-
 #=================================================
 # ENABLE SERVICE IN ADMIN PANEL
 #=================================================

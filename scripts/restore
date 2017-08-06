@@ -110,12 +110,6 @@ dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
 chown $dnsmasq_user:root /var/log/pihole.log
 
 #=================================================
-# RESTORE OF THE LOGROTATE CONFIGURATION
-#=================================================
-
-ynh_restore_file "/etc/logrotate.d/$app"
-
-#=================================================
 # RESTORE OF SPECIFIC FILES
 #=================================================
 

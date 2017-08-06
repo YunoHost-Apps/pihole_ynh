@@ -64,12 +64,6 @@ ynh_backup "/etc/php5/fpm/conf.d/20-$app.ini" "${YNH_APP_BACKUP_DIR}/etc/php5/fp
 #=================================================
 # SPECIFIC BACKUP
 #=================================================
-# BACKUP LOGROTATE
-#=================================================
-
-ynh_backup "/etc/logrotate.d/$app" "${YNH_APP_BACKUP_DIR}/etc/logrotate.d/$app"
-
-#=================================================
 # BACKUP OF THE CRON FILE
 #=================================================
 

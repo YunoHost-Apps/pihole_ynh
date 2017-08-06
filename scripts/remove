@@ -66,12 +66,6 @@ ynh_remove_nginx_config	# Suppression de la configuration nginx
 ynh_remove_fpm_config	# Suppression de la configuration du pool php-fpm
 
 #=================================================
-# REMOVE THE LOGROTATE CONFIG
-#=================================================
-
-ynh_remove_logrotate	# Suppression de la configuration de logrotate
-
-#=================================================
 # CLOSE A PORT
 #=================================================
 

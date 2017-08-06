@@ -102,7 +102,7 @@ chmod 0440 /etc/sudoers.d/pihole
 pihole_storage="/etc/pihole"
 cp "$pihole_local_repo/advanced/logrotate" "$pihole_storage/logrotate"
 dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
-sed -i "s/# su #/su $dnsmasq_user/g;" "$pihole_storage/logrotate"
+sed -i "/# su #/d;" "$pihole_storage/logrotate"
 
 #=================================================
 # UPDATE OF PIHOLE-FTL
@@ -157,13 +157,6 @@ cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
 #=================================================
 
 systemctl start pihole-FTL
-
-#=================================================
-# SETUP LOGROTATE
-#=================================================
-
-ynh_use_logrotate /var/log/pihole.log --non-append
-ynh_use_logrotate /var/log/pihole-FTL.log
 
 #=================================================
 # START PIHOLE-FTL
