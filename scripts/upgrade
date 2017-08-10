@@ -165,6 +165,12 @@ systemctl start pihole-FTL
 systemctl start pihole-FTL
 
 #=================================================
+# UPDATE THE CONF_REGEN HOOK
+#=================================================
+
+cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+
+#=================================================
 # RELOAD NGINX
 #=================================================
 

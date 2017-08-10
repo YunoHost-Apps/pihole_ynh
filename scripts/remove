@@ -35,7 +35,7 @@ fi
 #=================================================
 
 systemctl stop pihole-FTL
-systemctl disable pihole-FTL
+SUPPRESS_WARNING systemctl disable pihole-FTL
 rm -f "/etc/init.d/pihole-FTL" "/usr/bin/pihole-FTL" "/var/run/pihole-FTL.pid" "/var/run/pihole-FTL.port"
 
 #=================================================
@@ -124,6 +124,12 @@ sed -i "/#Added by pihole#/d" /etc/hosts
 #=================================================
 
 systemctl start dnsmasq
+
+#=================================================
+# REMOVE THE CONF_REGEN HOOK
+#=================================================
+
+rm /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
 
 #=================================================
 # GENERIC FINALISATION

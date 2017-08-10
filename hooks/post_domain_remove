@@ -1,0 +1,10 @@
+#!/bin/bash
+
+domain=$1
+
+# Restaure les résolutions qui avaient été commentées par pihole pour ce domaine
+sed -i "s/#Commented by pihole# \(.*domain1\)/\1/g" /etc/hosts
+# On utilise ici les sous-expressions sed pour supprimer seulement le début de la ligne.
+
+# Et supprime les lignes ajoutées par pihole pour ce domaine
+sed -i "/$domain #Added by pihole#/d" /etc/hosts

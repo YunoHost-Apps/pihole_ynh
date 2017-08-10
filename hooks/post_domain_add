@@ -1,0 +1,15 @@
+#!/bin/bash
+
+domain=$1
+
+# Trouve l'interface réseau par défaut
+main_iface=$(route | grep default | awk '{print $8;}' | head -n1)
+# Trouve l'ipv4 associée à l'interface trouvée
+localipv4=$(ifconfig | grep -A 1 "$main_iface" | tail -1 | awk '{print $2;}' | cut -d: -f2)
+
+# Commente les résolutions du domaine sur 127.0.0.1, qui risquerait de bloquer la résolution sur le réseau local
+sed -i "s/^127.0.0.1.*$domain/#Commented by pihole# &/g" /etc/hosts
+
+# Et ajoute une résolution sur l'ip local à la place, si elle n'existe pas déjà
+grep -q "^$localipv4.*$domain" /etc/hosts || \
+		echo "$localipv4	$domain #Added by pihole#" >> /etc/hosts

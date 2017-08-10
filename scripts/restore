@@ -123,6 +123,8 @@ ynh_restore_file "/usr/bin/pihole-FTL"
 ynh_restore_file "/var/run/pihole-FTL.pid"
 ynh_restore_file "/var/run/pihole-FTL.port"
 
+ynh_restore_file "/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+
 #=================================================
 # RESTORE OF DNSMASQ CONFIG
 #=================================================

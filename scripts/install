@@ -257,6 +257,12 @@ SUPPRESS_WARNING /opt/pihole/gravity.sh
 systemctl start pihole-FTL
 
 #=================================================
+# SET UP THE CONF_REGEN HOOK
+#=================================================
+
+cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+
+#=================================================
 # GENERIC FINALISATION
 #=================================================
 # ENABLE SERVICE IN ADMIN PANEL
