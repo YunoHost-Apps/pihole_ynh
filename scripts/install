@@ -28,6 +28,7 @@ domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 admin=$YNH_APP_ARG_ADMIN
 query_logging=$YNH_APP_ARG_QUERY_LOGGING
+enable_dhcp=$YNH_APP_ARG_ENABLE_DHCP
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -224,12 +225,49 @@ ynh_replace_string "^cache-size=" "#pihole# cache-size=" /etc/dnsmasq.conf
 while read perdomain
 do
 	# Commente les résolutions du domaine sur 127.0.0.1, qui risquerait de bloquer la résolution sur le réseau local
-	sed -i "s/^127.0.0.1.*$perdomain/#Commented by pihole# &/g" /etc/hosts
+	ynh_replace_string "^127.0.0.1.*$perdomain" "#Commented by pihole# &" /etc/hosts
 
 	# Et ajoute une résolution sur l'ip local à la place, si elle n'existe pas déjà
 	grep -q "^$localipv4.*$perdomain" /etc/hosts || \
 		echo "$localipv4	$perdomain #Added by pihole#" >> /etc/hosts
 done <<< "$(sudo yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
+
+#=================================================
+# ENABLE DHCP SERVER
+#=================================================
+
+if [ $enable_dhcp -eq 1 ]
+then
+	max_dhcp_range=250
+	dhcp_range=100
+	# Define the dhcp range from the current ip
+	ip_beginning_part=$(echo "$localipv4" | cut -d. -f1-3)
+	ip_fourth_part=$(echo "$localipv4" | cut -d. -f4)
+	b_range=$(( $ip_fourth_part + $dhcp_range ))
+	if [ $b_range -gt $max_dhcp_range ]; then
+		b_range=$max_dhcp_range
+	fi
+	a_range=$(( $b_range - $dhcp_range ))
+
+	# Get the gateway
+	gateway=$(route | grep default | awk '{print $2;}' | head -n1)
+	# And the mac adress
+	hw_adress=$(sudo ifconfig | grep "eth0" | awk '{print $5;}')
+
+	# Copy the config file
+	sudo cp "../conf/02-pihole-dhcp.conf" "/etc/dnsmasq.d/"
+
+	# And set the config
+	ynh_replace_string "__A_RANGE__" "$ip_beginning_part.$a_range" "/etc/dnsmasq.d/02-pihole-dhcp.conf"
+	ynh_replace_string "__B_RANGE__" "$ip_beginning_part.$b_range" "/etc/dnsmasq.d/02-pihole-dhcp.conf"
+	ynh_replace_string "__GATEWAY__" "$gateway" "/etc/dnsmasq.d/02-pihole-dhcp.conf"
+
+	# Set a static ip for the server.
+	echo "dhcp-host=$hw_adress,$localipv4" > "/etc/dnsmasq.d/04-pihole-static-dhcp.conf"
+fi
+
+# Open the UDP port 67 for dhcp
+ALL_QUIET yunohost firewall allow UDP 67 --no-upnp
 
 #=================================================
 # RESTART DNSMASQ

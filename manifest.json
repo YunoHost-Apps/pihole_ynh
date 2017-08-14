@@ -59,8 +59,21 @@
 					"fr": "Voulez-vous enregistrer les requêtes dns ?"
 				},
 				"help": {
-					"en": "Disabling will render graphs on the admin page useless. But will respect the privacy of the other users.",
-					"fr": "La désactivation rendra les graphiques sur la page d'administration inutiles. Mais respectera la vie privée des autres utilisateurs."
+					"en": "Keeping this option deactivate will render graphs on the admin page useless. But will respect the privacy of the other users.",
+					"fr": "Garder cette option désactivée rendra les graphiques sur la page d'administration inutiles. Mais respectera la vie privée des autres utilisateurs."
+				},
+				"default": false
+			},
+			{
+				"name": "enable_dhcp",
+				"type": "boolean",
+				"ask": {
+					"en": "Do you want to set Pi-hole as your DHCP server ?",
+					"fr": "Voulez-vous utiliser Pi-hole an tant que serveur DHCP ?"
+				},
+				"help": {
+					"en": "If you want to do that, <a href=https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md target=_blank>you really have to read this before</a> !",
+					"fr": "Si vous voulez faire ça, <a href=https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md target=_blank>vous devez vraiment lire cela avant</a> !"
 				},
 				"default": false
 			}
