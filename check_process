@@ -24,8 +24,8 @@
 	Level 3=auto
 # Level 4: 
 	Level 4=na
-# Level 5: 
-	Level 5=auto
+# Level 5: https://github.com/YunoHost-Apps/pihole_ynh/issues/1
+	Level 5=1
 	Level 6=auto
 	Level 7=auto
 	Level 8=0
