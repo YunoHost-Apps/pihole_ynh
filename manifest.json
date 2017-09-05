@@ -2,9 +2,6 @@
 	"name": "Pi-hole",
 	"id": "pihole",
 	"packaging_format": 1,
-	"requirements": {
-		"yunohost": ">= 2.6.4"
-	},
 	"description": {
 		"en": "Network-wide ad blocking via your own DNS server.",
 		"fr": "Filtrage publicitaire sur l'ensemble du réseau via votre propre serveur DNS."
@@ -15,6 +12,9 @@
 	"maintainer": {
 		"name": "Maniack Crudelis",
 		"email": "maniackc_dev@crudelis.fr"
+	},
+	"requirements": {
+        "yunohost": ">= 2.7.2"
 	},
 	"multi_instance": false,
 	"services": [

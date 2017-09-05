@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Dependencies
+app_depencencies="dhcpcd5"

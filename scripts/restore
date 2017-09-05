@@ -1,25 +1,27 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC STARTING
-#=================================================
-# MANAGE FAILURE OF THE SCRIPT
-#=================================================
-
-# Exit on command errors and treat unset variables as an error
-set -eu
-
+# GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
 if [ ! -e _common.sh ]; then
-	# Rapatrie le fichier de fonctions si il n'est pas dans le dossier courant
-	sudo cp ../settings/scripts/_common.sh ./_common.sh
-	sudo chmod a+rx _common.sh
+	# Get the _common.sh file if it's not in the current directory
+	cp ../settings/scripts/_common.sh ./_common.sh
+	chmod a+rx _common.sh
 fi
 source _common.sh
 source /usr/share/yunohost/helpers
+# Load common variables for all scripts.
+source ../settings/scripts/_variables
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
 
 #=================================================
 # LOAD SETTINGS
@@ -35,7 +37,7 @@ final_path=$(ynh_app_setting_get $app final_path)
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
 
-sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
+yunohost app checkurl "${domain}${path_url}" -a "$app" \
 	|| ynh_die "Path not available: ${domain}${path_url}"
 test ! -d $final_path \
 	|| ynh_die "There is already a directory: $final_path "
@@ -86,13 +88,13 @@ ynh_restore_file "/etc/php5/fpm/conf.d/20-$app.ini"
 # REINSTALL DEPENDENCIES
 #=================================================
 
-ynh_install_app_dependencies dhcpcd5
+ynh_install_app_dependencies $app_depencencies
 
 #=================================================
 # ENABLE SERVICE IN ADMIN PANEL
 #=================================================
 
-sudo yunohost service add pihole-FTL --log "/var/log/pihole-FTL.log"
+yunohost service add pihole-FTL --log "/var/log/pihole-FTL.log"
 
 #=================================================
 # RESTORE OF THE CRON FILE
@@ -120,8 +122,6 @@ ynh_restore_file "/etc/sudoers.d/pihole"
 
 ynh_restore_file "/etc/init.d/pihole-FTL"
 ynh_restore_file "/usr/bin/pihole-FTL"
-ynh_restore_file "/var/run/pihole-FTL.pid"
-ynh_restore_file "/var/run/pihole-FTL.port"
 
 ynh_restore_file "/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 
@@ -160,7 +160,7 @@ do
 	# Et ajoute une résolution sur l'ip local à la place, si elle n'existe pas déjà
 	grep -q "^$localipv4.*$perdomain" /etc/hosts || \
 		echo "$localipv4	$perdomain #Added by pihole#" >> /etc/hosts
-done <<< "$(sudo yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
+done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
 
 #=================================================
 # RESTART DNSMASQ
@@ -193,5 +193,5 @@ systemctl start pihole-FTL
 # RELOAD NGINX AND PHP-FPM
 #=================================================
 
-sudo systemctl reload php5-fpm
-sudo systemctl reload nginx
+systemctl reload php5-fpm
+systemctl reload nginx
