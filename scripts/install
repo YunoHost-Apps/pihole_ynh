@@ -8,16 +8,13 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+# Load common variables for all scripts.
+source _variables
 
 #=================================================
 # MANAGE FAILURE OF THE SCRIPT
 #=================================================
 
-ynh_clean_setup () {
-# Nettoyage des résidus d'installation non pris en charge par le script remove.
-# Pas de nettoyage supplémentaire nécessaire ici...
-	echo ""
-}
 ynh_abort_if_errors	# Active trap pour arrêter le script si une erreur est détectée.
 
 #=================================================
@@ -36,9 +33,16 @@ app=$YNH_APP_INSTANCE_NAME
 # CHECK IF THE APP CAN BE INSTALLED WITH THIS ARGS
 #=================================================
 
-path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du path.
-CHECK_DOMAINPATH	# Vérifie la disponibilité du path et du domaine.
-CHECK_FINALPATH	# Vérifie que le dossier de destination n'est pas déjà utilisé.
+final_path=/var/www/$app
+test ! -e "$final_path" || ynh_die "This path already contains a folder"
+
+# Normalize the url path syntax
+path_url=$(ynh_normalize_url_path $path_url)
+
+# Check web path availability
+ynh_webpath_available $domain $path_url
+# Register (book) web path
+ynh_webpath_register $app $domain $path_url
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
@@ -72,8 +76,7 @@ ALL_QUIET yunohost firewall allow Both 53 --no-upnp
 # INSTALL DEPENDENCIES
 #=================================================
 
-# ynh_install_app_dependencies dhcpcd5 dialog netcat php5-cgi
-ynh_install_app_dependencies dhcpcd5
+ynh_install_app_dependencies $app_depencencies
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -230,7 +233,7 @@ do
 	# Et ajoute une résolution sur l'ip local à la place, si elle n'existe pas déjà
 	grep -q "^$localipv4.*$perdomain" /etc/hosts || \
 		echo "$localipv4	$perdomain #Added by pihole#" >> /etc/hosts
-done <<< "$(sudo yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
+done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
 
 #=================================================
 # ENABLE DHCP SERVER
@@ -252,10 +255,10 @@ then
 	# Get the gateway
 	gateway=$(route | grep default | awk '{print $2;}' | head -n1)
 	# And the mac adress
-	hw_adress=$(sudo ifconfig | grep "eth0" | awk '{print $5;}')
+	hw_adress=$(ifconfig | grep "eth0" | awk '{print $5;}')
 
 	# Copy the config file
-	sudo cp "../conf/02-pihole-dhcp.conf" "/etc/dnsmasq.d/"
+	cp "../conf/02-pihole-dhcp.conf" "/etc/dnsmasq.d/"
 
 	# And set the config
 	ynh_replace_string "__A_RANGE__" "$ip_beginning_part.$a_range" "/etc/dnsmasq.d/02-pihole-dhcp.conf"
@@ -306,16 +309,16 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 # ENABLE SERVICE IN ADMIN PANEL
 #=================================================
 
-sudo yunohost service add pihole-FTL --log "/var/log/pihole-FTL.log"
+yunohost service add pihole-FTL --log "/var/log/pihole-FTL.log"
 
 #=================================================
 # RESTRAIN THE ACCESS TO THE ADMIN ONLY
 #=================================================
 
-sudo yunohost app addaccess --users=$admin $app
+yunohost app addaccess --users=$admin $app
 
 #=================================================
 # RELOAD NGINX
 #=================================================
 
-sudo systemctl reload nginx
+systemctl reload nginx

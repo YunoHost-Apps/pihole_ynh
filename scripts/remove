@@ -24,10 +24,10 @@ port=$(ynh_app_setting_get $app port)
 # DISABLE SERVICE IN ADMIN PANEL
 #=================================================
 
-if sudo yunohost service status | grep -q pihole-FTL	# Test l'existence du service dans Yunohost
+if yunohost service status | grep -q pihole-FTL	# Test l'existence du service dans Yunohost
 then
 	echo "Remove pihole-FTL service"
-	sudo yunohost service remove pihole-FTL
+	yunohost service remove pihole-FTL
 fi
 
 #=================================================
@@ -69,16 +69,16 @@ ynh_remove_fpm_config	# Suppression de la configuration du pool php-fpm
 # CLOSE A PORT
 #=================================================
 
-if sudo yunohost firewall list | grep -q "\- $port$"
+if yunohost firewall list | grep -q "\- $port$"
 then
 	echo "Close port $port"
-	QUIET sudo yunohost firewall disallow TCP $port
+	QUIET yunohost firewall disallow TCP $port
 fi
 
-if sudo yunohost firewall list | grep -q "\- 67$"
+if yunohost firewall list | grep -q "\- 67$"
 then
 	echo "Close port 67"
-	QUIET sudo yunohost firewall disallow UDP 67
+	QUIET yunohost firewall disallow UDP 67
 fi
 
 #=================================================
