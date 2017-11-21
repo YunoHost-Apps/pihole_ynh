@@ -10,9 +10,10 @@
 		setup_sub_dir=1
 		setup_root=1
 		setup_nourl=0
-		setup_private=0
+		setup_private=1
 		setup_public=0
 		upgrade=1
+		upgrade=1	from_commit=32af3e208d36dd9601dd7a33efab656425822782
 		backup_restore=1
 		multi_instance=0
 		incorrect_path=1
@@ -24,8 +25,7 @@
 	Level 3=auto
 # Level 4: 
 	Level 4=na
-# Level 5: https://github.com/YunoHost-Apps/pihole_ynh/issues/1
-	Level 5=1
+	Level 5=auto
 	Level 6=auto
 	Level 7=auto
 	Level 8=0
@@ -34,3 +34,7 @@
 ;;; Options
 Email=
 Notification=down
+;;; Upgrade options
+	; commit=32af3e208d36dd9601dd7a33efab656425822782
+		name= Première version du package
+		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&query_logging=1&

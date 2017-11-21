@@ -1,135 +1,5 @@
 #!/bin/bash
 
-# =============================================================================
-#                     YUNOHOST 2.7 FORTHCOMING HELPERS
-# =============================================================================
-
-# Create a dedicated nginx config
-#
-# usage: ynh_add_nginx_config
-ynh_add_nginx_config () {
-	finalnginxconf="/etc/nginx/conf.d/$domain.d/$app.conf"
-	ynh_backup_if_checksum_is_different "$finalnginxconf"
-	sudo cp ../conf/nginx.conf "$finalnginxconf"
-
-	# To avoid a break by set -u, use a void substitution ${var:-}. If the variable is not set, it's simply set with an empty variable.
-	# Substitute in a nginx config file only if the variable is not empty
-	if test -n "${path_url:-}"; then
-		ynh_replace_string "__PATH__" "$path_url" "$finalnginxconf"
-	fi
-	if test -n "${domain:-}"; then
-		ynh_replace_string "__DOMAIN__" "$domain" "$finalnginxconf"
-	fi
-	if test -n "${port:-}"; then
-		ynh_replace_string "__PORT__" "$port" "$finalnginxconf"
-	fi
-	if test -n "${app:-}"; then
-		ynh_replace_string "__NAME__" "$app" "$finalnginxconf"
-	fi
-	if test -n "${final_path:-}"; then
-		ynh_replace_string "__FINALPATH__" "$final_path" "$finalnginxconf"
-	fi
-	ynh_store_file_checksum "$finalnginxconf"
-
-	sudo systemctl reload nginx
-}
-
-# Remove the dedicated nginx config
-#
-# usage: ynh_remove_nginx_config
-ynh_remove_nginx_config () {
-	ynh_secure_remove "/etc/nginx/conf.d/$domain.d/$app.conf"
-	sudo systemctl reload nginx
-}
-
-# Create a dedicated php-fpm config
-#
-# usage: ynh_add_fpm_config
-ynh_add_fpm_config () {
-	finalphpconf="/etc/php5/fpm/pool.d/$app.conf"
-	ynh_backup_if_checksum_is_different "$finalphpconf"
-	sudo cp ../conf/php-fpm.conf "$finalphpconf"
-	ynh_replace_string "__NAMETOCHANGE__" "$app" "$finalphpconf"
-	ynh_replace_string "__FINALPATH__" "$final_path" "$finalphpconf"
-	ynh_replace_string "__USER__" "$app" "$finalphpconf"
-	sudo chown root: "$finalphpconf"
-	ynh_store_file_checksum "$finalphpconf"
-
-	if [ -e "../conf/php-fpm.ini" ]
-	then
-		finalphpini="/etc/php5/fpm/conf.d/20-$app.ini"
-		ynh_backup_if_checksum_is_different "$finalphpini"
-		sudo cp ../conf/php-fpm.ini "$finalphpini"
-		sudo chown root: "$finalphpini"
-		ynh_store_file_checksum "$finalphpini"
-	fi
-
-	sudo systemctl reload php5-fpm
-}
-
-# Remove the dedicated php-fpm config
-#
-# usage: ynh_remove_fpm_config
-ynh_remove_fpm_config () {
-	ynh_secure_remove "/etc/php5/fpm/pool.d/$app.conf"
-	ynh_secure_remove "/etc/php5/fpm/conf.d/20-$app.ini" 2>&1
-	sudo systemctl reload php5-fpm
-}
-
-# Create a dedicated systemd config
-#
-# usage: ynh_add_systemd_config
-ynh_add_systemd_config () {
-	finalsystemdconf="/etc/systemd/system/$app.service"
-	ynh_backup_if_checksum_is_different "$finalsystemdconf"
-	sudo cp ../conf/systemd.service "$finalsystemdconf"
-
-	# To avoid a break by set -u, use a void substitution ${var:-}. If the variable is not set, it's simply set with an empty variable.
-	# Substitute in a nginx config file only if the variable is not empty
-	if test -n "${final_path:-}"; then
-		ynh_replace_string "__FINALPATH__" "$final_path" "$finalsystemdconf"
-	fi
-	if test -n "${app:-}"; then
-		ynh_replace_string "__APP__" "$app" "$finalsystemdconf"
-	fi
-	ynh_store_file_checksum "$finalsystemdconf"
-
-	sudo chown root: "$finalsystemdconf"
-	sudo systemctl enable $app
-	sudo systemctl daemon-reload
-}
-
-# Remove the dedicated systemd config
-#
-# usage: ynh_remove_systemd_config
-ynh_remove_systemd_config () {
-	finalsystemdconf="/etc/systemd/system/$app.service"
-	if [ -e "$finalsystemdconf" ]; then
-		sudo systemctl stop $app
-		sudo systemctl disable $app
-		ynh_secure_remove "$finalsystemdconf"
-	fi
-}
-
-#=================================================
-#=================================================
-
-#=================================================
-# CHECKING
-#=================================================
-
-CHECK_DOMAINPATH () {	# Vérifie la disponibilité du path et du domaine.
-	# Check availability of a web path
-	ynh_webpath_available $domain $path_url
-	# Register/book a web path for an app
-	ynh_webpath_register $app $domain $path_url
-}
-
-CHECK_FINALPATH () {	# Vérifie que le dossier de destination n'est pas déjà utilisé.
-	final_path=/var/www/$app
-	test ! -e "$final_path" || ynh_die "This path already contains a folder"
-}
-
 #=================================================
 # DISPLAYING
 #=================================================
@@ -160,35 +30,6 @@ ALL_QUIET () {	# Redirige la sortie standard et d'erreur dans /dev/null
 # BACKUP
 #=================================================
 
-BACKUP_FAIL_UPGRADE () {
-	WARNING echo "Upgrade failed."
-	app_bck=${app//_/-}	# Replace all '_' by '-'
-	if sudo yunohost backup list | grep -q $app_bck-pre-upgrade$backup_number; then	# Vérifie l'existence de l'archive avant de supprimer l'application et de restaurer
-		sudo yunohost app remove $app	# Supprime l'application avant de la restaurer.
-		sudo yunohost backup restore --ignore-system $app_bck-pre-upgrade$backup_number --apps $app --force	# Restore the backup if upgrade failed
-		ynh_die "The app was restored to the way it was before the failed upgrade."
-	fi
-}
-
-BACKUP_BEFORE_UPGRADE () {	# Backup the current version of the app, restore it if the upgrade fails
-	backup_number=1
-	old_backup_number=2
-	app_bck=${app//_/-}	# Replace all '_' by '-'
-	if sudo yunohost backup list | grep -q $app_bck-pre-upgrade1; then	# Vérifie l'existence d'une archive déjà numéroté à 1.
-		backup_number=2	# Et passe le numéro de l'archive à 2
-		old_backup_number=1
-	fi
-
-	sudo yunohost backup create --ignore-system --apps $app --name $app_bck-pre-upgrade$backup_number	# Créer un backup différent de celui existant.
-	if [ "$?" -eq 0 ]; then	# Si le backup est un succès, supprime l'archive précédente.
-		if sudo yunohost backup list | grep -q $app_bck-pre-upgrade$old_backup_number; then	# Vérifie l'existence de l'ancienne archive avant de la supprimer, pour éviter une erreur.
-			QUIET sudo yunohost backup delete $app_bck-pre-upgrade$old_backup_number
-		fi
-	else	# Si le backup a échoué
-		ynh_die "Backup failed, the upgrade process was aborted."
-	fi
-}
-
 HUMAN_SIZE () {	# Transforme une taille en Ko en une taille lisible pour un humain
 	human=$(numfmt --to=iec --from-unit=1K $1)
 	echo $human
@@ -196,8 +37,8 @@ HUMAN_SIZE () {	# Transforme une taille en Ko en une taille lisible pour un huma
 
 CHECK_SIZE () {	# Vérifie avant chaque backup que l'espace est suffisant
 	file_to_analyse=$1
-	backup_size=$(sudo du --summarize "$file_to_analyse" | cut -f1)
-	free_space=$(sudo df --output=avail "/home/yunohost.backup" | sed 1d)
+	backup_size=$(du --summarize "$file_to_analyse" | cut -f1)
+	free_space=$(df --output=avail "/home/yunohost.backup" | sed 1d)
 
 	if [ $free_space -le $backup_size ]
 	then
@@ -205,14 +46,6 @@ CHECK_SIZE () {	# Vérifie avant chaque backup que l'espace est suffisant
 		WARNING echo "Espace disponible: $(HUMAN_SIZE $free_space)"
 		ynh_die "Espace nécessaire: $(HUMAN_SIZE $backup_size)"
 	fi
-}
-
-# Ce helper est temporaire et sert de remplacement à la véritable fonction ynh_restore_file. Le temps qu'elle arrive...
-ynh_restore_file () {
-	if [ -f "$1" ]; then
-		ynh_die "There is already a file at this path: $1"
-	fi
-	sudo cp -a "${YNH_APP_BACKUP_DIR}$1" "$1"
 }
 
 #=================================================
@@ -241,11 +74,27 @@ IS_PACKAGE_CHECK () {	# Détermine une exécution en conteneur (Non testé)
 # Dans ce cas, c'est $PATH qui contient le chemin de la version de node. Il doit être propagé sur les autres shell si nécessaire.
 
 n_install_dir="/opt/node_n"
-node_version_path="/usr/local/n/versions/node"
+node_version_path="/opt/node_n/n/versions/node"
+# N_PREFIX est le dossier de n, il doit être chargé dans les variables d'environnement pour n.
+export N_PREFIX="$n_install_dir"
+
+ynh_install_n () {
+	echo "Installation of N - Node.js version management" >&2
+	# Build an app.src for n
+	mkdir -p "../conf"
+	echo "SOURCE_URL=https://github.com/tj/n/archive/v2.1.7.tar.gz
+SOURCE_SUM=2ba3c9d4dd3c7e38885b37e02337906a1ee91febe6d5c9159d89a9050f2eea8f" > "../conf/n.src"
+	# Download and extract n
+	ynh_setup_source "$n_install_dir/git" n
+	# Install n
+	(cd "$n_install_dir/git"
+	PREFIX=$N_PREFIX make install 2>&1)
+}
+
 ynh_use_nodejs () {
 	nodejs_version=$(ynh_app_setting_get $app nodejs_version)
 
-	load_n_path="[[ :$PATH: == *\":$n_install_dir/bin:\"* ]] || PATH=\"$n_install_dir/bin:$PATH\""
+	load_n_path="[[ :$PATH: == *\":$n_install_dir/bin:\"* ]] || PATH=\"$n_install_dir/bin:$PATH\"; N_PREFIX="$n_install_dir""
 
 	nodejs_use_version="$n_install_dir/bin/n -q $nodejs_version"
 
@@ -277,9 +126,13 @@ ynh_install_nodejs () {
 	test -x /usr/bin/npm && mv /usr/bin/npm /usr/bin/npm_n
 
 	# If n is not previously setup, install it
-	n --version > /dev/null 2>&1 || \
-	( echo "Installation of N - Node.js version management" >&2; \
-	curl -sL $n_install_script | N_PREFIX="$n_install_dir" bash -s -- -y - )
+	if ! test n --version > /dev/null 2>&1
+	then
+		ynh_install_n
+	fi
+
+	# Modify the default N_PREFIX in n script
+	ynh_replace_string "^N_PREFIX=\${N_PREFIX-.*}$" "N_PREFIX=\${N_PREFIX-$N_PREFIX}" "$n_install_dir/bin/n"
 
 	# Restore /usr/local/bin in PATH
 	PATH=$CLEAR_PATH
@@ -295,8 +148,11 @@ ynh_install_nodejs () {
 	real_nodejs_version=$(find $node_version_path/$nodejs_version* -maxdepth 0 | sort --version-sort | tail --lines=1)
 	real_nodejs_version=$(basename $real_nodejs_version)
 
-	# Create a symbolic link for this major version
-	ln --symbolic --force --no-target-directory $node_version_path/$real_nodejs_version $node_version_path/$nodejs_version
+	# Create a symbolic link for this major version. If the file doesn't already exist
+	if [ ! -e "$node_version_path/$nodejs_version" ]
+	then
+		ln --symbolic --force --no-target-directory $node_version_path/$real_nodejs_version $node_version_path/$nodejs_version
+	fi
 
 	# Store the ID of this app and the version of node requested for it
 	echo "$YNH_APP_ID:$nodejs_version" | tee --append "$n_install_dir/ynh_app_version"

@@ -176,7 +176,7 @@ setupVars="/etc/pihole/setupVars.conf"
 
 echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 ynh_replace_string "^PIHOLE_INTERFACE=.*" "PIHOLE_INTERFACE=$main_iface" $setupVars
-ynh_replace_string "^IPV4_ADDRESS=.*" "IPV4_ADDRESS=$localipv4" $setupVars
+ynh_replace_string "^IPV4_ADDRESS=.*" "IPV4_ADDRESS=127.0.0.1" $setupVars
 
 ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichier de config
 
