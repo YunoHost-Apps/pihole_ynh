@@ -47,20 +47,11 @@ then
 fi
 
 #=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+# MANAGE FAILURE OF THE SCRIPT
 #=================================================
 
-if [ $change_domain -eq 0 ]
-then
-	# Backup the current version of the app
-	ynh_backup_before_upgrade
-	ynh_clean_setup () {
-		# restore it if the upgrade fails
-		ynh_restore_upgradebackup
-	}
-	# Exit if an error occurs during the execution of the script
-	ynh_abort_if_errors
-fi
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
 
 #=================================================
 # STANDARD MODIFICATIONS
