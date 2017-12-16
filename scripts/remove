@@ -26,7 +26,7 @@ port=$(ynh_app_setting_get $app port)
 
 if yunohost service status | grep -q pihole-FTL	# Test l'existence du service dans Yunohost
 then
-	echo "Remove pihole-FTL service"
+	ynh_print_info "Remove pihole-FTL service" >&2
 	yunohost service remove pihole-FTL
 fi
 
@@ -35,7 +35,7 @@ fi
 #=================================================
 
 systemctl stop pihole-FTL
-SUPPRESS_WARNING systemctl disable pihole-FTL
+ynh_exec_warn_less systemctl disable pihole-FTL
 rm -f "/etc/init.d/pihole-FTL" "/usr/bin/pihole-FTL" "/var/run/pihole-FTL.pid" "/var/run/pihole-FTL.port"
 
 #=================================================
@@ -71,14 +71,14 @@ ynh_remove_fpm_config	# Suppression de la configuration du pool php-fpm
 
 if yunohost firewall list | grep -q "\- $port$"
 then
-	echo "Close port $port"
-	QUIET yunohost firewall disallow TCP $port
+	ynh_print_info "Close port $port" >&2
+	ynh_exec_quiet yunohost firewall disallow TCP $port
 fi
 
 if yunohost firewall list | grep -q "\- 67$"
 then
-	echo "Close port 67"
-	QUIET yunohost firewall disallow UDP 67
+	ynh_print_info "Close port 67" >&2
+	ynh_exec_quiet yunohost firewall disallow UDP 67
 fi
 
 #=================================================
@@ -136,7 +136,7 @@ systemctl start dnsmasq
 # REMOVE THE CONF_REGEN HOOK
 #=================================================
 
-rm /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+ynh_secure_remove /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
 
 #=================================================
 # GENERIC FINALISATION

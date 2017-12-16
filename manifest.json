@@ -6,9 +6,9 @@
 		"en": "Network-wide ad blocking via your own DNS server.",
 		"fr": "Filtrage publicitaire sur l'ensemble du réseau via votre propre serveur DNS."
 	},
-	"version": "3.1.4",
+	"version": "3.1.4~ynh1",
 	"url": "https://pi-hole.net/",
-	"license": " EUPL-1.2",
+	"license": "EUPL-1.2",
 	"maintainer": {
 		"name": "Maniack Crudelis",
 		"email": "maniackc_dev@crudelis.fr"

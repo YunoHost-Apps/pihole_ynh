@@ -23,6 +23,12 @@ final_path=$(ynh_app_setting_get $app final_path)
 port=$(ynh_app_setting_get $app port)
 
 #=================================================
+# CHECK VERSION
+#=================================================
+
+ynh_abort_if_up_to_date
+
+#=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
 
@@ -116,11 +122,11 @@ systemctl stop pihole-FTL
 git clone https://github.com/pi-hole/FTL
 # Plutôt que télécharger le binaire C, on le compile nous-même.
 ( cd FTL
-SUPPRESS_WARNING make
-SUPPRESS_WARNING make install )
+ynh_exec_warn_less make
+ynh_exec_warn_less make install )
 cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
-SUPPRESS_WARNING systemctl enable pihole-FTL
+ynh_exec_warn_less systemctl enable pihole-FTL
 
 #=================================================
 # BUILD THE VARIABLES FILE

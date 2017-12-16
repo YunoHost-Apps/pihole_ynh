@@ -52,6 +52,7 @@ ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app path $path_url
 ynh_app_setting_set $app admin $admin
 ynh_app_setting_set $app query_logging $query_logging
+ynh_app_setting_set $app enable_dhcp $enable_dhcp
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -65,12 +66,12 @@ then
 	ynh_die "The ports 4711 to 4720 are already in use. Pi-hole can't works on another port. Please try to free one of this ports."
 fi
 # Ouvre le port dans le firewall
-ALL_QUIET yunohost firewall allow --no-upnp TCP $port
+ynh_exec_fully_quiet yunohost firewall allow --no-upnp TCP $port
 ynh_app_setting_set $app port $port
 
 # Désactive le port 53 en upnp
-ALL_QUIET yunohost firewall disallow Both 53 --no-reload
-ALL_QUIET yunohost firewall allow Both 53 --no-upnp
+ynh_exec_fully_quiet yunohost firewall disallow Both 53 --no-reload
+ynh_exec_fully_quiet yunohost firewall allow Both 53 --no-upnp
 
 #=================================================
 # INSTALL DEPENDENCIES
@@ -164,11 +165,11 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 git clone https://github.com/pi-hole/FTL
 # Plutôt que télécharger le binaire C, on le compile nous-même.
 ( cd FTL
-SUPPRESS_WARNING make
-SUPPRESS_WARNING make install )
+ynh_exec_warn_less make
+ynh_exec_warn_less make install )
 cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
-SUPPRESS_WARNING systemctl enable pihole-FTL
+ynh_exec_warn_less systemctl enable pihole-FTL
 
 #=================================================
 # BUILD THE VARIABLES FILE
@@ -271,7 +272,7 @@ then
 fi
 
 # Open the UDP port 67 for dhcp
-ALL_QUIET yunohost firewall allow UDP 67 --no-upnp
+ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 
 #=================================================
 # RESTART DNSMASQ
@@ -290,7 +291,7 @@ cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
 #=================================================
 
 cp "$pihole_local_repo/adlists.default" "$pihole_storage/adlists.default"
-SUPPRESS_WARNING /opt/pihole/gravity.sh
+ynh_exec_warn_less /opt/pihole/gravity.sh
 
 #=================================================
 # START PIHOLE-FTL
@@ -323,3 +324,21 @@ yunohost app addaccess --users=$admin $app
 #=================================================
 
 systemctl reload nginx
+
+#=================================================
+# SEND A README FOR THE ADMIN
+#=================================================
+
+if [ $enable_dhcp -eq 1 ]
+then
+	dhcp_alert="You asked to use the internal DHCP server of dnsmasq with PiHole.
+You should really read the documentation about that, https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md
+
+"
+else
+	dhcp_alert=""
+fi
+
+message="${dhcp_alert}If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/pihole_ynh"
+
+ynh_send_readme_to_admin "$message" "$admin"
