@@ -32,12 +32,14 @@ app=$YNH_APP_INSTANCE_NAME
 domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
+enable_dhcp=$(ynh_app_setting_get $app enable_dhcp)
+admin=$(ynh_app_setting_get $app admin)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
 
-yunohost app checkurl "${domain}${path_url}" -a "$app" \
+ynh_webpath_available $domain $path_url \
 	|| ynh_die "Path not available: ${domain}${path_url}"
 test ! -d $final_path \
 	|| ynh_die "There is already a directory: $final_path "
@@ -184,7 +186,7 @@ ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichi
 # START PIHOLE-FTL
 #=================================================
 
-SUPPRESS_WARNING systemctl enable pihole-FTL
+ynh_exec_warn_less systemctl enable pihole-FTL
 systemctl start pihole-FTL
 
 #=================================================
@@ -195,3 +197,21 @@ systemctl start pihole-FTL
 
 systemctl reload php5-fpm
 systemctl reload nginx
+
+#=================================================
+# SEND A README FOR THE ADMIN
+#=================================================
+
+if [ $enable_dhcp -eq 1 ]
+then
+	dhcp_alert="You asked to use the internal DHCP server of dnsmasq with PiHole.
+You should really read the documentation about that, https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md
+
+"
+else
+	dhcp_alert=""
+fi
+
+message="${dhcp_alert}If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/pihole_ynh"
+
+ynh_send_readme_to_admin "$message" "$admin"
