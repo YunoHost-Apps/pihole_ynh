@@ -33,6 +33,7 @@ domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
 final_path=$(ynh_app_setting_get $app final_path)
 enable_dhcp=$(ynh_app_setting_get $app enable_dhcp)
+admin=$(ynh_app_setting_get $app admin)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
