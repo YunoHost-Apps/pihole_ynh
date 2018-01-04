@@ -8,6 +8,7 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+source _sed
 
 #=================================================
 # RETRIEVE ARGUMENTS
@@ -64,7 +65,20 @@ nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
 # Change the path in the nginx config file
 if [ $change_path -eq 1 ]
 then
-	ynh_replace_string "location $old_path" "location $new_path" "$nginx_conf_path"
+
+	# Move from sub path to root
+	if [ "$new_path" == "/" ]
+	then
+		ynh_replace_string "^ *rewrite.*\^$old_path" "#sub_path_only&" "$nginx_conf_path"
+		ynh_replace_string "\(rewrite *\^\)$old_path\$ $old_path/*" "\1$new_path$ $new_path" "$nginx_conf_path"
+
+	# Move to a sub path
+	else
+		ynh_replace_string "^#sub_path_only" "" "$nginx_conf_path"
+		ynh_replace_string "\(rewrite *\^\)$old_path\$ $old_path/*" "\1$new_path$ $new_path/" "$nginx_conf_path"
+	fi
+
+	ynh_replace_string "location ${old_path%/}/" "location ${new_path%/}/" "$nginx_conf_path"
 fi
 
 # Change the domain for nginx

@@ -454,6 +454,11 @@ EOF
 	ynh_store_file_checksum "$finalfail2banfilterconf"
 
 	sudo systemctl restart fail2ban
+	if local fail2ban_error="$(tail -n50 /var/log/fail2ban.log | grep "WARNING Command.*$app.*addfailregex")"
+	then
+		echo "[ERR] Fail2ban fail to load the jail for $app" >&2
+		echo "WARNING${fail2ban_error#*WARNING}" >&2
+	fi
 }
 
 # Remove the dedicated fail2ban config (jail and filter conf files)
