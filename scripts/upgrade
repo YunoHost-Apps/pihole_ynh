@@ -8,6 +8,8 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+# Load common variables for all scripts.
+source _variables
 
 #=================================================
 # LOAD SETTINGS
@@ -49,6 +51,12 @@ path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du
 
 #=================================================
 # STANDARD UPGRADE STEPS
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
+
+ynh_install_app_dependencies $app_depencencies
+
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
@@ -123,11 +131,16 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 
 systemctl stop pihole-FTL
 
-git clone https://github.com/pi-hole/FTL
+# Get the source of Pi-Hole-FTL
+FTL_temp_path=$(mktemp -d)
+ynh_setup_source "$FTL_temp_path" FTL
+
 # Plutôt que télécharger le binaire C, on le compile nous-même.
-( cd FTL
+( cd "$FTL_temp_path"
 ynh_exec_warn_less make
 ynh_exec_warn_less make install )
+ynh_secure_remove "$FTL_temp_path"
+
 cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
 ynh_exec_warn_less systemctl enable pihole-FTL

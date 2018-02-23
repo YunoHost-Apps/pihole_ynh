@@ -166,11 +166,18 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 # INSTALLATION OF PIHOLE-FTL
 #=================================================
 
-git clone https://github.com/pi-hole/FTL
+# Get the source of Pi-Hole-FTL
+FTL_temp_path=$(mktemp -d)
+ynh_setup_source "$FTL_temp_path" FTL
+
 # Plutôt que télécharger le binaire C, on le compile nous-même.
-( cd FTL
+( cd "$FTL_temp_path"
 ynh_exec_warn_less make
 ynh_exec_warn_less make install )
+ynh_secure_remove "$FTL_temp_path"
+
+cp "../conf/pihole-FTL.conf" "$pihole_storage"
+
 cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
 ynh_exec_warn_less systemctl enable pihole-FTL
@@ -217,6 +224,9 @@ if [ "$query_logging" = "true" ]; then
 else
 	ynh_replace_string "^log-queries" "#log-queries" $pihole_dnsmasq_config
 fi
+
+# Fix a too recent option for our dnsmasq version.
+ynh_replace_string "log-queries=extra" "log-queries" $pihole_dnsmasq_config
 
 ynh_store_file_checksum "$pihole_dnsmasq_config"	# Enregistre la somme de contrôle du fichier de config
 

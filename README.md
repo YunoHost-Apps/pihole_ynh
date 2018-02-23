@@ -11,7 +11,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 ## Overview
 Network-wide ad blocking via your own Linux hardware
 
-**Shipped version:** 3.1.4
+**Shipped version:** 3.3
 
 ## Screenshots
 
@@ -40,6 +40,7 @@ Use the admin panel of your Pi-hole to configure this app.
 ## Limitations
 
 * Activate DHCP with Pi-hole need a manuel configuration of your router.
+* Pi-Hole-FTL can't be upgrade above the version 2.13.2, because of the usage of an option of dnsmasq not yet available on Jessie.
 
 ## Additionnal informations
 
