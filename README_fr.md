@@ -11,7 +11,7 @@ Si vous n'avez pas YunoHost, merci de regarder [ici](https://yunohost.org/#/inst
 ## Résumé
 Blocage des publicités sur l'ensemble du réseau via votre propre matériel Linux
 
-**Version embarquée:** 3.1.4
+**Version embarquée:** 3.3
 
 ## Captures d'écran
 
@@ -40,6 +40,7 @@ Utiliser le panneau d'administration de votre Pi-hole pour configurer cette appl
 ## Limitations
 
 * Activer DHCP avec Pi-hole nécessite une configuration manuelle de votre routeur.
+* Pi-Hole-FTL ne peut pas être mis à jour au-delà de la version 2.13.2, à cause de l'utilisation d'une option de dnsmasq non encore disponible sur Jessie.
 
 ## Informations additionnelles
 
