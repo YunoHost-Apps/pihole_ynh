@@ -100,6 +100,9 @@ pihole_dir="/opt/pihole"
 cp -a "$pihole_local_repo/gravity.sh" "$pihole_dir/"
 cp -a $pihole_local_repo/advanced/Scripts/*.sh "$pihole_dir/"
 
+# And copy this fucking COL_TABLE file...
+cp -a "$pihole_local_repo/advanced/Scripts/COL_TABLE" "$pihole_dir/"
+
 #=================================================
 # Copy the Pi-hole main script
 #=================================================
@@ -175,6 +178,8 @@ ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichi
 #=================================================
 
 cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
+# Remove git usage for version. Which fails because we use here a release instead of master.
+ynh_replace_string ".*updatechecker.*" "#&" /etc/cron.d/pihole
 
 #=================================================
 # START PIHOLE-FTL

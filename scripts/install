@@ -129,6 +129,9 @@ mkdir -p "$pihole_dir"
 cp -a "$pihole_local_repo/gravity.sh" "$pihole_dir/"
 cp -a $pihole_local_repo/advanced/Scripts/*.sh "$pihole_dir/"
 
+# And copy this fucking COL_TABLE file...
+cp -a "$pihole_local_repo/advanced/Scripts/COL_TABLE" "$pihole_dir/"
+
 #=================================================
 # COPY THE PI-HOLE MAIN SCRIPT
 #=================================================
@@ -299,6 +302,8 @@ systemctl start dnsmasq
 #=================================================
 
 cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
+# Remove git usage for version. Which fails because we use here a release instead of master.
+ynh_replace_string ".*updatechecker.*" "#&" /etc/cron.d/pihole
 
 #=================================================
 # BUILD THE LISTS WITH GRAVITY
