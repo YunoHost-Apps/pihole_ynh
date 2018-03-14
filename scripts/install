@@ -212,7 +212,7 @@ ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichi
 # SET UP THE DNSMASQ CONFIG
 #=================================================
 
-systemctl stop dnsmasq
+ynh_system_reload dnsmasq stop
 
 pihole_dnsmasq_config="/etc/dnsmasq.d/01-pihole.conf"
 cp "$pihole_local_repo/advanced/01-pihole.conf" $pihole_dnsmasq_config
@@ -295,7 +295,7 @@ ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 # RESTART DNSMASQ
 #=================================================
 
-systemctl start dnsmasq
+ynh_system_reload dnsmasq restart
 
 #=================================================
 # INSTALL THE CRON JOB
@@ -316,7 +316,7 @@ ynh_exec_warn_less /opt/pihole/gravity.sh
 # START PIHOLE-FTL
 #=================================================
 
-systemctl start pihole-FTL
+ynh_system_reload pihole-FTL restart
 
 #=================================================
 # SET UP THE CONF_REGEN HOOK
@@ -342,7 +342,7 @@ yunohost app addaccess --users=$admin $app
 # RELOAD NGINX
 #=================================================
 
-systemctl reload nginx
+ynh_system_reload nginx
 
 #=================================================
 # SEND A README FOR THE ADMIN

@@ -131,7 +131,7 @@ ynh_restore_file "/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 # RESTORE OF DNSMASQ CONFIG
 #=================================================
 
-systemctl stop dnsmasq
+ynh_system_reload dnsmasq stop
 
 ynh_restore_file "/etc/dnsmasq.d/01-pihole.conf"
 test -e "${YNH_APP_BACKUP_DIR}/etc/dnsmasq.d/02-pihole-dhcp.conf" && \
@@ -168,7 +168,7 @@ done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
 # RESTART DNSMASQ
 #=================================================
 
-systemctl start dnsmasq
+ynh_system_reload dnsmasq restart
 
 #=================================================
 # UPDATE THE VARIABLES FILE
@@ -187,7 +187,7 @@ ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichi
 #=================================================
 
 ynh_exec_warn_less systemctl enable pihole-FTL
-systemctl start pihole-FTL
+ynh_system_reload pihole-FTL restart
 
 #=================================================
 # GENERIC FINALISATION
@@ -195,8 +195,8 @@ systemctl start pihole-FTL
 # RELOAD NGINX AND PHP-FPM
 #=================================================
 
-systemctl reload php5-fpm
-systemctl reload nginx
+ynh_system_reload php5-fpm
+ynh_system_reload nginx
 
 #=================================================
 # SEND A README FOR THE ADMIN

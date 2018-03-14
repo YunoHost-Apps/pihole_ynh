@@ -35,7 +35,8 @@ Use the admin panel of your Pi-hole to configure this app.
 
 #### Supported architectures
 
-* Tested on x86_64
+* x86-64b - [![Build Status](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)/badge/icon)](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)/)
+* ARMv8-A - [![Build Status](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/badge/icon)](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/)
 
 ## Limitations
 
