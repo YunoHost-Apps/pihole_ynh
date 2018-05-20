@@ -45,6 +45,12 @@ test ! -d $final_path \
 	|| ynh_die "There is already a directory: $final_path "
 
 #=================================================
+# ACTIVATE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_ON
+
+#=================================================
 # STANDARD RESTORE STEPS
 #=================================================
 # RESTORE OF THE NGINX CONFIGURATION
@@ -197,6 +203,12 @@ ynh_system_reload pihole-FTL restart
 
 ynh_system_reload php5-fpm
 ynh_system_reload nginx
+
+#=================================================
+# DEACTIVE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_OFF
 
 #=================================================
 # SEND A README FOR THE ADMIN

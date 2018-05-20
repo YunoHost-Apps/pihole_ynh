@@ -1,6 +1,6 @@
 # Pi-hole pour YunoHost
 
-[![Niveau d'intégration](https://dash.yunohost.org/integration/pihole.svg)](https://ci-apps.yunohost.org/jenkins/job/pihole%20%28Community%29/lastBuild/consoleFull)  
+[![Niveau d'intégration](https://dash.yunohost.org/integration/pihole.svg)](https://dash.yunohost.org/appci/app/pihole)  
 [![Installer Pi-hole avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=pihole)
 
 *[Read this readme in english.](./README.md)*
@@ -11,11 +11,15 @@ Si vous n'avez pas YunoHost, merci de regarder [ici](https://yunohost.org/#/inst
 ## Résumé
 Blocage des publicités sur l'ensemble du réseau via votre propre matériel Linux
 
-**Version embarquée:** 3.3
+**Version embarquée:** 3.3.1
 
 ## Captures d'écran
 
 ![](https://i0.wp.com/pi-hole.net/wp-content/uploads/2016/12/dashboard212.png)
+
+## Démo
+
+Aucune démo pour cette application.
 
 ## Configuration
 
@@ -36,7 +40,7 @@ Utiliser le panneau d'administration de votre Pi-hole pour configurer cette appl
 #### Architectures supportées.
 
 * x86-64b - [![Build Status](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)/badge/icon)](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)/)
-* ARMv8-A - [![Build Status](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/badge/icon)](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/)
+* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/badge/icon)](https://ci-apps-arm.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/)
 
 ## Limitations
 
