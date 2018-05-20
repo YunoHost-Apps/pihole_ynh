@@ -28,7 +28,14 @@ ynh_abort_if_errors
 app=$YNH_APP_INSTANCE_NAME
 
 final_path=$(ynh_app_setting_get $app final_path)
+path_url=$(ynh_app_setting_get $app path)
 domain=$(ynh_app_setting_get $app domain)
+
+#=================================================
+# ACTIVATE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_ON
 
 #=================================================
 # STANDARD BACKUP STEPS
@@ -93,3 +100,9 @@ if test -e "/etc/dnsmasq.d/04-pihole-static-dhcp.conf"; then
 fi
 
 ynh_backup "/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+
+#=================================================
+# DEACTIVE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_OFF

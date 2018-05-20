@@ -55,6 +55,12 @@ ynh_app_setting_set $app query_logging $query_logging
 ynh_app_setting_set $app enable_dhcp $enable_dhcp
 
 #=================================================
+# ACTIVATE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_ON
+
+#=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # FIND AND OPEN A PORT
@@ -343,6 +349,12 @@ yunohost app addaccess --users=$admin $app
 #=================================================
 
 ynh_system_reload nginx
+
+#=================================================
+# DEACTIVE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_OFF
 
 #=================================================
 # SEND A README FOR THE ADMIN

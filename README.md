@@ -1,6 +1,6 @@
 # Pi-hole for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/pihole.svg)](https://ci-apps.yunohost.org/jenkins/job/pihole%20%28Community%29/lastBuild/consoleFull)  
+[![Integration level](https://dash.yunohost.org/integration/pihole.svg)](https://dash.yunohost.org/appci/app/pihole)  
 [![Install Pi-hole with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=pihole)
 
 *[Lire ce readme en français.](./README_fr.md)*
@@ -11,11 +11,15 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 ## Overview
 Network-wide ad blocking via your own Linux hardware
 
-**Shipped version:** 3.3
+**Shipped version:** 3.3.1
 
 ## Screenshots
 
 ![](https://i0.wp.com/pi-hole.net/wp-content/uploads/2016/12/dashboard212.png)
+
+## Demo
+
+No demo available.
 
 ## Configuration
 
@@ -36,7 +40,7 @@ Use the admin panel of your Pi-hole to configure this app.
 #### Supported architectures
 
 * x86-64b - [![Build Status](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)/badge/icon)](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)/)
-* ARMv8-A - [![Build Status](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/badge/icon)](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/)
+* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/badge/icon)](https://ci-apps-arm.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/)
 
 ## Limitations
 
