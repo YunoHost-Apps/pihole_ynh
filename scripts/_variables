@@ -1,4 +1,9 @@
 #!/bin/bash
 
 # Dependencies
-app_depencencies="dhcpcd5 sqlite php5-sqlite idn2"
+app_depencencies="dhcpcd5 sqlite idn2"
+if [ "$(lsb_release --codename --short)" != "jessie" ]; then
+	app_depencencies="$app_depencencies php-sqlite3"
+else
+	app_depencencies="$app_depencencies php5-sqlite"
+fi
