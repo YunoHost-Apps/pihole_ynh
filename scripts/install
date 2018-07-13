@@ -55,12 +55,6 @@ ynh_app_setting_set $app query_logging $query_logging
 ynh_app_setting_set $app enable_dhcp $enable_dhcp
 
 #=================================================
-# ACTIVATE MAINTENANCE MODE
-#=================================================
-
-ynh_maintenance_mode_ON
-
-#=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # FIND AND OPEN A PORT
@@ -100,10 +94,6 @@ ynh_setup_source "$final_path" admin_dashboard
 # NGINX CONFIGURATION
 #=================================================
 
-if [ "$path_url" != "/" ]
-then
-	ynh_replace_string "^#sub_path_only" "" "../conf/nginx.conf"
-fi
 ynh_add_nginx_config
 
 #=================================================
@@ -218,7 +208,7 @@ ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichi
 # SET UP THE DNSMASQ CONFIG
 #=================================================
 
-ynh_system_reload dnsmasq stop
+ynh_system_reload --service_name=dnsmasq --action=stop
 
 pihole_dnsmasq_config="/etc/dnsmasq.d/01-pihole.conf"
 cp "$pihole_local_repo/advanced/01-pihole.conf" $pihole_dnsmasq_config
@@ -301,7 +291,7 @@ ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 # RESTART DNSMASQ
 #=================================================
 
-ynh_system_reload dnsmasq restart
+ynh_system_reload --service_name=dnsmasq --action=restart
 
 #=================================================
 # INSTALL THE CRON JOB
@@ -322,7 +312,7 @@ ynh_exec_warn_less /opt/pihole/gravity.sh
 # START PIHOLE-FTL
 #=================================================
 
-ynh_system_reload pihole-FTL restart
+ynh_system_reload --service_name=pihole-FTL --action=restart
 
 #=================================================
 # SET UP THE CONF_REGEN HOOK
@@ -348,13 +338,7 @@ yunohost app addaccess --users=$admin $app
 # RELOAD NGINX
 #=================================================
 
-ynh_system_reload nginx
-
-#=================================================
-# DEACTIVE MAINTENANCE MODE
-#=================================================
-
-ynh_maintenance_mode_OFF
+ynh_system_reload --service_name=nginx
 
 #=================================================
 # SEND A README FOR THE ADMIN
@@ -372,4 +356,4 @@ fi
 
 message="${dhcp_alert}If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/pihole_ynh"
 
-ynh_send_readme_to_admin "$message" "$admin"
+ynh_send_readme_to_admin --app_message="$message" --recipients="$admin"

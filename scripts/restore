@@ -6,12 +6,7 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-if [ ! -e _common.sh ]; then
-	# Get the _common.sh file if it's not in the current directory
-	cp ../settings/scripts/_common.sh ./_common.sh
-	chmod a+rx _common.sh
-fi
-source _common.sh
+source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 # Load common variables for all scripts.
 source ../settings/scripts/_variables
@@ -137,7 +132,7 @@ ynh_restore_file "/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 # RESTORE OF DNSMASQ CONFIG
 #=================================================
 
-ynh_system_reload dnsmasq stop
+ynh_system_reload --service_name=dnsmasq --action=stop
 
 ynh_restore_file "/etc/dnsmasq.d/01-pihole.conf"
 test -e "${YNH_APP_BACKUP_DIR}/etc/dnsmasq.d/02-pihole-dhcp.conf" && \
@@ -174,7 +169,7 @@ done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
 # RESTART DNSMASQ
 #=================================================
 
-ynh_system_reload dnsmasq restart
+ynh_system_reload --service_name=dnsmasq --action=restart
 
 #=================================================
 # UPDATE THE VARIABLES FILE
@@ -193,7 +188,7 @@ ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichi
 #=================================================
 
 ynh_exec_warn_less systemctl enable pihole-FTL
-ynh_system_reload pihole-FTL restart
+ynh_system_reload --service_name=pihole-FTL --action=restart
 
 #=================================================
 # GENERIC FINALISATION
@@ -201,8 +196,8 @@ ynh_system_reload pihole-FTL restart
 # RELOAD NGINX AND PHP-FPM
 #=================================================
 
-ynh_system_reload php5-fpm
-ynh_system_reload nginx
+ynh_system_reload --service_name=php5-fpm
+ynh_system_reload --service_name=nginx
 
 #=================================================
 # DEACTIVE MAINTENANCE MODE
@@ -226,4 +221,4 @@ fi
 
 message="${dhcp_alert}If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/pihole_ynh"
 
-ynh_send_readme_to_admin "$message" "$admin"
+ynh_send_readme_to_admin --app_message="$message" --recipients="$admin"
