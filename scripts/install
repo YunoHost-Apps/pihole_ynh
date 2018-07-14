@@ -188,7 +188,7 @@ ynh_exec_warn_less systemctl enable pihole-FTL
 setupVars="$pihole_storage/setupVars.conf"
 
 # Trouve l'interface réseau par défaut
-main_iface=$(route | grep default | awk '{print $8;}' | head -n1)
+main_iface=$(ip route | grep default | awk '{print $5;}')
 echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
 echo "IPV6_ADDRESS=" >> $setupVars
@@ -237,7 +237,7 @@ ynh_replace_string "^cache-size=" "#pihole# cache-size=" /etc/dnsmasq.conf
 #=================================================
 
 # Trouve l'ipv4 associée à l'interface trouvée
-localipv4=$(ifconfig | grep -A 1 "$main_iface" | tail -1 | awk '{print $2;}' | cut -d: -f2)
+localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
 
 # Liste les domaines de yunohost
 while read perdomain
@@ -268,9 +268,9 @@ then
 	a_range=$(( $b_range - $dhcp_range ))
 
 	# Get the gateway
-	gateway=$(route | grep default | awk '{print $2;}' | head -n1)
+	gateway=$(ip route | grep default | awk '{print $3;}')
 	# And the mac adress
-	hw_adress=$(ifconfig | grep "eth0" | awk '{print $5;}')
+	hw_adress=$(ip link | grep -A1 "$main_iface" | tail -n1 | awk '{print $2;}')
 
 	# Copy the config file
 	cp "../conf/02-pihole-dhcp.conf" "/etc/dnsmasq.d/"

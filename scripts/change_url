@@ -22,6 +22,12 @@ new_path=$YNH_APP_NEW_PATH
 app=$YNH_APP_INSTANCE_NAME
 
 #=================================================
+# LOAD SETTINGS
+#=================================================
+
+final_path=$(ynh_app_setting_get $app final_path)
+
+#=================================================
 # CHECK THE SYNTAX OF THE PATHS
 #=================================================
 

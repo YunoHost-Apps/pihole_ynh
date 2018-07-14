@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Dependencies
-app_depencencies="dhcpcd5 sqlite idn2"
+app_depencencies="sqlite idn2"
+# dhcpcd5 has been removed because it can cause some problems with the internet connection.
 if [ "$(lsb_release --codename --short)" != "jessie" ]; then
 	app_depencencies="$app_depencencies php-sqlite3"
 else
