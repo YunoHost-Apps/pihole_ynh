@@ -28,7 +28,7 @@ port=$(ynh_app_setting_get $app port)
 # CHECK VERSION
 #=================================================
 
-ynh_abort_if_up_to_date
+upgrade_type=$(ynh_check_app_version_changed)
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
@@ -67,20 +67,19 @@ ynh_install_app_dependencies $app_depencencies
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
-# Update la copie du repo de pihole (nécessaire pour Gravity)
-pihole_local_repo="/etc/.pihole"
-ynh_setup_source "$pihole_local_repo"
-# Update le dashboard admin
-ynh_setup_source "$final_path" admin_dashboard
+if [ "$upgrade_type" == "UPGRADE_APP" ]
+then
+	# Update la copie du repo de pihole (nécessaire pour Gravity)
+	pihole_local_repo="/etc/.pihole"
+	ynh_setup_source "$pihole_local_repo"
+	# Update le dashboard admin
+	ynh_setup_source "$final_path" admin_dashboard
+fi
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 
-if [ "$path_url" != "/" ]
-then
-	ynh_replace_string "^#sub_path_only" "" "../conf/nginx.conf"
-fi
 ynh_add_nginx_config
 
 #=================================================
@@ -138,17 +137,20 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 # UPDATE OF PIHOLE-FTL
 #=================================================
 
-ynh_system_reload pihole-FTL stop
+ynh_system_reload --service_name=pihole-FTL --action=stop
 
-# Get the source of Pi-Hole-FTL
-FTL_temp_path=$(mktemp -d)
-ynh_setup_source "$FTL_temp_path" FTL
+if [ "$upgrade_type" == "UPGRADE_APP" ]
+then
+	# Get the source of Pi-Hole-FTL
+	FTL_temp_path=$(mktemp -d)
+	ynh_setup_source "$FTL_temp_path" FTL
 
-# Plutôt que télécharger le binaire C, on le compile nous-même.
-( cd "$FTL_temp_path"
-ynh_exec_warn_less make
-ynh_exec_warn_less make install )
-ynh_secure_remove "$FTL_temp_path"
+	# Plutôt que télécharger le binaire C, on le compile nous-même.
+	( cd "$FTL_temp_path"
+	ynh_exec_warn_less make
+	ynh_exec_warn_less make install )
+	ynh_secure_remove "$FTL_temp_path"
+fi
 
 cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
@@ -163,7 +165,7 @@ setupVars="$pihole_storage/setupVars.conf"
 ynh_backup_if_checksum_is_different "$setupVars"	# Créé un backup du fichier de config si il a été modifié.
 
 # Trouve l'interface réseau par défaut
-main_iface=$(route | grep default | awk '{print $8;}' | head -n1)
+main_iface=$(ip route | grep default | awk '{print $5;}')
 echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
 echo "IPV6_ADDRESS=" >> $setupVars
@@ -191,7 +193,7 @@ ynh_replace_string ".*updatechecker.*" "#&" /etc/cron.d/pihole
 # START PIHOLE-FTL
 #=================================================
 
-ynh_system_reload pihole-FTL restart
+ynh_system_reload --service_name=pihole-FTL --action=restart
 
 #=================================================
 # UPDATE THE CONF_REGEN HOOK
@@ -203,7 +205,7 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 # RELOAD NGINX
 #=================================================
 
-ynh_system_reload nginx
+ynh_system_reload --service_name=nginx
 
 #=================================================
 # DEACTIVE MAINTENANCE MODE

@@ -55,12 +55,6 @@ ynh_app_setting_set $app query_logging $query_logging
 ynh_app_setting_set $app enable_dhcp $enable_dhcp
 
 #=================================================
-# ACTIVATE MAINTENANCE MODE
-#=================================================
-
-ynh_maintenance_mode_ON
-
-#=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # FIND AND OPEN A PORT
@@ -100,10 +94,6 @@ ynh_setup_source "$final_path" admin_dashboard
 # NGINX CONFIGURATION
 #=================================================
 
-if [ "$path_url" != "/" ]
-then
-	ynh_replace_string "^#sub_path_only" "" "../conf/nginx.conf"
-fi
 ynh_add_nginx_config
 
 #=================================================
@@ -198,7 +188,7 @@ ynh_exec_warn_less systemctl enable pihole-FTL
 setupVars="$pihole_storage/setupVars.conf"
 
 # Trouve l'interface réseau par défaut
-main_iface=$(route | grep default | awk '{print $8;}' | head -n1)
+main_iface=$(ip route | grep default | awk '{print $5;}')
 echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
 echo "IPV6_ADDRESS=" >> $setupVars
@@ -218,7 +208,7 @@ ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichi
 # SET UP THE DNSMASQ CONFIG
 #=================================================
 
-ynh_system_reload dnsmasq stop
+ynh_system_reload --service_name=dnsmasq --action=stop
 
 pihole_dnsmasq_config="/etc/dnsmasq.d/01-pihole.conf"
 cp "$pihole_local_repo/advanced/01-pihole.conf" $pihole_dnsmasq_config
@@ -247,7 +237,7 @@ ynh_replace_string "^cache-size=" "#pihole# cache-size=" /etc/dnsmasq.conf
 #=================================================
 
 # Trouve l'ipv4 associée à l'interface trouvée
-localipv4=$(ifconfig | grep -A 1 "$main_iface" | tail -1 | awk '{print $2;}' | cut -d: -f2)
+localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
 
 # Liste les domaines de yunohost
 while read perdomain
@@ -278,9 +268,9 @@ then
 	a_range=$(( $b_range - $dhcp_range ))
 
 	# Get the gateway
-	gateway=$(route | grep default | awk '{print $2;}' | head -n1)
+	gateway=$(ip route | grep default | awk '{print $3;}')
 	# And the mac adress
-	hw_adress=$(ifconfig | grep "eth0" | awk '{print $5;}')
+	hw_adress=$(ip link | grep -A1 "$main_iface" | tail -n1 | awk '{print $2;}')
 
 	# Copy the config file
 	cp "../conf/02-pihole-dhcp.conf" "/etc/dnsmasq.d/"
@@ -301,7 +291,7 @@ ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 # RESTART DNSMASQ
 #=================================================
 
-ynh_system_reload dnsmasq restart
+ynh_system_reload --service_name=dnsmasq --action=restart
 
 #=================================================
 # INSTALL THE CRON JOB
@@ -322,7 +312,7 @@ ynh_exec_warn_less /opt/pihole/gravity.sh
 # START PIHOLE-FTL
 #=================================================
 
-ynh_system_reload pihole-FTL restart
+ynh_system_reload --service_name=pihole-FTL --action=restart
 
 #=================================================
 # SET UP THE CONF_REGEN HOOK
@@ -348,13 +338,7 @@ yunohost app addaccess --users=$admin $app
 # RELOAD NGINX
 #=================================================
 
-ynh_system_reload nginx
-
-#=================================================
-# DEACTIVE MAINTENANCE MODE
-#=================================================
-
-ynh_maintenance_mode_OFF
+ynh_system_reload --service_name=nginx
 
 #=================================================
 # SEND A README FOR THE ADMIN
@@ -372,4 +356,4 @@ fi
 
 message="${dhcp_alert}If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/pihole_ynh"
 
-ynh_send_readme_to_admin "$message" "$admin"
+ynh_send_readme_to_admin --app_message="$message" --recipients="$admin"
