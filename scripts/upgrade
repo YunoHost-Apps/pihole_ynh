@@ -67,10 +67,10 @@ ynh_install_app_dependencies $app_depencencies
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
+pihole_local_repo="/etc/.pihole"
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	# Update la copie du repo de pihole (nécessaire pour Gravity)
-	pihole_local_repo="/etc/.pihole"
 	ynh_setup_source "$pihole_local_repo"
 	# Update le dashboard admin
 	ynh_setup_source "$final_path" admin_dashboard
