@@ -31,6 +31,24 @@ IS_PACKAGE_CHECK () {
 }
 
 #=================================================
+# BOOLEAN CONVERTER
+#=================================================
+
+bool_to_01 () {
+	local var="$1"
+	[ "$var" = "true" ] && var=1
+	[ "$var" = "false" ] && var=0
+	echo "$var"
+}
+
+bool_to_true_false () {
+	local var="$1"
+	[ "$var" = "1" ] && var=true
+	[ "$var" = "0" ] && var=false
+	echo "$var"
+}
+
+#=================================================
 # EXPERIMENTAL HELPERS
 #=================================================
 

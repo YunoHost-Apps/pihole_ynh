@@ -23,12 +23,44 @@ admin=$(ynh_app_setting_get $app admin)
 query_logging=$(ynh_app_setting_get $app query_logging)
 final_path=$(ynh_app_setting_get $app final_path)
 port=$(ynh_app_setting_get $app port)
+overwrite_setupvars=$(ynh_app_setting_get $app overwrite_setupvars)
+overwrite_ftl=$(ynh_app_setting_get $app overwrite_ftl)
+overwrite_nginx=$(ynh_app_setting_get $app overwrite_nginx)
+overwrite_phpfpm=$(ynh_app_setting_get $app overwrite_phpfpm)
 
 #=================================================
 # CHECK VERSION
 #=================================================
 
 upgrade_type=$(ynh_check_app_version_changed)
+
+#=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+
+# If overwrite_setupvars doesn't exist, create it
+if [ -z "$overwrite_setupvars" ]; then
+	overwrite_setupvars=1
+	ynh_app_setting_set $app overwrite_setupvars $overwrite_setupvars
+fi
+
+# If overwrite_ftl doesn't exist, create it
+if [ -z "$overwrite_ftl" ]; then
+	overwrite_ftl=1
+	ynh_app_setting_set $app overwrite_ftl $overwrite_ftl
+fi
+
+# If overwrite_nginx doesn't exist, create it
+if [ -z "$overwrite_nginx" ]; then
+	overwrite_nginx=1
+	ynh_app_setting_set $app overwrite_nginx $overwrite_nginx
+fi
+
+# If overwrite_phpfpm doesn't exist, create it
+if [ -z "$overwrite_phpfpm" ]; then
+	overwrite_phpfpm=1
+	ynh_app_setting_set $app overwrite_phpfpm $overwrite_phpfpm
+fi
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
@@ -80,7 +112,11 @@ fi
 # NGINX CONFIGURATION
 #=================================================
 
-ynh_add_nginx_config
+# Overwrite the nginx configuration only if it's allowed
+if [ $overwrite_nginx -eq 1 ]
+then
+	ynh_add_nginx_config
+fi
 
 #=================================================
 # CREATE DEDICATED USER
@@ -92,7 +128,11 @@ ynh_system_user_create $app	# Create the dedicated user, if not exist
 # PHP-FPM CONFIGURATION
 #=================================================
 
-ynh_add_fpm_config	# Créer le fichier de configuration du pool php-fpm et le configure.
+# Overwrite the php-fpm configuration only if it's allowed
+if [ $overwrite_phpfpm -eq 1 ]
+then
+	ynh_add_fpm_config	# Créer le fichier de configuration du pool php-fpm et le configure.
+fi
 
 #=================================================
 # SPECIFIC UPGRADE
@@ -152,9 +192,13 @@ then
 	ynh_secure_remove "$FTL_temp_path"
 fi
 
-ynh_backup_if_checksum_is_different "$pihole_storage/pihole-FTL.conf"	# Créé un backup du fichier de config si il a été modifié.
-cp "../conf/pihole-FTL.conf" "$pihole_storage"
-ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"	# Enregistre la somme de contrôle du fichier de config
+# Overwrite the pihole-FTL config file only if it's allowed
+if [ $overwrite_ftl -eq 1 ]
+then
+	ynh_backup_if_checksum_is_different "$pihole_storage/pihole-FTL.conf"	# Créé un backup du fichier de config si il a été modifié.
+	cp "../conf/pihole-FTL.conf" "$pihole_storage"
+	ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"	# Enregistre la somme de contrôle du fichier de config
+fi
 
 cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
@@ -166,24 +210,28 @@ ynh_exec_warn_less systemctl enable pihole-FTL
 
 setupVars="$pihole_storage/setupVars.conf"
 
-ynh_backup_if_checksum_is_different "$setupVars"	# Créé un backup du fichier de config si il a été modifié.
+# Overwrite the setupVars config file only if it's allowed
+if [ $overwrite_setupvars -eq 1 ]
+then
+	ynh_backup_if_checksum_is_different "$setupVars"	# Créé un backup du fichier de config si il a été modifié.
 
-# Trouve l'interface réseau par défaut
-main_iface=$(ip route | grep default | awk '{print $5;}')
-echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
-echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
-echo "IPV6_ADDRESS=" >> $setupVars
-echo "PIHOLE_DNS_1=" >> $setupVars
-echo "PIHOLE_DNS_2=" >> $setupVars
-if [ $query_logging -eq 1 ]; then
-	query_logging=true
-else
-	query_logging=false
+	# Trouve l'interface réseau par défaut
+	main_iface=$(ip route | grep default | awk '{print $5;}')
+	echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
+	echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
+	echo "IPV6_ADDRESS=" >> $setupVars
+	echo "PIHOLE_DNS_1=" >> $setupVars
+	echo "PIHOLE_DNS_2=" >> $setupVars
+	if [ $query_logging -eq 1 ]; then
+		query_logging=true
+	else
+		query_logging=false
+	fi
+	echo "QUERY_LOGGING=$query_logging" >> $setupVars
+	echo "INSTALL_WEB=true" >> $setupVars
+
+	ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichier de config
 fi
-echo "QUERY_LOGGING=$query_logging" >> $setupVars
-echo "INSTALL_WEB=true" >> $setupVars
-
-ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichier de config
 
 #=================================================
 # UPDATE THE CRON JOB
