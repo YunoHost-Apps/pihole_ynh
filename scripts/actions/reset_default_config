@@ -1,0 +1,68 @@
+#!/bin/bash
+
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source scripts/_common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# RETRIEVE ARGUMENTS
+#=================================================
+
+app=${YNH_APP_INSTANCE_NAME:-$YNH_APP_ID}
+query_logging=$(ynh_app_setting_get $app query_logging)
+
+#=================================================
+# SORT OUT THE CONFIG FILE TO HANDLE
+#=================================================
+
+file="$1"
+
+if [ "$file" = "setupVars.conf" ]; then
+	config_file="/etc/pihole/setupVars.conf"
+elif [ "$file" = "pihole-FTL.conf" ]; then
+	config_file="/etc/pihole/pihole-FTL.conf"
+fi
+
+#=================================================
+# SPECIFIC ACTION
+#=================================================
+# RESET THE CONFIG FILE
+#=================================================
+
+# Verify the checksum and backup the file if it's different
+ynh_backup_if_checksum_is_different "$config_file"
+
+if [ "$file" = "setupVars.conf" ]
+then
+	# Recreate the default config
+	# Trouve l'interface réseau par défaut
+	main_iface=$(ip route | grep default | awk '{print $5;}')
+	echo "PIHOLE_INTERFACE=$main_iface" > "$config_file"
+	echo "IPV4_ADDRESS=127.0.0.1" >> "$config_file"
+	echo "IPV6_ADDRESS=" >> "$config_file"
+	echo "PIHOLE_DNS_1=" >> "$config_file"
+	echo "PIHOLE_DNS_2=" >> "$config_file"
+	if [ $query_logging -eq 1 ]; then
+		query_logging=true
+	else
+		query_logging=false
+	fi
+	echo "QUERY_LOGGING=$query_logging" >> "$config_file"
+	echo "INSTALL_WEB=true" >> "$config_file"
+
+elif [ "$file" = "pihole-FTL.conf" ]
+then
+	# Get the default file and overwrite the current config
+	cp /etc/yunohost/apps/$app/conf/pihole-FTL.conf "$config_file"
+
+	# Restart pihole-FTL
+	ynh_system_reload --service_name=pihole-FTL --action=restart
+fi
+
+# Calculate and store the config file checksum into the app settings
+ynh_store_file_checksum "$config_file"

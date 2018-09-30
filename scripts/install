@@ -53,6 +53,10 @@ ynh_app_setting_set $app path $path_url
 ynh_app_setting_set $app admin $admin
 ynh_app_setting_set $app query_logging $query_logging
 ynh_app_setting_set $app enable_dhcp $enable_dhcp
+ynh_app_setting_set $app overwrite_setupvars "1"
+ynh_app_setting_set $app overwrite_ftl "1"
+ynh_app_setting_set $app overwrite_nginx "1"
+ynh_app_setting_set $app overwrite_phpfpm "1"
 
 #=================================================
 # STANDARD MODIFICATIONS
