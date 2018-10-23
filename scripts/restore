@@ -77,6 +77,8 @@ ynh_system_user_create $app	# Recreate the dedicated user, if not exist
 
 # Les fichiers appartiennent à root
 chown $app: -R "/etc/pihole"
+# /etc/pihole/logrotate have to belong to root, otherwise logrotate will failed silently...
+chown root: -R "/etc/pihole/logrotate"
 
 #=================================================
 # RESTORE OF THE PHP-FPM CONFIGURATION
