@@ -130,6 +130,7 @@ sed -i "/#Added by pihole#/d" /etc/hosts
 # RESTART DNSMASQ
 #=================================================
 
+ynh_exec_warn_less systemctl enable dnsmasq
 ynh_system_reload --service_name=dnsmasq --action=restart
 
 #=================================================
