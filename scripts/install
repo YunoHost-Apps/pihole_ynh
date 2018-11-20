@@ -182,7 +182,7 @@ ynh_secure_remove "$FTL_temp_path"
 cp "../conf/pihole-FTL.conf" "$pihole_storage"
 ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"	# Enregistre la somme de contrôle du fichier de config
 
-cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
+cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
 ynh_exec_warn_less systemctl enable pihole-FTL
 
