@@ -303,7 +303,7 @@ ynh_system_reload --service_name=dnsmasq --action=restart
 # INSTALL THE CRON JOB
 #=================================================
 
-cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
+cp $pihole_local_repo/advanced/Templates/pihole.cron /etc/cron.d/pihole
 # Remove git usage for version. Which fails because we use here a release instead of master.
 ynh_replace_string ".*updatechecker.*" "#&" /etc/cron.d/pihole
 
