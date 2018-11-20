@@ -153,7 +153,7 @@ chown $dnsmasq_user:root /var/log/pihole.log
 #=================================================
 
 # Cette configuration sudoers autorise pihole à exécuter /usr/local/bin/pihole en root sans mot de passe. Pas plus.
-cp "$pihole_local_repo/advanced/pihole.sudo" /etc/sudoers.d/pihole
+cp "$pihole_local_repo/advanced/Templates/pihole.sudo" /etc/sudoers.d/pihole
 echo "$app ALL=NOPASSWD: /usr/local/bin/pihole" >> /etc/sudoers.d/pihole
 # echo "Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin" >> /etc/sudoers.d/pihole
 chmod 0440 /etc/sudoers.d/pihole
