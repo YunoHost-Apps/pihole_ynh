@@ -189,6 +189,7 @@ ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"	# Enregistre la somme 
 
 cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
+ynh_exec_warn_less systemctl disable dnsmasq
 ynh_exec_warn_less systemctl enable pihole-FTL
 
 #=================================================
