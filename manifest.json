@@ -76,6 +76,15 @@
 					"fr": "Si vous voulez faire ça, <a href=https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md target=_blank>vous devez vraiment lire cela avant</a> !"
 				},
 				"default": false
+			},
+			{
+				"name": "is_public",
+				"type": "boolean",
+				"ask": {
+					"en": "Is it a public site ?",
+					"fr": "Est-ce un site public ?"
+				},
+				"default": true
 			}
 		]
 	}
