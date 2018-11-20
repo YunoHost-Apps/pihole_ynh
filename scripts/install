@@ -172,14 +172,17 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 #=================================================
 
 # Get the source of Pi-Hole-FTL
-FTL_temp_path=$(mktemp -d)
-ynh_setup_source "$FTL_temp_path" FTL
+#FTL_temp_path=$(mktemp -d)
+#ynh_setup_source "$FTL_temp_path" FTL
 
 # Plutôt que télécharger le binaire C, on le compile nous-même.
-( cd "$FTL_temp_path"
-ynh_exec_warn_less make
-ynh_exec_warn_less make install )
-ynh_secure_remove "$FTL_temp_path"
+#( cd "$FTL_temp_path"
+#ynh_exec_warn_less make
+#ynh_exec_warn_less make install )
+#ynh_secure_remove "$FTL_temp_path"
+
+wget https://github.com/pi-hole/FTL/releases/download/v4.0/pihole-FTL-linux-x86_64
+install -T -m 0755 "pihole-FTL-linux-x86_64" /usr/bin/pihole-FTL
 
 cp "../conf/pihole-FTL.conf" "$pihole_storage"
 ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"	# Enregistre la somme de contrôle du fichier de config
