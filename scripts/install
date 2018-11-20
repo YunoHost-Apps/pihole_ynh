@@ -162,7 +162,7 @@ chmod 0440 /etc/sudoers.d/pihole
 # INSTALL LOGROTATE SCRIPT FOR PI-HOLE
 #=================================================
 
-cp "$pihole_local_repo/advanced/logrotate" "$pihole_storage/logrotate"
+cp "$pihole_local_repo/advanced/Templates/logrotate" "$pihole_storage/logrotate"
 sed -i "/# su #/d;" "$pihole_storage/logrotate"
 
 #=================================================
