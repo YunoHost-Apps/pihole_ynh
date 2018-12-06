@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Dependencies
-app_depencencies="sqlite idn2 libcap2-bin"
+app_depencencies="bc cron curl dnsutils iputils-ping lsof netcat psmisc sudo unzip wget idn2 sqlite3 libcap2-bin dns-root-data resolvconf"
 # dhcpcd5 has been removed because it can cause some problems with the internet connection.
 if [ "$(lsb_release --codename --short)" != "jessie" ]; then
 	app_depencencies="$app_depencencies php-sqlite3"
