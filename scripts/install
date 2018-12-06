@@ -362,6 +362,26 @@ fi
 ynh_system_reload --service_name=nginx
 
 #=================================================
+# INSTALL DoH = DNS-Over-HTTPS
+#=================================================
+
+wget https://bin.equinox.io/c/VdrWdbjqyF/cloudflared-stable-linux-amd64.deb
+apt-get install ./cloudflared-stable-linux-amd64.deb
+rm cloudflared-stable-linux-amd64.deb
+
+useradd -s /usr/sbin/nologin -r -M cloudflared
+
+cp -a ../conf/cloudflared /etc/default/cloudflared
+
+chown cloudflared:cloudflared /etc/default/cloudflared
+chown cloudflared:cloudflared /usr/local/bin/cloudflared
+
+cp -a ../conf/cloudflared.service /lib/systemd/system/cloudflared.service
+
+systemctl enable cloudflared
+systemctl start cloudflared
+
+#=================================================
 # SEND A README FOR THE ADMIN
 #=================================================
 
