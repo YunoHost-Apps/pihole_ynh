@@ -381,6 +381,8 @@ cp -a ../conf/cloudflared.service /lib/systemd/system/cloudflared.service
 systemctl enable cloudflared
 systemctl start cloudflared
 
+cp -a ../conf/dnsmasq.conf /etc/dnsmasq.conf
+
 #=================================================
 # SEND A README FOR THE ADMIN
 #=================================================
