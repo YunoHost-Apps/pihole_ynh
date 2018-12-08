@@ -72,8 +72,8 @@ then
 	ynh_die "The ports 4711 to 4720 are already in use. Pi-hole can't works on another port. Please try to free one of this ports."
 fi
 # Ouvre le port dans le firewall
-ynh_exec_fully_quiet yunohost firewall allow --no-upnp TCP $port
-ynh_app_setting_set $app port $port
+#ynh_exec_fully_quiet yunohost firewall allow --no-upnp TCP $port
+#ynh_app_setting_set $app port $port
 
 # Désactive le port 53 en upnp
 ynh_exec_fully_quiet yunohost firewall disallow Both 53 --no-reload
@@ -171,16 +171,6 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 # INSTALLATION OF PIHOLE-FTL
 #=================================================
 
-# Get the source of Pi-Hole-FTL
-#FTL_temp_path=$(mktemp -d)
-#ynh_setup_source "$FTL_temp_path" FTL
-
-# Plutôt que télécharger le binaire C, on le compile nous-même.
-#( cd "$FTL_temp_path"
-#ynh_exec_warn_less make
-#ynh_exec_warn_less make install )
-#ynh_secure_remove "$FTL_temp_path"
-
 wget https://github.com/pi-hole/FTL/releases/download/v4.0/pihole-FTL-linux-x86_64
 install -T -m 0755 "pihole-FTL-linux-x86_64" /usr/bin/pihole-FTL
 
@@ -203,7 +193,7 @@ main_iface=$(ip route | grep default | awk '{print $5;}')
 echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
 echo "IPV6_ADDRESS=" >> $setupVars
-echo "PIHOLE_DNS_1=" >> $setupVars
+echo "PIHOLE_DNS_1=127.0.0.1#5053" >> $setupVars
 echo "PIHOLE_DNS_2=" >> $setupVars
 if [ $query_logging -eq 1 ]; then
 	query_logging=true
@@ -224,7 +214,7 @@ ynh_system_reload --service_name=dnsmasq --action=stop
 pihole_dnsmasq_config="/etc/dnsmasq.d/01-pihole.conf"
 cp "$pihole_local_repo/advanced/01-pihole.conf" $pihole_dnsmasq_config
 # On utilise les dns de /etc/resolv.dnsmasq.conf
-ynh_replace_string "@DNS1@" "" $pihole_dnsmasq_config
+ynh_replace_string "@DNS1@" "127.0.0.1#5053" $pihole_dnsmasq_config
 ynh_replace_string "@DNS2@" "" $pihole_dnsmasq_config
 ynh_replace_string "^no-resolv" "#no-resolv" $pihole_dnsmasq_config
 
@@ -329,6 +319,7 @@ ynh_system_reload --service_name=pihole-FTL --action=restart
 # SET UP THE CONF_REGEN HOOK
 #=================================================
 
+#No need on FTL 4.0 and is just for DHCP
 cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
 
 #=================================================
@@ -360,6 +351,29 @@ fi
 #=================================================
 
 ynh_system_reload --service_name=nginx
+
+#=================================================
+# INSTALL DoH = DNS-Over-HTTPS
+#=================================================
+
+wget https://bin.equinox.io/c/VdrWdbjqyF/cloudflared-stable-linux-amd64.deb
+apt-get install ./cloudflared-stable-linux-amd64.deb
+rm cloudflared-stable-linux-amd64.deb
+
+useradd -s /usr/sbin/nologin -r -M cloudflared
+
+cp -a ../conf/cloudflared /etc/default/cloudflared
+
+chown cloudflared:cloudflared /etc/default/cloudflared
+chown cloudflared:cloudflared /usr/local/bin/cloudflared
+
+cp -a ../conf/cloudflared.service /lib/systemd/system/cloudflared.service
+
+systemctl enable cloudflared
+systemctl start cloudflared
+
+# Fix DNS
+cp -a ../conf/dnsmasq.conf /etc/dnsmasq.conf
 
 #=================================================
 # SEND A README FOR THE ADMIN
