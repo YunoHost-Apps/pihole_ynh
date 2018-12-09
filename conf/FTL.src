@@ -1,9 +1,7 @@
-SOURCE_URL=https://github.com/pi-hole/FTL/archive/v4.0.tar.gz
-SOURCE_SUM=923cc5cc17f57bb9a59407c1685d70aa
-SOURCE_SUM_PRG=md5sum
-SOURCE_FORMAT=tar.gz
-SOURCE_IN_SUBDIR=true
-SOURCE_FILENAME=
-
-# Be carrefull, the version 3.0 isn't compatible with the version of dnsmasq available on Jessie.
-# So, we need to stay stick on the version 2.13.2.
+SOURCE_URL=https://github.com/pi-hole/FTL/releases/download/v4.0/pihole-FTL-linux-x86_64
+SOURCE_SUM=7a4aa164017bd575dd3bd612c55fa48a203deba099fc265ae6b89ed3a8bee5e113e304d95d1a5e9dec4db96923b9df94d1609984798cd2a757a5ea9165ba9f0b
+SOURCE_SUM_PRG=sha512sum
+SOURCE_FORMAT=
+SOURCE_IN_SUBDIR=false
+SOURCE_EXTRACT=FALSE
+SOURCE_FILENAME=pihole-FTL-linux-x86_64

@@ -171,8 +171,9 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 # INSTALLATION OF PIHOLE-FTL
 #=================================================
 
-wget https://github.com/pi-hole/FTL/releases/download/v4.0/pihole-FTL-linux-x86_64
-install -T -m 0755 "pihole-FTL-linux-x86_64" /usr/bin/pihole-FTL
+ynh_setup_source /tmp FTL
+# Download, check integrity, uncompress and patch the source from FTL.src
+install -T -m 0755 "/tmp/pihole-FTL-linux-x86_64" /usr/bin/pihole-FTL
 
 cp "../conf/pihole-FTL.conf" "$pihole_storage"
 ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"	# Enregistre la somme de contrôle du fichier de config
@@ -319,7 +320,6 @@ ynh_system_reload --service_name=pihole-FTL --action=restart
 # SET UP THE CONF_REGEN HOOK
 #=================================================
 
-#No need on FTL 4.0 and is just for DHCP
 cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
 
 #=================================================
@@ -356,9 +356,10 @@ ynh_system_reload --service_name=nginx
 # INSTALL DoH = DNS-Over-HTTPS
 #=================================================
 
-wget https://bin.equinox.io/c/VdrWdbjqyF/cloudflared-stable-linux-amd64.deb
-apt-get install ./cloudflared-stable-linux-amd64.deb
-rm cloudflared-stable-linux-amd64.deb
+ynh_setup_source /tmp cloudflared
+# Download, check integrity, uncompress and patch the source from cloudflared.src
+ynh_package_install /tmp/cloudflared-stable-linux-amd64.deb
+rm /tmp/cloudflared-stable-linux-amd64.deb
 
 useradd -s /usr/sbin/nologin -r -M cloudflared
 

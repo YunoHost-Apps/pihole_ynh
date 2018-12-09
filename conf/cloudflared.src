@@ -1,0 +1,7 @@
+SOURCE_URL=https://github.com/liberodark/pihole_ynh/releases/download/2018.11.0/cloudflared-stable-linux-amd64.deb
+SOURCE_SUM=402a5e9ae114e3f2cb2ca3c8fd4108ccd397b28b53cc8ea764d011ce8d6b0d2d01d42ee2402e3fa1d07cb1727a98f3b2f1cddab0eb0fba0de06dc3ea5f9b030b
+SOURCE_SUM_PRG=sha512sum
+SOURCE_FORMAT=deb
+SOURCE_IN_SUBDIR=false
+SOURCE_EXTRACT=FALSE
+SOURCE_FILENAME=cloudflared-stable-linux-amd64.deb
