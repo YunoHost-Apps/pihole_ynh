@@ -356,7 +356,7 @@ ynh_system_reload --service_name=nginx
 # INSTALL DoH = DNS-Over-HTTPS
 #=================================================
 
-ynh_setup_source /tmp $cloudflared
+ynh_setup_source /tmp cloudflared
 # Download, check integrity, uncompress and patch the source from cloudflared.src
 ynh_package_install /tmp/cloudflared-stable-linux-amd64.deb
 rm /tmp/cloudflared-stable-linux-amd64.deb
