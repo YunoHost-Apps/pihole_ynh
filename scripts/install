@@ -171,10 +171,9 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 # INSTALLATION OF PIHOLE-FTL
 #=================================================
 
-ynh_app_setting_set $FTL final_path $final_path
+ynh_app_setting_set $FTL /tmp
 # Download, check integrity, uncompress and patch the source from FTL.src
-ynh_setup_source "$final_path"
-install -T -m 0755 "$final_path/pihole-FTL-linux-x86_64" /usr/bin/pihole-FTL
+install -T -m 0755 "/tmp/pihole-FTL-linux-x86_64" /usr/bin/pihole-FTL
 
 cp "../conf/pihole-FTL.conf" "$pihole_storage"
 ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"	# Enregistre la somme de contrôle du fichier de config
@@ -357,11 +356,10 @@ ynh_system_reload --service_name=nginx
 # INSTALL DoH = DNS-Over-HTTPS
 #=================================================
 
-ynh_app_setting_set $cloudflared final_path $final_path
+ynh_app_setting_set $cloudflared /tmp
 # Download, check integrity, uncompress and patch the source from cloudflared.src
-ynh_setup_source "$final_path"
-ynh_package_install $final_path/cloudflared-stable-linux-amd64.deb
-rm $final_path/cloudflared-stable-linux-amd64.deb
+ynh_package_install /tmp/cloudflared-stable-linux-amd64.deb
+rm /tmp/cloudflared-stable-linux-amd64.deb
 
 useradd -s /usr/sbin/nologin -r -M cloudflared
 
