@@ -171,7 +171,7 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 # INSTALLATION OF PIHOLE-FTL
 #=================================================
 
-ynh_setup_source /tmp $FTL
+ynh_setup_source /tmp FTL
 # Download, check integrity, uncompress and patch the source from FTL.src
 install -T -m 0755 "/tmp/pihole-FTL-linux-x86_64" /usr/bin/pihole-FTL
 
