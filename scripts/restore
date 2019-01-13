@@ -83,7 +83,6 @@ chown $app: -R "/etc/pihole"
 #=================================================
 
 ynh_restore_file "/etc/php5/fpm/pool.d/$app.conf"
-ynh_restore_file "/etc/php5/fpm/conf.d/20-$app.ini"
 
 #=================================================
 # SPECIFIC RESTORE
@@ -132,7 +131,7 @@ ynh_restore_file "/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 # RESTORE OF DNSMASQ CONFIG
 #=================================================
 
-ynh_system_reload --service_name=dnsmasq --action=stop
+ynh_systemd_action --action=stop --service_name=dnsmasq
 
 ynh_restore_file "/etc/dnsmasq.d/01-pihole.conf"
 test -e "${YNH_APP_BACKUP_DIR}/etc/dnsmasq.d/02-pihole-dhcp.conf" && \
@@ -169,7 +168,7 @@ done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
 # RESTART DNSMASQ
 #=================================================
 
-ynh_system_reload --service_name=dnsmasq --action=restart
+ynh_systemd_action --action=restart --service_name=dnsmasq
 
 #=================================================
 # UPDATE THE VARIABLES FILE
@@ -188,7 +187,7 @@ ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichi
 #=================================================
 
 ynh_exec_warn_less systemctl enable pihole-FTL
-ynh_system_reload --service_name=pihole-FTL --action=restart
+ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
 # GENERIC FINALISATION
@@ -196,8 +195,8 @@ ynh_system_reload --service_name=pihole-FTL --action=restart
 # RELOAD NGINX AND PHP-FPM
 #=================================================
 
-ynh_system_reload --service_name=php5-fpm
-ynh_system_reload --service_name=nginx
+ynh_systemd_action --action=reload --service_name=php5-fpm
+ynh_systemd_action --action=reload --service_name=nginx
 
 #=================================================
 # DEACTIVE MAINTENANCE MODE

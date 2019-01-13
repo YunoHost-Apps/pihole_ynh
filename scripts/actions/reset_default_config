@@ -61,7 +61,7 @@ then
 	cp /etc/yunohost/apps/$app/conf/pihole-FTL.conf "$config_file"
 
 	# Restart pihole-FTL
-	ynh_system_reload --service_name=pihole-FTL --action=restart
+	ynh_systemd_action --action=restart --service_name=pihole-FTL
 fi
 
 # Calculate and store the config file checksum into the app settings

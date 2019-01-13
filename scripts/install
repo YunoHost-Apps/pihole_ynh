@@ -39,8 +39,6 @@ test ! -e "$final_path" || ynh_die "This path already contains a folder"
 # Normalize the url path syntax
 path_url=$(ynh_normalize_url_path $path_url)
 
-# Check web path availability
-ynh_webpath_available $domain $path_url
 # Register (book) web path
 ynh_webpath_register $app $domain $path_url
 
@@ -213,7 +211,7 @@ ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichi
 # SET UP THE DNSMASQ CONFIG
 #=================================================
 
-ynh_system_reload --service_name=dnsmasq --action=stop
+ynh_systemd_action --action=stop --service_name=dnsmasq
 
 pihole_dnsmasq_config="/etc/dnsmasq.d/01-pihole.conf"
 cp "$pihole_local_repo/advanced/01-pihole.conf" $pihole_dnsmasq_config
@@ -296,7 +294,7 @@ ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 # RESTART DNSMASQ
 #=================================================
 
-ynh_system_reload --service_name=dnsmasq --action=restart
+ynh_systemd_action --action=restart --service_name=dnsmasq
 
 #=================================================
 # INSTALL THE CRON JOB
@@ -317,7 +315,7 @@ ynh_exec_warn_less /opt/pihole/gravity.sh
 # START PIHOLE-FTL
 #=================================================
 
-ynh_system_reload --service_name=pihole-FTL --action=restart
+ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
 # SET UP THE CONF_REGEN HOOK
@@ -343,7 +341,7 @@ yunohost app addaccess --users=$admin $app
 # RELOAD NGINX
 #=================================================
 
-ynh_system_reload --service_name=nginx
+ynh_systemd_action --action=reload --service_name=nginx
 
 #=================================================
 # SEND A README FOR THE ADMIN

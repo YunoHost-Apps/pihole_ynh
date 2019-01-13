@@ -177,7 +177,7 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 # UPDATE OF PIHOLE-FTL
 #=================================================
 
-ynh_system_reload --service_name=pihole-FTL --action=stop
+ynh_systemd_action --action=stop --service_name=pihole-FTL
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
@@ -245,7 +245,7 @@ ynh_replace_string ".*updatechecker.*" "#&" /etc/cron.d/pihole
 # START PIHOLE-FTL
 #=================================================
 
-ynh_system_reload --service_name=pihole-FTL --action=restart
+ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
 # UPDATE THE CONF_REGEN HOOK
@@ -257,7 +257,7 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 # RELOAD NGINX
 #=================================================
 
-ynh_system_reload --service_name=nginx
+ynh_systemd_action --action=reload --service_name=nginx
 
 #=================================================
 # DEACTIVE MAINTENANCE MODE
