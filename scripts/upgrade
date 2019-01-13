@@ -79,7 +79,8 @@ ynh_abort_if_errors
 # CHECK THE PATH
 #=================================================
 
-path_url=$(ynh_normalize_url_path $path_url)	# Vérifie et corrige la syntaxe du path.
+# Normalize the URL path syntax
+path_url=$(ynh_normalize_url_path $path_url)
 
 #=================================================
 # ACTIVATE MAINTENANCE MODE
@@ -102,9 +103,9 @@ ynh_install_app_dependencies $app_depencencies
 pihole_local_repo="/etc/.pihole"
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	# Update la copie du repo de pihole (nécessaire pour Gravity)
+	# Update the local copy pihole repository (for Gravity)
 	ynh_setup_source "$pihole_local_repo"
-	# Update le dashboard admin
+	# Update admin dashboard
 	ynh_setup_source "$final_path" admin_dashboard
 fi
 
@@ -115,6 +116,7 @@ fi
 # Overwrite the nginx configuration only if it's allowed
 if [ $overwrite_nginx -eq 1 ]
 then
+	# Create a dedicated nginx config
 	ynh_add_nginx_config
 fi
 
@@ -122,7 +124,8 @@ fi
 # CREATE DEDICATED USER
 #=================================================
 
-ynh_system_user_create $app	# Create the dedicated user, if not exist
+# Create a dedicated user (if not existing)
+ynh_system_user_create $app
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -131,7 +134,8 @@ ynh_system_user_create $app	# Create the dedicated user, if not exist
 # Overwrite the php-fpm configuration only if it's allowed
 if [ $overwrite_phpfpm -eq 1 ]
 then
-	ynh_add_fpm_config	# Créer le fichier de configuration du pool php-fpm et le configure.
+	# Create a dedicated php-fpm config
+	ynh_add_fpm_config
 fi
 
 #=================================================
@@ -140,7 +144,6 @@ fi
 # UPDATE PI-HOLE SCRIPTS
 #=================================================
 
-# Update les scripts de Pi-hole
 pihole_dir="/opt/pihole"
 cp -a "$pihole_local_repo/gravity.sh" "$pihole_dir/"
 cp -a $pihole_local_repo/advanced/Scripts/*.sh "$pihole_dir/"
@@ -149,7 +152,7 @@ cp -a $pihole_local_repo/advanced/Scripts/*.sh "$pihole_dir/"
 cp -a "$pihole_local_repo/advanced/Scripts/COL_TABLE" "$pihole_dir/"
 
 #=================================================
-# Copy the Pi-hole main script
+# COPY PI-HOLE MAIN SCRIPT
 #=================================================
 
 cp -a "$pihole_local_repo/pihole" /usr/local/bin/
@@ -159,7 +162,7 @@ cp -a "$pihole_local_repo/advanced/bash-completion/pihole" /etc/bash_completion.
 # CREATE SUDOER FILE
 #=================================================
 
-# Cette configuration sudoers autorise pihole à exécuter /usr/local/bin/pihole en root sans mot de passe. Pas plus.
+# This sudoers config allow pihole to execute /usr/local/bin/pihole as root without password. Nothing more.
 cp "$pihole_local_repo/advanced/pihole.sudo" /etc/sudoers.d/pihole
 echo "$app ALL=NOPASSWD: /usr/local/bin/pihole" >> /etc/sudoers.d/pihole
 chmod 0440 /etc/sudoers.d/pihole
@@ -174,7 +177,7 @@ dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
 sed -i "/# su #/d;" "$pihole_storage/logrotate"
 
 #=================================================
-# UPDATE OF PIHOLE-FTL
+# UPDATE PIHOLE-FTL
 #=================================================
 
 ynh_systemd_action --action=stop --service_name=pihole-FTL
@@ -185,19 +188,21 @@ then
 	FTL_temp_path=$(mktemp -d)
 	ynh_setup_source "$FTL_temp_path" FTL
 
-	# Plutôt que télécharger le binaire C, on le compile nous-même.
+	# Instead of downloading a binary file, we're going to compile it
 	( cd "$FTL_temp_path"
 	ynh_exec_warn_less make
 	ynh_exec_warn_less make install )
 	ynh_secure_remove "$FTL_temp_path"
 fi
 
-# Overwrite the pihole-FTL config file only if it's allowed
+# Overwrite pihole-FTL config file only if it's allowed
 if [ $overwrite_ftl -eq 1 ]
 then
-	ynh_backup_if_checksum_is_different "$pihole_storage/pihole-FTL.conf"	# Créé un backup du fichier de config si il a été modifié.
+	# Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
+	ynh_backup_if_checksum_is_different "$pihole_storage/pihole-FTL.conf"
 	cp "../conf/pihole-FTL.conf" "$pihole_storage"
-	ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"	# Enregistre la somme de contrôle du fichier de config
+	# Recalculate and store the checksum of the file for the next upgrade.
+	ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"
 fi
 
 cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
@@ -205,7 +210,7 @@ chmod +x /etc/init.d/pihole-FTL
 ynh_exec_warn_less systemctl enable pihole-FTL
 
 #=================================================
-# BUILD THE VARIABLES FILE
+# BUILD VARIABLES FILE
 #=================================================
 
 setupVars="$pihole_storage/setupVars.conf"
@@ -213,9 +218,10 @@ setupVars="$pihole_storage/setupVars.conf"
 # Overwrite the setupVars config file only if it's allowed
 if [ $overwrite_setupvars -eq 1 ]
 then
-	ynh_backup_if_checksum_is_different "$setupVars"	# Créé un backup du fichier de config si il a été modifié.
+	# Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
+	ynh_backup_if_checksum_is_different "$setupVars"
 
-	# Trouve l'interface réseau par défaut
+	# Get the default network interface
 	main_iface=$(ip route | grep default | awk '{print $5;}')
 	echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 	echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
@@ -230,11 +236,12 @@ then
 	echo "QUERY_LOGGING=$query_logging" >> $setupVars
 	echo "INSTALL_WEB=true" >> $setupVars
 
-	ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichier de config
+	# Recalculate and store the checksum of the file for the next upgrade.
+	ynh_store_file_checksum "$setupVars"
 fi
 
 #=================================================
-# UPDATE THE CRON JOB
+# UPDATE CRON JOB
 #=================================================
 
 cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
@@ -248,7 +255,7 @@ ynh_replace_string ".*updatechecker.*" "#&" /etc/cron.d/pihole
 ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
-# UPDATE THE CONF_REGEN HOOK
+# UPDATE CONF_REGEN HOOK
 #=================================================
 
 cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app

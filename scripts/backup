@@ -29,7 +29,7 @@ domain=$(ynh_app_setting_get $app domain)
 #=================================================
 # STANDARD BACKUP STEPS
 #=================================================
-# BACKUP OF THE MAIN DIRECTORIES OF THE APP
+# BACKUP THE MAIN APP DIRECTORIES
 #=================================================
 
 CHECK_SIZE "$final_path"
@@ -45,13 +45,13 @@ CHECK_SIZE "/opt/pihole"
 ynh_backup "/opt/pihole"
 
 #=================================================
-# BACKUP OF THE NGINX CONFIGURATION
+# BACKUP NGINX CONFIGURATION
 #=================================================
 
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
-# BACKUP OF THE PHP-FPM CONFIGURATION
+# BACKUP PHP-FPM CONFIGURATION
 #=================================================
 
 ynh_backup "/etc/php5/fpm/pool.d/$app.conf"
@@ -59,13 +59,13 @@ ynh_backup "/etc/php5/fpm/pool.d/$app.conf"
 #=================================================
 # SPECIFIC BACKUP
 #=================================================
-# BACKUP OF THE CRON FILE
+# BACKUP CRON FILE
 #=================================================
 
 ynh_backup "/etc/cron.d/pihole"
 
 #=================================================
-# BACKUP OF SPECIFIC FILES
+# BACKUP SPECIFIC FILES
 #=================================================
 
 ynh_backup "/usr/local/bin/pihole"
