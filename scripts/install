@@ -197,7 +197,7 @@ ynh_exec_warn_less systemctl enable pihole-FTL
 setupVars="$pihole_storage/setupVars.conf"
 
 # Get the default network interface
-main_iface=$(ip route | grep default | awk '{print $5;}')
+main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
 echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
 echo "IPV6_ADDRESS=" >> $setupVars

@@ -150,7 +150,7 @@ ynh_replace_string "^cache-size=" "#pihole# cache-size=" /etc/dnsmasq.conf
 #=================================================
 
 # Get the default network interface
-main_iface=$(ip route | grep default | awk '{print $5;}')
+main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
 # Find the IP associated to the network interface
 localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
 
