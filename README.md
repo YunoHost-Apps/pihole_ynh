@@ -46,7 +46,7 @@ Use the admin panel of your Pi-hole to configure this app.
 ## Limitations
 
 * Activate DHCP with Pi-hole need a manuel configuration of your router.
-* Pi-Hole-FTL can't be upgrade above the version 2.13.2, because of the usage of an option of dnsmasq not yet available on Jessie.
+* Pi-Hole can't be updated beyond the version 3.3.1, because higher versions use an integrated version of dnsmasq. This would forces to disable the version of dnsmasq used by YunoHost.
 
 ## Additionnal informations
 
@@ -65,7 +65,7 @@ Please do your pull request to the [testing branch](https://github.com/YunoHost-
 
 To try the testing branch, please proceed like that.
 ```
-sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --verbose
+sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
 or
-sudo yunohost app upgrade pihole -u https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --verbose
+sudo yunohost app upgrade pihole -u https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
 ```

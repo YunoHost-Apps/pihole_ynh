@@ -264,7 +264,7 @@ ynh_multimedia_build_main_dir () {
 	local checksum="806a827ba1902d6911095602a9221181"
 
 	# Download yunohost.multimedia scripts
-	wget -nv https://github.com/YunoHost-Apps/yunohost.multimedia/archive/${ynh_media_release}.tar.gz 
+	wget -nv https://github.com/YunoHost-Apps/yunohost.multimedia/archive/${ynh_media_release}.tar.gz
 
 	# Check the control sum
 	echo "${checksum} ${ynh_media_release}.tar.gz" | md5sum -c --status \
@@ -607,6 +607,7 @@ ynh_systemd_action() {
 		if [ $i -eq $timeout ]
 		then
 			echo "The service $service_name didn't fully started before the timeout." >&2
+			echo "Please find here an extract of the end of the log of the service $service_name:"
 			journalctl --lines=$length -u $service_name >&2
 			test -n "$log_path" && echo "--" && tail --lines=$length "$log_path" >&2
 		fi
@@ -630,21 +631,24 @@ ynh_clean_check_starting () {
 
 # Send an email to inform the administrator
 #
-# usage: ynh_send_readme_to_admin app_message [recipients]
+# usage: ynh_send_readme_to_admin --app_message=app_message [--recipients=recipients] [--type=type]
 # | arg: -m --app_message= - The message to send to the administrator.
 # | arg: -r, --recipients= - The recipients of this email. Use spaces to separate multiples recipients. - default: root
 #	example: "root admin@domain"
 #	If you give the name of a YunoHost user, ynh_send_readme_to_admin will find its email adress for you
 #	example: "root admin@domain user1 user2"
+# | arg: -t, --type= - Type of mail, could be 'backup', 'change_url', 'install', 'remove', 'restore', 'upgrade'
 ynh_send_readme_to_admin() {
 	# Declare an array to define the options of this helper.
-	declare -Ar args_array=( [m]=app_message= [r]=recipients= )
+	declare -Ar args_array=( [m]=app_message= [r]=recipients= [t]=type= )
 	local app_message
 	local recipients
+	local type
 	# Manage arguments with getopts
 	ynh_handle_getopts_args "$@"
-	local app_message="${app_message:-...No specific information...}"
-	local recipients="${recipients:-root}"
+	app_message="${app_message:-...No specific information...}"
+	recipients="${recipients:-root}"
+	type="${type:-install}"
 
 	# Retrieve the email of users
 	find_mails () {
@@ -670,7 +674,23 @@ ynh_send_readme_to_admin() {
 	}
 	recipients=$(find_mails "$recipients")
 
-	local mail_subject="☁️🆈🅽🅷☁️: \`$app\` was just installed!"
+	# Subject base
+	local mail_subject="☁️🆈🅽🅷☁️: \`$app\`"
+
+	# Adapt the subject according to the type of mail required.
+	if [ "$type" = "backup" ]; then
+		mail_subject="$mail_subject has just been backup."
+	elif [ "$type" = "change_url" ]; then
+		mail_subject="$mail_subject has just been moved to a new URL!"
+	elif [ "$type" = "remove" ]; then
+		mail_subject="$mail_subject has just been removed!"
+	elif [ "$type" = "restore" ]; then
+		mail_subject="$mail_subject has just been restored!"
+	elif [ "$type" = "upgrade" ]; then
+		mail_subject="$mail_subject has just been upgraded!"
+	else	# install
+		mail_subject="$mail_subject has just been installed!"
+	fi
 
 	local mail_message="This is an automated message from your beloved YunoHost server.
 
@@ -828,10 +848,16 @@ ynh_download_file () {
 
 	# Load value from configuration file (see above for a small doc about this file
 	# format)
-	local file_url=$(grep 'FILE_URL=' "$YNH_CWD/../conf/${source_id}.src_file" | cut -d= -f2-)
-	local file_sum=$(grep 'FILE_SUM=' "$YNH_CWD/../conf/${source_id}.src_file" | cut -d= -f2-)
-	local file_sumprg=$(grep 'FILE_SUM_PRG=' "$YNH_CWD/../conf/${source_id}.src_file" | cut -d= -f2-)
-	local filename=$(grep 'FILENAME=' "$YNH_CWD/../conf/${source_id}.src_file" | cut -d= -f2-)
+	local src_file="$YNH_CWD/../conf/${source_id}.src_file"
+	# If the src_file doesn't exist, use the backup path instead, with a "settings" directory
+	if [ ! -e "$src_file" ]
+	then
+		src_file="$YNH_CWD/../settings/conf/${source_id}.src_file"
+	fi
+	local file_url=$(grep 'FILE_URL=' "$src_file" | cut -d= -f2-)
+	local file_sum=$(grep 'FILE_SUM=' "$src_file" | cut -d= -f2-)
+	local file_sumprg=$(grep 'FILE_SUM_PRG=' "$src_file" | cut -d= -f2-)
+	local filename=$(grep 'FILENAME=' "$src_file" | cut -d= -f2-)
 
 	# Default value
 	file_sumprg=${file_sumprg:-sha256sum}
@@ -853,7 +879,7 @@ ynh_download_file () {
 
 	# Create the destination directory, if it's not already.
 	mkdir -p "$dest_dir"
-	
+
 	# Move the file to its destination
 	mv $filename $dest_dir
 }

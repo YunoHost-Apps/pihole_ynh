@@ -22,6 +22,7 @@ path_url=$(ynh_app_setting_get $app path)
 admin=$(ynh_app_setting_get $app admin)
 query_logging=$(ynh_app_setting_get $app query_logging)
 final_path=$(ynh_app_setting_get $app final_path)
+enable_dhcp=$(ynh_app_setting_get $app enable_dhcp)
 port=$(ynh_app_setting_get $app port)
 overwrite_setupvars=$(ynh_app_setting_get $app overwrite_setupvars)
 overwrite_ftl=$(ynh_app_setting_get $app overwrite_ftl)
@@ -271,3 +272,27 @@ ynh_systemd_action --action=reload --service_name=nginx
 #=================================================
 
 ynh_maintenance_mode_OFF
+
+#=================================================
+# SEND A README FOR THE ADMIN
+#=================================================
+
+# Get main domain and buid the url of the admin panel of the app.
+admin_panel="https://$(grep portal_domain /etc/ssowat/conf.json | cut -d'"' -f4)/yunohost/admin/#/apps/$app"
+
+if [ $enable_dhcp -eq 1 ]
+then
+	dhcp_alert="You asked to use the internal DHCP server of dnsmasq with PiHole.
+You should really read the documentation about that, https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md
+
+"
+else
+	dhcp_alert=""
+fi
+
+message="${dhcp_alert}You can configure this app easily by using the experimental config-panel feature: $admin_panel/config-panel.
+You can also find some specific actions for this app by using the experimental action feature: $admin_panel/actions.
+
+If you're facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/pihole_ynh"
+
+ynh_send_readme_to_admin --app_message="$message" --recipients="$admin" --type="upgrade"
