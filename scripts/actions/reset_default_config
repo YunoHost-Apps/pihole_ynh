@@ -41,7 +41,7 @@ if [ "$file" = "setupVars.conf" ]
 then
 	# Recreate the default config
 	# Trouve l'interface réseau par défaut
-	main_iface=$(ip route | grep default | awk '{print $5;}')
+	main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
 	echo "PIHOLE_INTERFACE=$main_iface" > "$config_file"
 	echo "IPV4_ADDRESS=127.0.0.1" >> "$config_file"
 	echo "IPV6_ADDRESS=" >> "$config_file"
@@ -61,7 +61,7 @@ then
 	cp /etc/yunohost/apps/$app/conf/pihole-FTL.conf "$config_file"
 
 	# Restart pihole-FTL
-	ynh_system_reload --service_name=pihole-FTL --action=restart
+	ynh_systemd_action --action=restart --service_name=pihole-FTL
 fi
 
 # Calculate and store the config file checksum into the app settings

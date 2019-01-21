@@ -15,7 +15,8 @@ source _variables
 # MANAGE FAILURE OF THE SCRIPT
 #=================================================
 
-ynh_abort_if_errors	# Active trap pour arrêter le script si une erreur est détectée.
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
@@ -39,8 +40,6 @@ test ! -e "$final_path" || ynh_die "This path already contains a folder"
 # Normalize the url path syntax
 path_url=$(ynh_normalize_url_path $path_url)
 
-# Check web path availability
-ynh_webpath_available $domain $path_url
 # Register (book) web path
 ynh_webpath_register $app $domain $path_url
 
@@ -64,16 +63,17 @@ ynh_app_setting_set $app overwrite_phpfpm "1"
 # FIND AND OPEN A PORT
 #=================================================
 
-port=$(ynh_find_port 4711)	# Cherche un port libre.
+# Find a free port
+port=$(ynh_find_port 4711)
 if [ $port -gt 4720 ]
 then
 	ynh_die "The ports 4711 to 4720 are already in use. Pi-hole can't works on another port. Please try to free one of this ports."
 fi
-# Ouvre le port dans le firewall
+# Open this port
 ynh_exec_fully_quiet yunohost firewall allow --no-upnp TCP $port
 ynh_app_setting_set $app port $port
 
-# Désactive le port 53 en upnp
+# Disable the port 53 for upnp
 ynh_exec_fully_quiet yunohost firewall disallow Both 53 --no-reload
 ynh_exec_fully_quiet yunohost firewall allow Both 53 --no-upnp
 
@@ -88,34 +88,37 @@ ynh_install_app_dependencies $app_depencencies
 #=================================================
 
 ynh_app_setting_set $app final_path $final_path
-# Créer une copie du repo de pihole (nécessaire pour Gravity)
+# Make a copy of local pihole repository (for Gravity)
 pihole_local_repo="/etc/.pihole"
 ynh_setup_source "$pihole_local_repo"
-# Installe le dashboard admin
+# Install admin dashboard
 ynh_setup_source "$final_path" admin_dashboard
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 
+# Create a dedicated nginx config
 ynh_add_nginx_config
 
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
 
-ynh_system_user_create $app	# Créer un utilisateur système dédié à l'app
+# Create a dedicated system user
+ynh_system_user_create $app
 
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
 
-ynh_add_fpm_config	# Créer le fichier de configuration du pool php-fpm et le configure.
+# Create a dedicated php-fpm config
+ynh_add_fpm_config
 
 #=================================================
 # SPECIFIC SETUP
 #=================================================
-# CREATE THE DIRECTORIES AND POPULATE THEM
+# CREATE DIRECTORIES AND POPULATE THEM
 #=================================================
 
 pihole_storage="/etc/pihole"
@@ -125,7 +128,7 @@ chown $app: -R "$pihole_storage"
 pihole_dir="/opt/pihole"
 mkdir -p "$pihole_dir"
 
-# Copie les scripts de Pi-hole
+# Make a copy of Pi-Hole scripts
 cp -a "$pihole_local_repo/gravity.sh" "$pihole_dir/"
 cp -a $pihole_local_repo/advanced/Scripts/*.sh "$pihole_dir/"
 
@@ -133,7 +136,7 @@ cp -a $pihole_local_repo/advanced/Scripts/*.sh "$pihole_dir/"
 cp -a "$pihole_local_repo/advanced/Scripts/COL_TABLE" "$pihole_dir/"
 
 #=================================================
-# COPY THE PI-HOLE MAIN SCRIPT
+# COPY PI-HOLE MAIN SCRIPT
 #=================================================
 
 cp -a "$pihole_local_repo/pihole" /usr/local/bin/
@@ -152,7 +155,7 @@ chown $dnsmasq_user:root /var/log/pihole.log
 # CREATE SUDOER FILE
 #=================================================
 
-# Cette configuration sudoers autorise pihole à exécuter /usr/local/bin/pihole en root sans mot de passe. Pas plus.
+# This sudoers config allow pihole to execute /usr/local/bin/pihole as root without password. Nothing more.
 cp "$pihole_local_repo/advanced/pihole.sudo" /etc/sudoers.d/pihole
 echo "$app ALL=NOPASSWD: /usr/local/bin/pihole" >> /etc/sudoers.d/pihole
 # echo "Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin" >> /etc/sudoers.d/pihole
@@ -173,27 +176,28 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 FTL_temp_path=$(mktemp -d)
 ynh_setup_source "$FTL_temp_path" FTL
 
-# Plutôt que télécharger le binaire C, on le compile nous-même.
+# Instead of downloading a binary file, we're going to compile it
 ( cd "$FTL_temp_path"
 ynh_exec_warn_less make
 ynh_exec_warn_less make install )
 ynh_secure_remove "$FTL_temp_path"
 
 cp "../conf/pihole-FTL.conf" "$pihole_storage"
-ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"	# Enregistre la somme de contrôle du fichier de config
+# Calculate and store the config file checksum into the app settings
+ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"
 
 cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
 ynh_exec_warn_less systemctl enable pihole-FTL
 
 #=================================================
-# BUILD THE VARIABLES FILE
+# BUILD VARIABLES FILE
 #=================================================
 
 setupVars="$pihole_storage/setupVars.conf"
 
-# Trouve l'interface réseau par défaut
-main_iface=$(ip route | grep default | awk '{print $5;}')
+# Get the default network interface
+main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
 echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
 echo "IPV6_ADDRESS=" >> $setupVars
@@ -207,17 +211,18 @@ fi
 echo "QUERY_LOGGING=$query_logging" >> $setupVars
 echo "INSTALL_WEB=true" >> $setupVars
 
-ynh_store_file_checksum "$setupVars"	# Enregistre la somme de contrôle du fichier de config
+# Calculate and store the config file checksum into the app settings
+ynh_store_file_checksum "$setupVars"
 
 #=================================================
-# SET UP THE DNSMASQ CONFIG
+# SET UP DNSMASQ CONFIG
 #=================================================
 
-ynh_system_reload --service_name=dnsmasq --action=stop
+ynh_systemd_action --action=stop --service_name=dnsmasq
 
 pihole_dnsmasq_config="/etc/dnsmasq.d/01-pihole.conf"
 cp "$pihole_local_repo/advanced/01-pihole.conf" $pihole_dnsmasq_config
-# On utilise les dns de /etc/resolv.dnsmasq.conf
+# Use dns from /etc/resolv.dnsmasq.conf
 ynh_replace_string "@DNS1@" "" $pihole_dnsmasq_config
 ynh_replace_string "@DNS2@" "" $pihole_dnsmasq_config
 ynh_replace_string "^no-resolv" "#no-resolv" $pihole_dnsmasq_config
@@ -232,25 +237,26 @@ fi
 # Fix a too recent option for our dnsmasq version.
 ynh_replace_string "log-queries=extra" "log-queries" $pihole_dnsmasq_config
 
-ynh_store_file_checksum "$pihole_dnsmasq_config"	# Enregistre la somme de contrôle du fichier de config
+# Calculate and store the config file checksum into the app settings
+ynh_store_file_checksum "$pihole_dnsmasq_config"
 
-# Pour éviter un conflit entre les config de dnsmasq, il faut commenter cache-size dans la config par défaut.
+# To prevent any conflict with the original dnsmasq config, comment cache-size in the original config.
 ynh_replace_string "^cache-size=" "#pihole# cache-size=" /etc/dnsmasq.conf
 
 #=================================================
 # CONFIGURE DNS FOR THE LOCAL DOMAINS
 #=================================================
 
-# Trouve l'ipv4 associée à l'interface trouvée
+# Find the IP associated to the network interface
 localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
 
-# Liste les domaines de yunohost
+# List all YunoHost domains
 while read perdomain
 do
-	# Commente les résolutions du domaine sur 127.0.0.1, qui risquerait de bloquer la résolution sur le réseau local
+	# Comment domain resolution in /etc/hosts on 127.0.0.1, because they can interfere with the local network resolution.
 	ynh_replace_string "^127.0.0.1.*$perdomain" "#Commented by pihole# &" /etc/hosts
 
-	# Et ajoute une résolution sur l'ip local à la place, si elle n'existe pas déjà
+	# And add a resolution on the local IP instead
 	grep -q "^$localipv4.*$perdomain" /etc/hosts || \
 		echo "$localipv4	$perdomain #Added by pihole#" >> /etc/hosts
 done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
@@ -296,10 +302,10 @@ ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 # RESTART DNSMASQ
 #=================================================
 
-ynh_system_reload --service_name=dnsmasq --action=restart
+ynh_systemd_action --action=restart --service_name=dnsmasq
 
 #=================================================
-# INSTALL THE CRON JOB
+# INSTALL CRON JOB
 #=================================================
 
 cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
@@ -317,10 +323,10 @@ ynh_exec_warn_less /opt/pihole/gravity.sh
 # START PIHOLE-FTL
 #=================================================
 
-ynh_system_reload --service_name=pihole-FTL --action=restart
+ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
-# SET UP THE CONF_REGEN HOOK
+# SET UP CONF_REGEN HOOK
 #=================================================
 
 cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
@@ -328,7 +334,7 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 #=================================================
 # GENERIC FINALISATION
 #=================================================
-# ENABLE SERVICE IN ADMIN PANEL
+# ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
 yunohost service add pihole-FTL --log "/var/log/pihole-FTL.log"
@@ -343,11 +349,14 @@ yunohost app addaccess --users=$admin $app
 # RELOAD NGINX
 #=================================================
 
-ynh_system_reload --service_name=nginx
+ynh_systemd_action --action=reload --service_name=nginx
 
 #=================================================
 # SEND A README FOR THE ADMIN
 #=================================================
+
+# Get main domain and buid the url of the admin panel of the app.
+admin_panel="https://$(grep portal_domain /etc/ssowat/conf.json | cut -d'"' -f4)/yunohost/admin/#/apps/$app"
 
 if [ $enable_dhcp -eq 1 ]
 then
@@ -359,6 +368,9 @@ else
 	dhcp_alert=""
 fi
 
-message="${dhcp_alert}If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/pihole_ynh"
+message="${dhcp_alert}You can configure this app easily by using the experimental config-panel feature: $admin_panel/config-panel.
+You can also find some specific actions for this app by using the experimental action feature: $admin_panel/actions.
 
-ynh_send_readme_to_admin --app_message="$message" --recipients="$admin"
+If you're facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/pihole_ynh"
+
+ynh_send_readme_to_admin --app_message="$message" --recipients="$admin" --type="install"

@@ -3,7 +3,7 @@
 # Dependencies
 app_depencencies="sqlite idn2"
 # dhcpcd5 has been removed because it can cause some problems with the internet connection.
-if [ "$(lsb_release --codename --short)" != "jessie" ]; then
+if [ "$(ynh_debian_release)" != "jessie" ]; then
 	app_depencencies="$app_depencencies php-sqlite3"
 else
 	app_depencencies="$app_depencencies php5-sqlite"

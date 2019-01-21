@@ -39,14 +39,14 @@ Utiliser le panneau d'administration de votre Pi-hole pour configurer cette appl
 
 #### Architectures supportées.
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)/badge/icon)](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/badge/icon)](https://ci-apps-arm.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/)
-* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/jenkins/job/pihole%20(Community)/badge/icon)](https://ci-stretch.nohost.me/jenkins/job/pihole%20(Community)/)
+* x86-64b - [![](https://ci-apps.yunohost.org/ci/logs/pihole%20%28Community%29.svg)](https://ci-apps.yunohost.org/ci/apps/pihole/)
+* ARMv8-A - [![](https://ci-apps-arm.yunohost.org/ci/logs/pihole%20%28Community%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/pihole/)
+* Jessie x86-64b - [![](https://ci-stretch.nohost.me/ci/logs/pihole%20%28Community%29.svg)](https://ci-stretch.nohost.me/ci/apps/pihole/)
 
 ## Limitations
 
 * Activer DHCP avec Pi-hole nécessite une configuration manuelle de votre routeur.
-* Pi-Hole-FTL ne peut pas être mis à jour au-delà de la version 2.13.2, à cause de l'utilisation d'une option de dnsmasq non encore disponible sur Jessie.
+* Pi-Hole ne peut pas être mis à jour au-delà de la version 3.3.1, car les versions supérieures utilisent une version intégrée de dnsmasq. Ce qui oblige a désactiver la version de dnsmasq utilisée par YunoHost.
 
 ## Informations additionnelles
 
@@ -65,7 +65,7 @@ Merci de faire vos pull request sur la [branche testing](https://github.com/Yuno
 
 Pour tester la branche testing, merci de procéder ainsi.
 ```
-sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --verbose
+sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
 ou
-sudo yunohost app upgrade pihole -u https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --verbose
+sudo yunohost app upgrade pihole -u https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
 ```

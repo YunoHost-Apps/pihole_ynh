@@ -39,14 +39,14 @@ Use the admin panel of your Pi-hole to configure this app.
 
 #### Supported architectures
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)/badge/icon)](https://ci-apps.yunohost.org/jenkins/job/pihole%20(Community)/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/badge/icon)](https://ci-apps-arm.yunohost.org/jenkins/job/pihole%20(Community)%20(%7EARM%7E)/)
-* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/jenkins/job/pihole%20(Community)/badge/icon)](https://ci-stretch.nohost.me/jenkins/job/pihole%20(Community)/)
+* x86-64b - [![](https://ci-apps.yunohost.org/ci/logs/pihole%20%28Community%29.svg)](https://ci-apps.yunohost.org/ci/apps/pihole/)
+* ARMv8-A - [![](https://ci-apps-arm.yunohost.org/ci/logs/pihole%20%28Community%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/pihole/)
+* Jessie x86-64b - [![](https://ci-stretch.nohost.me/ci/logs/pihole%20%28Community%29.svg)](https://ci-stretch.nohost.me/ci/apps/pihole/)
 
 ## Limitations
 
 * Activate DHCP with Pi-hole need a manuel configuration of your router.
-* Pi-Hole-FTL can't be upgrade above the version 2.13.2, because of the usage of an option of dnsmasq not yet available on Jessie.
+* Pi-Hole can't be updated beyond the version 3.3.1, because higher versions use an integrated version of dnsmasq. This would forces to disable the version of dnsmasq used by YunoHost.
 
 ## Additionnal informations
 
@@ -65,7 +65,7 @@ Please do your pull request to the [testing branch](https://github.com/YunoHost-
 
 To try the testing branch, please proceed like that.
 ```
-sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --verbose
+sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
 or
-sudo yunohost app upgrade pihole -u https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --verbose
+sudo yunohost app upgrade pihole -u https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
 ```
