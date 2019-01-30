@@ -35,6 +35,17 @@
 				"type": "bool",
 				"default": true
 			}]
+		},
+		{
+			"name": "Global configuration",
+			"id": "global_config",
+			"options": [{
+				"name": "Send HTML email to admin ?",
+				"help": "Allow app scripts to send HTML mails instead of plain text.",
+				"id": "email_type",
+				"type": "bool",
+				"default": true
+			}]
 		}]
 	}
 ]
