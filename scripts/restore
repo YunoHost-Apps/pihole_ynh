@@ -87,7 +87,7 @@ chown $app: -R "/etc/pihole"
 # RESTORE THE PHP-FPM CONFIGURATION
 #=================================================
 
-ynh_restore_file "/etc/php5/fpm/pool.d/$app.conf"
+ynh_restore_file "/etc/php/7.0/fpm/pool.d/$app.conf"
 
 #=================================================
 # SPECIFIC RESTORE
@@ -208,7 +208,7 @@ ynh_systemd_action --action=restart --service_name=pihole-FTL
 #=================================================
 ynh_script_progression --message="Reload nginx and php-fpm"
 
-ynh_systemd_action --action=reload --service_name=php5-fpm
+ynh_systemd_action --action=reload --service_name=php7.0-fpm
 ynh_systemd_action --action=reload --service_name=nginx
 
 #=================================================

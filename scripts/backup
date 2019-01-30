@@ -58,7 +58,7 @@ ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 ynh_script_progression --message="Backup php-fpm configuration"
 
-ynh_backup "/etc/php5/fpm/pool.d/$app.conf"
+ynh_backup "/etc/php/7.0/fpm/pool.d/$app.conf"
 
 #=================================================
 # SPECIFIC BACKUP
