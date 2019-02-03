@@ -46,6 +46,11 @@ old_overwrite_phpfpm="$(ynh_app_setting_get $app overwrite_phpfpm)"
 old_overwrite_phpfpm=$(bool_to_true_false $old_overwrite_phpfpm)
 overwrite_phpfpm="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_PHPFPM:-$old_overwrite_phpfpm}"
 
+# Type of admin mail configuration
+old_admin_mail_html="$(ynh_app_setting_get $app admin_mail_html)"
+old_admin_mail_html=$(bool_to_true_false $old_admin_mail_html)
+admin_mail_html="${YNH_CONFIG_MAIN_GLOBAL_CONFIG_EMAIL_TYPE:-$old_admin_mail_html}"
+
 #=================================================
 # SHOW_CONFIG FUNCTION FOR 'SHOW' COMMAND
 #=================================================
@@ -58,6 +63,8 @@ show_config() {
 	echo "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_FTL=$overwrite_ftl"
 	echo "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX=$overwrite_nginx"
 	echo "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_PHPFPM=$overwrite_phpfpm"
+
+	echo "YNH_CONFIG_MAIN_GLOBAL_CONFIG_EMAIL_TYPE=$admin_mail_html"
 }
 
 #=================================================
@@ -77,6 +84,10 @@ apply_config() {
 	# Set overwrite_phpfpm
 	overwrite_phpfpm=$(bool_to_01 $overwrite_phpfpm)
 	ynh_app_setting_set $app overwrite_phpfpm "$overwrite_phpfpm"
+
+	# Set admin_mail_html
+	admin_mail_html=$(bool_to_01 $admin_mail_html)
+	ynh_app_setting_set $app admin_mail_html "$admin_mail_html"
 }
 
 #=================================================

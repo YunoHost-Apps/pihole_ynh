@@ -19,6 +19,7 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_script_progression --message="Load settings" --weight=2
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -31,6 +32,7 @@ domain=$(ynh_app_setting_get $app domain)
 #=================================================
 # BACKUP THE MAIN APP DIRECTORIES
 #=================================================
+ynh_script_progression --message="Backup the app main directories" --weight=5
 
 CHECK_SIZE "$final_path"
 ynh_backup "$final_path"
@@ -47,26 +49,30 @@ ynh_backup "/opt/pihole"
 #=================================================
 # BACKUP NGINX CONFIGURATION
 #=================================================
+ynh_script_progression --message="Backup nginx configuration"
 
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # BACKUP PHP-FPM CONFIGURATION
 #=================================================
+ynh_script_progression --message="Backup php-fpm configuration"
 
-ynh_backup "/etc/php5/fpm/pool.d/$app.conf"
+ynh_backup "/etc/php/7.0/fpm/pool.d/$app.conf"
 
 #=================================================
 # SPECIFIC BACKUP
 #=================================================
 # BACKUP CRON FILE
 #=================================================
+ynh_script_progression --message="Backup cron file"
 
 ynh_backup "/etc/cron.d/pihole"
 
 #=================================================
 # BACKUP SPECIFIC FILES
 #=================================================
+ynh_script_progression --message="Backup specific files"
 
 ynh_backup "/usr/local/bin/pihole"
 ynh_backup "/etc/bash_completion.d/pihole"
@@ -88,3 +94,9 @@ if test -e "/etc/dnsmasq.d/04-pihole-static-dhcp.conf"; then
 fi
 
 ynh_backup "/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Backup completed" --last

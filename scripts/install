@@ -21,6 +21,7 @@ ynh_abort_if_errors
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
+ynh_script_progression --message="Retrieve arguments from the manifest"
 
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
@@ -33,6 +34,7 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THIS ARGS
 #=================================================
+ynh_script_progression --message="Check if the app can be installed"
 
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
@@ -46,22 +48,26 @@ ynh_webpath_register $app $domain $path_url
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
+ynh_script_progression --message="Store settings from manifest" --weight=3
 
 ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app path $path_url
 ynh_app_setting_set $app admin $admin
 ynh_app_setting_set $app query_logging $query_logging
 ynh_app_setting_set $app enable_dhcp $enable_dhcp
+
 ynh_app_setting_set $app overwrite_setupvars "1"
 ynh_app_setting_set $app overwrite_ftl "1"
 ynh_app_setting_set $app overwrite_nginx "1"
 ynh_app_setting_set $app overwrite_phpfpm "1"
+ynh_app_setting_set $app admin_mail_html "1"
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
+ynh_script_progression --message="Find and open a free port" --weight=12
 
 # Find a free port
 port=$(ynh_find_port 4711)
@@ -80,12 +86,14 @@ ynh_exec_fully_quiet yunohost firewall allow Both 53 --no-upnp
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
+ynh_script_progression --message="Install dependencies" --weight=12
 
 ynh_install_app_dependencies $app_depencencies
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+ynh_script_progression --message="Download, check and unpack source" --weight=4
 
 ynh_app_setting_set $app final_path $final_path
 # Make a copy of local pihole repository (for Gravity)
@@ -97,6 +105,7 @@ ynh_setup_source "$final_path" admin_dashboard
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
+ynh_script_progression --message="Configure nginx" --weight=2
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
@@ -104,6 +113,7 @@ ynh_add_nginx_config
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
+ynh_script_progression --message="Create a dedicated user" --weight=2
 
 # Create a dedicated system user
 ynh_system_user_create $app
@@ -111,6 +121,7 @@ ynh_system_user_create $app
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
+ynh_script_progression --message="Configure php-fpm" --weight=2
 
 # Create a dedicated php-fpm config
 ynh_add_fpm_config
@@ -120,6 +131,7 @@ ynh_add_fpm_config
 #=================================================
 # CREATE DIRECTORIES AND POPULATE THEM
 #=================================================
+ynh_script_progression --message="Create and populate directories"
 
 pihole_storage="/etc/pihole"
 mkdir -p "$pihole_storage"
@@ -138,6 +150,7 @@ cp -a "$pihole_local_repo/advanced/Scripts/COL_TABLE" "$pihole_dir/"
 #=================================================
 # COPY PI-HOLE MAIN SCRIPT
 #=================================================
+ynh_script_progression --message="Copy Pi-Hole main script"
 
 cp -a "$pihole_local_repo/pihole" /usr/local/bin/
 cp -a "$pihole_local_repo/advanced/bash-completion/pihole" /etc/bash_completion.d/pihole
@@ -171,6 +184,7 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 #=================================================
 # INSTALLATION OF PIHOLE-FTL
 #=================================================
+ynh_script_progression --message="Install PiHole-FTL" --weight=30
 
 # Get the source of Pi-Hole-FTL
 FTL_temp_path=$(mktemp -d)
@@ -217,6 +231,7 @@ ynh_store_file_checksum "$setupVars"
 #=================================================
 # SET UP DNSMASQ CONFIG
 #=================================================
+ynh_script_progression --message="Set up Dnsmasq config" --weight=2
 
 ynh_systemd_action --action=stop --service_name=dnsmasq
 
@@ -246,6 +261,7 @@ ynh_replace_string "^cache-size=" "#pihole# cache-size=" /etc/dnsmasq.conf
 #=================================================
 # CONFIGURE DNS FOR THE LOCAL DOMAINS
 #=================================================
+ynh_script_progression --message="Configure dns for the local domains" --weight=7
 
 # Find the IP associated to the network interface
 localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
@@ -267,6 +283,7 @@ done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
 
 if [ $enable_dhcp -eq 1 ]
 then
+	ynh_script_progression --message="Enable dhcp server"
 	max_dhcp_range=250
 	dhcp_range=100
 	# Define the dhcp range from the current ip
@@ -301,6 +318,7 @@ ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 #=================================================
 # RESTART DNSMASQ
 #=================================================
+ynh_script_progression --message="Restart Dnsmasq" --time --weight=2
 
 ynh_systemd_action --action=restart --service_name=dnsmasq
 
@@ -315,6 +333,7 @@ ynh_replace_string ".*updatechecker.*" "#&" /etc/cron.d/pihole
 #=================================================
 # BUILD THE LISTS WITH GRAVITY
 #=================================================
+ynh_script_progression --message="Build the lists with Gravity" --weight=7
 
 cp "$pihole_local_repo/adlists.default" "$pihole_storage/adlists.default"
 ynh_exec_warn_less /opt/pihole/gravity.sh
@@ -322,6 +341,7 @@ ynh_exec_warn_less /opt/pihole/gravity.sh
 #=================================================
 # START PIHOLE-FTL
 #=================================================
+ynh_script_progression --message="Restart PiHole-FTL" --weight=2
 
 ynh_systemd_action --action=restart --service_name=pihole-FTL
 
@@ -342,12 +362,14 @@ yunohost service add pihole-FTL --log "/var/log/pihole-FTL.log"
 #=================================================
 # RESTRAIN THE ACCESS TO THE ADMIN ONLY
 #=================================================
+ynh_script_progression --message="Restrain the access to the admin only" --weight=2
 
 yunohost app addaccess --users=$admin $app
 
 #=================================================
 # RELOAD NGINX
 #=================================================
+ynh_script_progression --message="Reload nginx" --weight=4
 
 ynh_systemd_action --action=reload --service_name=nginx
 
@@ -361,16 +383,22 @@ admin_panel="https://$(grep portal_domain /etc/ssowat/conf.json | cut -d'"' -f4)
 if [ $enable_dhcp -eq 1 ]
 then
 	dhcp_alert="You asked to use the internal DHCP server of dnsmasq with PiHole.
-You should really read the documentation about that, https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md
+You should really read the __URL_TAG1__documentation about that__URL_TAG2__https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md__URL_TAG3__
 
 "
 else
 	dhcp_alert=""
 fi
 
-message="${dhcp_alert}You can configure this app easily by using the experimental config-panel feature: $admin_panel/config-panel.
-You can also find some specific actions for this app by using the experimental action feature: $admin_panel/actions.
+echo "${dhcp_alert}You can configure this app easily by using the experimental __URL_TAG1__config-panel feature__URL_TAG2__$admin_panel/config-panel__URL_TAG3__.
+You can also find some specific actions for this app by using the experimental __URL_TAG1__action feature__URL_TAG2__$admin_panel/actions__URL_TAG3__.
 
-If you're facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/pihole_ynh"
+If you're facing an issue or want to improve this app, please open a new issue in this __URL_TAG1__project__URL_TAG2__https://github.com/YunoHost-Apps/pihole_ynh__URL_TAG3__." > mail_to_send
 
-ynh_send_readme_to_admin --app_message="$message" --recipients="$admin" --type="install"
+ynh_send_readme_to_admin --app_message="mail_to_send" --recipients="$admin" --type="install"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Installation completed" --last

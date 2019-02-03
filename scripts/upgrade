@@ -14,6 +14,7 @@ source _variables
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_script_progression --message="Load settings" --weight=3
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -38,6 +39,7 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
+ynh_script_progression --message="Ensure downward compatibility"
 
 # If overwrite_setupvars doesn't exist, create it
 if [ -z "$overwrite_setupvars" ]; then
@@ -66,6 +68,7 @@ fi
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
+ynh_script_progression --message="Backup the app before upgrading" --weight=7
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
@@ -86,6 +89,7 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 # ACTIVATE MAINTENANCE MODE
 #=================================================
+ynh_script_progression --message="Activate maintenance mode"
 
 ynh_maintenance_mode_ON
 
@@ -94,6 +98,7 @@ ynh_maintenance_mode_ON
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
+ynh_script_progression --message="Upgrade dependencies" --weight=6
 
 ynh_install_app_dependencies $app_depencencies
 
@@ -104,6 +109,7 @@ ynh_install_app_dependencies $app_depencencies
 pihole_local_repo="/etc/.pihole"
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
+	ynh_script_progression --message="Download, check and unpack source" --weight=4
 	# Update the local copy pihole repository (for Gravity)
 	ynh_setup_source "$pihole_local_repo"
 	# Update admin dashboard
@@ -117,6 +123,7 @@ fi
 # Overwrite the nginx configuration only if it's allowed
 if [ $overwrite_nginx -eq 1 ]
 then
+	ynh_script_progression --message="Reconfigure nginx" --weight=2
 	# Create a dedicated nginx config
 	ynh_add_nginx_config
 fi
@@ -124,6 +131,7 @@ fi
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
+ynh_script_progression --message="Create a dedicated user"
 
 # Create a dedicated user (if not existing)
 ynh_system_user_create $app
@@ -135,6 +143,7 @@ ynh_system_user_create $app
 # Overwrite the php-fpm configuration only if it's allowed
 if [ $overwrite_phpfpm -eq 1 ]
 then
+	ynh_script_progression --message="Reconfigure php-fpm" --weight=3
 	# Create a dedicated php-fpm config
 	ynh_add_fpm_config
 fi
@@ -155,6 +164,7 @@ cp -a "$pihole_local_repo/advanced/Scripts/COL_TABLE" "$pihole_dir/"
 #=================================================
 # COPY PI-HOLE MAIN SCRIPT
 #=================================================
+ynh_script_progression --message="Copy Pi-Hole main script"
 
 cp -a "$pihole_local_repo/pihole" /usr/local/bin/
 cp -a "$pihole_local_repo/advanced/bash-completion/pihole" /etc/bash_completion.d/pihole
@@ -180,6 +190,7 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 #=================================================
 # UPDATE PIHOLE-FTL
 #=================================================
+ynh_script_progression --message="Upgrade PiHole-FTL" --weight=35
 
 ynh_systemd_action --action=stop --service_name=pihole-FTL
 
@@ -252,6 +263,7 @@ ynh_replace_string ".*updatechecker.*" "#&" /etc/cron.d/pihole
 #=================================================
 # START PIHOLE-FTL
 #=================================================
+ynh_script_progression --message="Restart PiHole-FTL" --weight=2
 
 ynh_systemd_action --action=restart --service_name=pihole-FTL
 
@@ -264,12 +276,14 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 #=================================================
 # RELOAD NGINX
 #=================================================
+ynh_script_progression --message="Reload nginx"
 
 ynh_systemd_action --action=reload --service_name=nginx
 
 #=================================================
 # DEACTIVE MAINTENANCE MODE
 #=================================================
+ynh_script_progression --message="Disable maintenance mode" --weight=5
 
 ynh_maintenance_mode_OFF
 
@@ -279,6 +293,9 @@ ynh_maintenance_mode_OFF
 
 # Get main domain and buid the url of the admin panel of the app.
 admin_panel="https://$(grep portal_domain /etc/ssowat/conf.json | cut -d'"' -f4)/yunohost/admin/#/apps/$app"
+
+# Build the changelog
+ynh_app_changelog || true
 
 if [ $enable_dhcp -eq 1 ]
 then
@@ -290,9 +307,20 @@ else
 	dhcp_alert=""
 fi
 
-message="${dhcp_alert}You can configure this app easily by using the experimental config-panel feature: $admin_panel/config-panel.
-You can also find some specific actions for this app by using the experimental action feature: $admin_panel/actions.
+echo "${dhcp_alert}You can configure this app easily by using the experimental __URL_TAG1__config-panel feature__URL_TAG2__$admin_panel/config-panel__URL_TAG3__.
+You can also find some specific actions for this app by using the experimental __URL_TAG1__action feature__URL_TAG2__$admin_panel/actions__URL_TAG3__.
 
-If you're facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/pihole_ynh"
+If you're facing an issue or want to improve this app, please open a new issue in this __URL_TAG1__project__URL_TAG2__https://github.com/YunoHost-Apps/pihole_ynh__URL_TAG3__.
 
-ynh_send_readme_to_admin --app_message="$message" --recipients="$admin" --type="upgrade"
+---
+
+Changelog since your last upgrade:
+$(cat changelog)" > mail_to_send
+
+ynh_send_readme_to_admin --app_message="mail_to_send" --recipients="$admin" --type="upgrade"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Upgrade completed" --last
