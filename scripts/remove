@@ -26,7 +26,7 @@ port=$(ynh_app_setting_get $app port)
 #=================================================
 
 # Check if the service is declared in YunoHost
-if yunohost service status | grep -q pihole-FTL
+if ynh_exec_fully_quiet yunohost service status pihole-FTL
 then
 	ynh_print_info "Remove pihole-FTL service" >&2
 	yunohost service remove pihole-FTL
