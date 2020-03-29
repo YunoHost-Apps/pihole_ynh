@@ -370,64 +370,140 @@ ynh_maintenance_mode_OFF () {
 
 #=================================================
 
-# Create a changelog for an app after an upgrade.
+# Create a changelog for an app after an upgrade from the file CHANGELOG.md.
 #
-# The changelog is printed into the file ./changelog for the time of the upgrade.
+# usage: ynh_app_changelog [--format=markdown/html/plain] [--output=changelog_file] --changelog=changelog_source]
+# | arg: -f --format= - Format in which the changelog will be printed
+#       markdown: Default format.
+#       html:     Turn urls into html format.
+#       plain:    Plain text changelog
+# | arg: -o --output= - Output file for the changelog file (Default ./changelog)
+# | arg: -c --changelog= - CHANGELOG.md source (Default ../CHANGELOG.md)
 #
-# In order to create a changelog, ynh_app_changelog will get info from /etc/yunohost/apps/$app/status.json
-# In order to find the current commit use by the app.
-# The remote repository, and the branch.
-# The changelog will be only the commits since the current revision.
-#
-# Because of the need of those info, ynh_app_changelog works only
-# with apps that have been installed from a list.
-#
-# usage: ynh_app_changelog
+# The changelog is printed into the file ./changelog and ./changelog_lite
 ynh_app_changelog () {
-	get_value_from_settings ()
-	{
-		local value="$1"
-		# Extract a value from the status.json file of an installed app.
+    # Declare an array to define the options of this helper.
+    local legacy_args=foc
+    declare -Ar args_array=( [f]=format= [o]=output= [c]=changelog= )
+    local format
+    local output
+    local changelog
+    # Manage arguments with getopts
+    ynh_handle_getopts_args "$@"
+    format=${format:-markdown}
+    output=${output:-changelog}
+    changelog=${changelog:-../CHANGELOG.md}
 
-		grep "$value\": \"" /etc/yunohost/apps/$app/status.json | sed "s/.*$value\": \"\([^\"]*\).*/\1/"
-	}
+    local original_changelog="$changelog"
+    local temp_changelog="changelog_temp"
+    local final_changelog="$output"
 
-	local current_revision="$(get_value_from_settings revision)"
-	local repo="$(get_value_from_settings url)"
-	local branch="$(get_value_from_settings branch)"
-	# ynh_app_changelog works only with an app installed from a list.
-	if [ -z "$current_revision" ] || [ -z "$repo" ] || [ -z "$branch" ]
-	then
-		ynh_print_warn "Unable to build the changelog..."
-		touch changelog
-		return 0
-	fi
+    if [ ! -n "$original_changelog" ]
+    then
+        echo "No changelog available..." > "$final_changelog"
+        echo "No changelog available..." > "${final_changelog}_lite"
+        return 0
+    fi
 
-	# Fetch the history of the repository, without cloning it
-	mkdir git_history
-	(cd git_history
-	ynh_exec_warn_less git init
-	ynh_exec_warn_less git remote add -f origin $repo
-	# Get the line of the current commit of the installed app in the history.
-	local line_to_head=$(git log origin/$branch --pretty=oneline | grep --line-number "$current_revision" | cut -d':' -f1)
-	# Cut the history before the current commit, to keep only newer commits.
-	# Then use sed to reorganise each lines and have a nice list of commits since the last upgrade.
-	# This list is redirected into the file changelog
-	git log origin/$branch --pretty=oneline | head --lines=$(($line_to_head-1)) | sed 's/^\([[:alnum:]]*\)\(.*\)/*(\1) -> \2/g' > ../changelog)
-	# Remove 'Merge pull request' commits
-	sed -i '/Merge pull request #[[:digit:]]* from/d' changelog
-	# As well as conflict resolving commits
-	sed -i '/Merge branch .* into/d' changelog
+    local current_version=$(ynh_read_manifest --manifest="/etc/yunohost/apps/$YNH_APP_INSTANCE_NAME/manifest.json" --manifest_key="version")
+    local update_version=$(ynh_read_manifest --manifest="../manifest.json" --manifest_key="version")
 
-	# Get the value of admin_mail_html
-	admin_mail_html=$(ynh_app_setting_get $app admin_mail_html)
-	admin_mail_html="${admin_mail_html:-0}"
+    # Get the line of the version to update to into the changelog
+    local update_version_line=$(grep --max-count=1 --line-number "^## \[$update_version" "$original_changelog" | cut -d':' -f1)
+    # If there's no entry for this version yet into the changelog
+    # Get the first available version
+    if [ -z "$update_version_line" ]
+    then
+        update_version_line=$(grep --max-count=1 --line-number "^##" "$original_changelog" | cut -d':' -f1)
+    fi
 
-	# If a html email is required. Apply html to the changelog.
- 	if [ "$admin_mail_html" -eq 1 ]
- 	then
-		sed -in-place "s@\*(\([[:alnum:]]*\)) -> \(.*\)@* __URL_TAG1__\2__URL_TAG2__${repo}/commit/\1__URL_TAG3__@g" changelog
- 	fi
+    # Get the length of the complete changelog.
+    local changelog_length=$(wc --lines "$original_changelog" | awk '{print $1}')
+    # Cut the file before the version to update to.
+    tail --lines=$(( $changelog_length - $update_version_line + 1 )) "$original_changelog" > "$temp_changelog"
+
+    # Get the length of the troncated changelog.
+    changelog_length=$(wc --lines "$temp_changelog" | awk '{print $1}')
+    # Get the line of the current version into the changelog
+    # Keep only the last line found
+    local current_version_line=$(grep --line-number "^## \[$current_version" "$temp_changelog" | cut -d':' -f1 | tail --lines=1)
+    # If there's no entry for this version into the changelog
+    # Get the last available version
+    if [ -z "$current_version_line" ]
+    then
+        current_version_line=$(grep --line-number "^##" "$original_changelog" | cut -d':' -f1 | tail --lines=1)
+    fi
+    # Cut the file before the current version.
+    # Then grep the previous version into the changelog to get the line number of the previous version
+    local previous_version_line=$(tail --lines=$(( $changelog_length - $current_version_line )) \
+        "$temp_changelog" | grep --max-count=1 --line-number "^## " | cut -d':' -f1)
+    # If there's no previous version into the changelog
+    # Go until the end of the changelog
+    if [ -z "$previous_version_line" ]
+    then
+        previous_version_line=$changelog_length
+    fi
+
+    # Cut the file after the previous version to keep only the changelog between the current version and the version to update to.
+    head --lines=$(( $current_version_line + $previous_version_line - 1 )) "$temp_changelog" | tee "$final_changelog"
+
+    if [ "$format" = "html" ]
+    then
+        # Replace markdown links by html links
+        ynh_replace_string --match_string="\[\(.*\)\](\(.*\)))" --replace_string="<a href=\"\2\">\1</a>)" --target_file="$final_changelog"
+        ynh_replace_string --match_string="\[\(.*\)\](\(.*\))" --replace_string="<a href=\"\2\">\1</a>" --target_file="$final_changelog"
+    elif [ "$format" = "plain" ]
+    then
+        # Change title format.
+        ynh_replace_string --match_string="^##.*\[\(.*\)\](\(.*\)) - \(.*\)$" --replace_string="## \1 (\3) - \2" --target_file="$final_changelog"
+        # Change modifications lines format.
+        ynh_replace_string --match_string="^\([-*]\).*\[\(.*\)\]\(.*\)" --replace_string="\1 \2 \3" --target_file="$final_changelog"
+    fi
+    # else markdown. As the file is already in markdown, nothing to do.
+
+    # Keep only important changes into the changelog
+    # Remove all minor changes
+    sed '/^-/d' "$final_changelog" > "${final_changelog}_lite"
+    # Remove all blank lines (to keep a clear workspace)
+    sed --in-place '/^$/d' "${final_changelog}_lite"
+    # Add a blank line at the end
+    echo "" >> "${final_changelog}_lite"
+
+    # Clean titles if there's no significative changes
+    local line
+    local previous_line=""
+    while read line <&3
+    do
+        if [ -n "$previous_line" ]
+        then
+            # Remove the line if it's a title or a blank line, and the previous one was a title as well.
+            if ( [ "${line:0:1}" = "#" ] || [ ${#line} -eq 0 ] ) && [ "${previous_line:0:1}" = "#" ]
+            then
+                ynh_replace_special_string --match_string="${previous_line//[/.}" --replace_string="" --target_file="${final_changelog}_lite"
+            fi
+        fi
+        previous_line="$line"
+    done 3< "${final_changelog}_lite"
+
+    # Remove all blank lines again
+    sed --in-place '/^$/d' "${final_changelog}_lite"
+
+    # Restore changelog format with blank lines
+    ynh_replace_string --match_string="^##.*" --replace_string="\n\n&\n" --target_file="${final_changelog}_lite"
+    # Remove the 2 first blank lines
+    sed --in-place '1,2d' "${final_changelog}_lite"
+    # Add a blank line at the end
+    echo "" >> "${final_changelog}_lite"
+
+    # If changelog are empty, add an info
+    if [ $(wc --words "$final_changelog" | awk '{print $1}') -eq 0 ]
+    then
+        echo "No changes from the changelog..." > "$final_changelog"
+    fi
+    if [ $(wc --words "${final_changelog}_lite" | awk '{print $1}') -eq 0 ]
+    then
+        echo "No significative changes from the changelog..." > "${final_changelog}_lite"
+    fi
 }
 
 #=================================================

@@ -295,7 +295,16 @@ ynh_maintenance_mode_OFF
 admin_panel="https://$(grep portal_domain /etc/ssowat/conf.json | cut -d'"' -f4)/yunohost/admin/#/apps/$app"
 
 # Build the changelog
-ynh_app_changelog || true
+# Get the value of admin_mail_html
+admin_mail_html=$(ynh_app_setting_get $app admin_mail_html)
+admin_mail_html="${admin_mail_html:-0}"
+# If a html email is required. Apply html to the changelog.
+if [ "$admin_mail_html" -eq 1 ]; then
+    format=html
+else
+    format=plain
+fi
+ynh_app_changelog --format=$format
 
 if [ $enable_dhcp -eq 1 ]
 then
