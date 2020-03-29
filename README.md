@@ -1,6 +1,6 @@
 # Pi-hole for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/pihole.svg)](https://dash.yunohost.org/appci/app/pihole)  
+[![Integration level](https://dash.yunohost.org/integration/pihole.svg)](https://dash.yunohost.org/appci/app/pihole) ![](https://ci-apps.yunohost.org/ci/badges/pihole.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/pihole.maintain.svg)  
 [![Install Pi-hole with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=pihole)
 
 *[Lire ce readme en français.](./README_fr.md)*
@@ -39,9 +39,9 @@ Use the admin panel of your Pi-hole to configure this app. You may also need to 
 
 #### Supported architectures
 
-* x86-64b - [![](https://ci-apps.yunohost.org/ci/logs/pihole%20%28Community%29.svg)](https://ci-apps.yunohost.org/ci/apps/pihole/)
-* ARMv8-A - [![](https://ci-apps-arm.yunohost.org/ci/logs/pihole%20%28Community%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/pihole/)
-* Jessie x86-64b - [![](https://ci-stretch.nohost.me/ci/logs/pihole%20%28Community%29.svg)](https://ci-stretch.nohost.me/ci/apps/pihole/)
+* x86-64b - [![](https://ci-apps.yunohost.org/ci/logs/pihole%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/pihole/)
+* ARMv8-A - [![](https://ci-apps-arm.yunohost.org/ci/logs/pihole%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/pihole/)
+* Jessie x86-64b - [![](https://ci-stretch.nohost.me/ci/logs/pihole%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/pihole/)
 
 ## Limitations
 
@@ -54,6 +54,7 @@ Use the admin panel of your Pi-hole to configure this app. You may also need to 
 
  * Report a bug: https://github.com/YunoHost-Apps/pihole_ynh/issues
  * Pi-hole website: https://pi-hole.net/
+ * Pi-hole repository: https://github.com/pi-hole/pi-hole/
  * YunoHost website: https://yunohost.org/
 
 ---

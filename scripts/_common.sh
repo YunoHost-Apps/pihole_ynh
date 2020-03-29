@@ -1,6 +1,10 @@
 #!/bin/bash
 
 #=================================================
+# PERSONAL HELPERS
+#=================================================
+
+#=================================================
 # BACKUP
 #=================================================
 
@@ -27,25 +31,12 @@ CHECK_SIZE () {	# Vérifie avant chaque backup que l'espace est suffisant
 #=================================================
 
 IS_PACKAGE_CHECK () {
-	return $(env | grep -c container=lxc)
-}
-
-#=================================================
-# BOOLEAN CONVERTER
-#=================================================
-
-bool_to_01 () {
-	local var="$1"
-	[ "$var" = "true" ] && var=1
-	[ "$var" = "false" ] && var=0
-	echo "$var"
-}
-
-bool_to_true_false () {
-	local var="$1"
-	[ "$var" = "1" ] && var=true
-	[ "$var" = "0" ] && var=false
-	echo "$var"
+	if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]
+	then
+		return 0
+	else
+		return 1
+	fi
 }
 
 #=================================================
@@ -127,359 +118,6 @@ ynh_multimedia_addaccess () {
 
 	groupadd -f multimedia
 	usermod -a -G multimedia $user_name
-}
-
-#=================================================
-
-# Create a dedicated fail2ban config (jail and filter conf files)
-#
-# usage: ynh_add_fail2ban_config log_file filter [max_retry [ports]]
-# | arg: -l, --logpath= - Log file to be checked by fail2ban
-# | arg: -r, --failregex= - Failregex to be looked for by fail2ban
-# | arg: -m, --max_retry= - Maximum number of retries allowed before banning IP address - default: 3
-# | arg: -p, --ports= - Ports blocked for a banned IP address - default: http,https
-ynh_add_fail2ban_config () {
-	# Declare an array to define the options of this helper.
-	declare -Ar args_array=( [l]=logpath= [r]=failregex= [m]=max_retry= [p]=ports= )
-	local logpath
-	local failregex
-	local max_retry
-	local ports
-	# Manage arguments with getopts
-	ynh_handle_getopts_args "$@"
-	max_retry=${max_retry:-3}
-	ports=${ports:-http,https}
-
-	test -n "$logpath" || ynh_die "ynh_add_fail2ban_config expects a logfile path as first argument and received nothing."
-	test -n "$failregex" || ynh_die "ynh_add_fail2ban_config expects a failure regex as second argument and received nothing."
-
-	finalfail2banjailconf="/etc/fail2ban/jail.d/$app.conf"
-	finalfail2banfilterconf="/etc/fail2ban/filter.d/$app.conf"
-	ynh_backup_if_checksum_is_different "$finalfail2banjailconf" 1
-	ynh_backup_if_checksum_is_different "$finalfail2banfilterconf" 1
-
-	tee $finalfail2banjailconf <<EOF
-[$app]
-enabled = true
-port = $ports
-filter = $app
-logpath = $logpath
-maxretry = $max_retry
-EOF
-
-  tee $finalfail2banfilterconf <<EOF
-[INCLUDES]
-before = common.conf
-[Definition]
-failregex = $failregex
-ignoreregex =
-EOF
-
-	ynh_store_file_checksum "$finalfail2banjailconf"
-	ynh_store_file_checksum "$finalfail2banfilterconf"
-
-	if [ "$(lsb_release --codename --short)" != "jessie" ]; then
-		systemctl reload fail2ban
-	else
-		systemctl restart fail2ban
-	fi
-	local fail2ban_error="$(journalctl -u fail2ban | tail -n50 | grep "WARNING.*$app.*")"
-	if [ -n "$fail2ban_error" ]
-	then
-		echo "[ERR] Fail2ban failed to load the jail for $app" >&2
-		echo "WARNING${fail2ban_error#*WARNING}" >&2
-	fi
-}
-
-# Remove the dedicated fail2ban config (jail and filter conf files)
-#
-# usage: ynh_remove_fail2ban_config
-ynh_remove_fail2ban_config () {
-	ynh_secure_remove "/etc/fail2ban/jail.d/$app.conf"
-	ynh_secure_remove "/etc/fail2ban/filter.d/$app.conf"
-	if [ "$(lsb_release --codename --short)" != "jessie" ]; then
-		systemctl reload fail2ban
-	else
-		systemctl restart fail2ban
-	fi
-}
-
-#=================================================
-
-# Read the value of a key in a ynh manifest file
-#
-# usage: ynh_read_manifest manifest key
-# | arg: -m, --manifest= - Path of the manifest to read
-# | arg: -k, --key= - Name of the key to find
-ynh_read_manifest () {
-	# Declare an array to define the options of this helper.
-	declare -Ar args_array=( [m]=manifest= [k]=manifest_key= )
-	local manifest
-	local manifest_key
-	# Manage arguments with getopts
-	ynh_handle_getopts_args "$@"
-
-	python3 -c "import sys, json;print(json.load(open('$manifest', encoding='utf-8'))['$manifest_key'])"
-}
-
-# Read the upstream version from the manifest
-# The version number in the manifest is defined by <upstreamversion>~ynh<packageversion>
-# For example : 4.3-2~ynh3
-# This include the number before ~ynh
-# In the last example it return 4.3-2
-#
-# usage: ynh_app_upstream_version [-m manifest]
-# | arg: -m, --manifest= - Path of the manifest to read
-ynh_app_upstream_version () {
-	declare -Ar args_array=( [m]=manifest= )
-	local manifest
-	# Manage arguments with getopts
-	ynh_handle_getopts_args "$@"
-
-	manifest="${manifest:-../manifest.json}"
-	if [ ! -e "$manifest" ]; then
-		manifest="../settings/manifest.json"	# Into the restore script, the manifest is not at the same place
-	fi
-	version_key=$(ynh_read_manifest --manifest="$manifest" --manifest_key="version")
-	echo "${version_key/~ynh*/}"
-}
-
-# Read package version from the manifest
-# The version number in the manifest is defined by <upstreamversion>~ynh<packageversion>
-# For example : 4.3-2~ynh3
-# This include the number after ~ynh
-# In the last example it return 3
-#
-# usage: ynh_app_package_version [-m manifest]
-# | arg: -m, --manifest= - Path of the manifest to read
-ynh_app_package_version () {
-	declare -Ar args_array=( [m]=manifest= )
-	local manifest
-	# Manage arguments with getopts
-	ynh_handle_getopts_args "$@"
-
-	manifest="${manifest:-../manifest.json}"
-	if [ ! -e "$manifest" ]; then
-		manifest="../settings/manifest.json"	# Into the restore script, the manifest is not at the same place
-	fi
-	version_key=$(ynh_read_manifest --manifest="$manifest" --manifest_key="version")
-	echo "${version_key/*~ynh/}"
-}
-
-# Checks the app version to upgrade with the existing app version and returns:
-# - UPGRADE_APP if the upstream app version has changed
-# - UPGRADE_PACKAGE if only the YunoHost package has changed
-#
-## It stops the current script without error if the package is up-to-date
-#
-# This helper should be used to avoid an upgrade of an app, or the upstream part
-# of it, when it's not needed
-#
-# To force an upgrade, even if the package is up to date,
-# you have to set the variable YNH_FORCE_UPGRADE before.
-# example: sudo YNH_FORCE_UPGRADE=1 yunohost app upgrade MyApp
-#
-# usage: ynh_check_app_version_changed
-ynh_check_app_version_changed () {
-	local force_upgrade=${YNH_FORCE_UPGRADE:-0}
-	local package_check=${PACKAGE_CHECK_EXEC:-0}
-
-	# By default, upstream app version has changed
-	local return_value="UPGRADE_APP"
-
-	local current_version=$(ynh_read_manifest --manifest="/etc/yunohost/apps/$YNH_APP_INSTANCE_NAME/manifest.json" --manifest_key="version" || echo 1.0)
-	local current_upstream_version="$(ynh_app_upstream_version --manifest="/etc/yunohost/apps/$YNH_APP_INSTANCE_NAME/manifest.json")"
-	local update_version=$(ynh_read_manifest --manifest="../manifest.json" --manifest_key="version" || echo 1.0)
-	local update_upstream_version="$(ynh_app_upstream_version)"
-
-	if [ "$current_version" == "$update_version" ] ; then
-		# Complete versions are the same
-		if [ "$force_upgrade" != "0" ]
-		then
-			echo "Upgrade forced by YNH_FORCE_UPGRADE." >&2
-			unset YNH_FORCE_UPGRADE
-		elif [ "$package_check" != "0" ]
-		then
-			echo "Upgrade forced for package check." >&2
-		else
-			ynh_die "Up-to-date, nothing to do" 0
-		fi
-	elif [ "$current_upstream_version" == "$update_upstream_version" ] ; then
-		# Upstream versions are the same, only YunoHost package versions differ
-		return_value="UPGRADE_PACKAGE"
-	fi
-	echo $return_value
-}
-
-#=================================================
-
-# Start (or other actions) a service,  print a log in case of failure and optionnaly wait until the service is completely started
-#
-# usage: ynh_systemd_action [-n service_name] [-a action] [ [-l "line to match"] [-p log_path] [-t timeout] [-e length] ]
-# | arg: -n, --service_name= - Name of the service to reload. Default : $app
-# | arg: -a, --action=       - Action to perform with systemctl. Default: start
-# | arg: -l, --line_match=   - Line to match - The line to find in the log to attest the service have finished to boot.
-#                              If not defined it don't wait until the service is completely started.
-# | arg: -p, --log_path=     - Log file - Path to the log file. Default : /var/log/$app/$app.log
-# | arg: -t, --timeout=      - Timeout - The maximum time to wait before ending the watching. Default : 300 seconds.
-# | arg: -e, --length=       - Length of the error log : Default : 20
-ynh_systemd_action() {
-	# Declare an array to define the options of this helper.
-	declare -Ar args_array=( [n]=service_name= [a]=action= [l]=line_match= [p]=log_path= [t]=timeout= [e]=length= )
-	local service_name
-	local action
-	local line_match
-	local length
-	local log_path
-	local timeout
-
-	# Manage arguments with getopts
-	ynh_handle_getopts_args "$@"
-
-	local service_name="${service_name:-$app}"
-	local action=${action:-start}
-	local log_path="${log_path:-/var/log/$service_name/$service_name.log}"
-	local length=${length:-20}
-	local timeout=${timeout:-300}
-
-	# Start to read the log
-	if [[ -n "${line_match:-}" ]]
-	then
-		local templog="$(mktemp)"
-	# Following the starting of the app in its log
-	if [ "$log_path" == "systemd" ] ; then
-		# Read the systemd journal
-		journalctl -u $service_name -f --since=-45 > "$templog" &
-	else
-		# Read the specified log file
-		tail -F -n0 "$log_path" > "$templog" &
-	fi
-		# Get the PID of the tail command
-		local pid_tail=$!
-	fi
-
-	echo "${action^} the service $service_name" >&2
-	systemctl $action $service_name \
-		|| ( journalctl --lines=$length -u $service_name >&2 \
-		; test -n "$log_path" && echo "--" && tail --lines=$length "$log_path" >&2 \
-		; false )
-
-	# Start the timeout and try to find line_match
-	if [[ -n "${line_match:-}" ]]
-	then
-		local i=0
-		for i in $(seq 1 $timeout)
-		do
-			# Read the log until the sentence is found, that means the app finished to start. Or run until the timeout
-			if grep --quiet "$line_match" "$templog"
-			then
-				echo "The service $service_name has correctly started." >&2
-				break
-			fi
-			echo -n "." >&2
-			sleep 1
-		done
-		if [ $i -eq $timeout ]
-		then
-			echo "The service $service_name didn't fully started before the timeout." >&2
-			echo "Please find here an extract of the end of the log of the service $service_name:"
-			journalctl --lines=$length -u $service_name >&2
-			test -n "$log_path" && echo "--" && tail --lines=$length "$log_path" >&2
-		fi
-
-		echo ""
-		ynh_clean_check_starting
-	fi
-}
-
-# Clean temporary process and file used by ynh_check_starting
-# (usually used in ynh_clean_setup scripts)
-#
-# usage: ynh_clean_check_starting
-ynh_clean_check_starting () {
-	# Stop the execution of tail.
-	kill -s 15 $pid_tail 2>&1
-	ynh_secure_remove "$templog" 2>&1
-}
-
-#=================================================
-
-# Print a message as INFO and show progression during an app script
-#
-# usage: ynh_script_progression --message=message [--weight=weight] [--time]
-# | arg: -m, --message= - The text to print
-# | arg: -w, --weight=  - The weight for this progression. This value is 1 by default. Use a bigger value for a longer part of the script.
-# | arg: -t, --time=    - Print the execution time since the last call to this helper. Especially usefull to define weights.
-# | arg: -l, --last=    - Use for the last call of the helper, to fill te progression bar.
-increment_progression=0
-previous_weight=0
-# Define base_time when the file is sourced
-base_time=$(date +%s)
-ynh_script_progression () {
-	# Declare an array to define the options of this helper.
-	declare -Ar args_array=( [m]=message= [w]=weight= [t]=time [l]=last )
-	local message
-	local weight
-	local time
-	local last
-	# Manage arguments with getopts
-	ynh_handle_getopts_args "$@"
-	weight=${weight:-1}
-	time=${time:-0}
-	last=${last:-0}
-
-	# Get execution time since the last $base_time
-	local exec_time=$(( $(date +%s) - $base_time ))
-	base_time=$(date +%s)
-
-	# Get the number of occurrences of 'ynh_script_progression' in the script. Except those are commented.
-	local helper_calls="$(grep --count "^[^#]*ynh_script_progression" $0)"
-	# Get the number of call with a weight value
-	local weight_calls=$(grep --perl-regexp --count "^[^#]*ynh_script_progression.*(--weight|-w )" $0)
-
-	# Get the weight of each occurrences of 'ynh_script_progression' in the script using --weight
-	local weight_valuesA="$(grep --perl-regexp "^[^#]*ynh_script_progression.*--weight" $0 | sed 's/.*--weight[= ]\([[:digit:]].*\)/\1/g')"
-	# Get the weight of each occurrences of 'ynh_script_progression' in the script using -w
-	local weight_valuesB="$(grep --perl-regexp "^[^#]*ynh_script_progression.*-w " $0 | sed 's/.*-w[= ]\([[:digit:]].*\)/\1/g')"
-	# Each value will be on a different line.
-	# Remove each 'end of line' and replace it by a '+' to sum the values.
-	local weight_values=$(( $(echo "$weight_valuesA" | tr '\n' '+') + $(echo "$weight_valuesB" | tr '\n' '+') 0 ))
-
-	# max_progression is a total number of calls to this helper.
-	#    Less the number of calls with a weight value.
-	#    Plus the total of weight values
-	local max_progression=$(( $helper_calls - $weight_calls + $weight_values ))
-
-	# Increment each execution of ynh_script_progression in this script by the weight of the previous call.
-	increment_progression=$(( $increment_progression + $previous_weight ))
-	# Store the weight of the current call in $previous_weight for next call
-	previous_weight=$weight
-
-	# Set the scale of the progression bar
-	local scale=20
-	# progress_string(1,2) should have the size of the scale.
-	local progress_string1="####################"
-	local progress_string0="...................."
-
-	# Reduce $increment_progression to the size of the scale
-	if [ $last -eq 0 ]
-	then
-		local effective_progression=$(( $increment_progression * $scale / $max_progression ))
-	# If last is specified, fill immediately the progression_bar
-	else
-		local effective_progression=$scale
-	fi
-
-	# Build $progression_bar from progress_string(1,2) according to $effective_progression
-	local progression_bar="${progress_string1:0:$effective_progression}${progress_string0:0:$(( $scale - $effective_progression ))}"
-
-	local print_exec_time=""
-	if [ $time -eq 1 ]
-	then
-		print_exec_time=" [$(date +%Hh%Mm,%Ss --date="0 + $exec_time sec")]"
-	fi
-
-	ynh_print_info "[$progression_bar] > ${message}${print_exec_time}"
 }
 
 #=================================================
@@ -660,6 +298,8 @@ ynh_maintenance_mode_ON () {
 		domain=$(ynh_app_setting_get $app domain)
 	fi
 
+	mkdir -p /var/www/html/
+	
 	# Create an html to serve as maintenance notice
 	echo "<!DOCTYPE html>
 <html>
@@ -730,128 +370,381 @@ ynh_maintenance_mode_OFF () {
 
 #=================================================
 
-# Download and check integrity of a file from app.src_file
+# Create a changelog for an app after an upgrade from the file CHANGELOG.md.
 #
-# The file conf/app.src_file need to contains:
+# usage: ynh_app_changelog [--format=markdown/html/plain] [--output=changelog_file] --changelog=changelog_source]
+# | arg: -f --format= - Format in which the changelog will be printed
+#       markdown: Default format.
+#       html:     Turn urls into html format.
+#       plain:    Plain text changelog
+# | arg: -o --output= - Output file for the changelog file (Default ./changelog)
+# | arg: -c --changelog= - CHANGELOG.md source (Default ../CHANGELOG.md)
 #
-# FILE_URL=Address to download the file
-# FILE_SUM=Control sum
-# # (Optional) Program to check the integrity (sha256sum, md5sum...)
-# # default: sha256
-# FILE_SUM_PRG=sha256
-# # (Optionnal) Name of the local archive (offline setup support)
-# # default: Name of the downloaded file.
-# FILENAME=example.deb
-#
-# usage: ynh_download_file --dest_dir="/destination/directory" [--source_id=myfile]
-# | arg: -d, --dest_dir=  - Directory where to download the file
-# | arg: -s, --source_id= - Name of the source file 'app.src_file' if it isn't '$app'
-ynh_download_file () {
-	# Declare an array to define the options of this helper.
-	declare -Ar args_array=( [d]=dest_dir= [s]=source_id= )
-	local dest_dir
-	local source_id
-	# Manage arguments with getopts
-	ynh_handle_getopts_args "$@"
+# The changelog is printed into the file ./changelog and ./changelog_lite
+ynh_app_changelog () {
+    # Declare an array to define the options of this helper.
+    local legacy_args=foc
+    declare -Ar args_array=( [f]=format= [o]=output= [c]=changelog= )
+    local format
+    local output
+    local changelog
+    # Manage arguments with getopts
+    ynh_handle_getopts_args "$@"
+    format=${format:-markdown}
+    output=${output:-changelog}
+    changelog=${changelog:-../CHANGELOG.md}
 
-	source_id=${source_id:-app} # If the argument is not given, source_id equals "$app"
+    local original_changelog="$changelog"
+    local temp_changelog="changelog_temp"
+    local final_changelog="$output"
 
-	# Load value from configuration file (see above for a small doc about this file
-	# format)
-	local src_file="$YNH_CWD/../conf/${source_id}.src_file"
-	# If the src_file doesn't exist, use the backup path instead, with a "settings" directory
-	if [ ! -e "$src_file" ]
-	then
-		src_file="$YNH_CWD/../settings/conf/${source_id}.src_file"
-	fi
-	local file_url=$(grep 'FILE_URL=' "$src_file" | cut -d= -f2-)
-	local file_sum=$(grep 'FILE_SUM=' "$src_file" | cut -d= -f2-)
-	local file_sumprg=$(grep 'FILE_SUM_PRG=' "$src_file" | cut -d= -f2-)
-	local filename=$(grep 'FILENAME=' "$src_file" | cut -d= -f2-)
+    if [ ! -n "$original_changelog" ]
+    then
+        echo "No changelog available..." > "$final_changelog"
+        echo "No changelog available..." > "${final_changelog}_lite"
+        return 0
+    fi
 
-	# Default value
-	file_sumprg=${file_sumprg:-sha256sum}
-	if [ "$filename" = "" ] ; then
-		filename="$(basename "$file_url")"
-	fi
-	local local_src="/opt/yunohost-apps-src/${YNH_APP_ID}/${filename}"
+    local current_version=$(ynh_read_manifest --manifest="/etc/yunohost/apps/$YNH_APP_INSTANCE_NAME/manifest.json" --manifest_key="version")
+    local update_version=$(ynh_read_manifest --manifest="../manifest.json" --manifest_key="version")
 
-	if test -e "$local_src"
-	then    # Use the local source file if it is present
-		cp $local_src $filename
-	else    # If not, download the source
-		local out=`wget -nv -O $filename $file_url 2>&1` || ynh_print_err $out
-	fi
+    # Get the line of the version to update to into the changelog
+    local update_version_line=$(grep --max-count=1 --line-number "^## \[$update_version" "$original_changelog" | cut -d':' -f1)
+    # If there's no entry for this version yet into the changelog
+    # Get the first available version
+    if [ -z "$update_version_line" ]
+    then
+        update_version_line=$(grep --max-count=1 --line-number "^##" "$original_changelog" | cut -d':' -f1)
+    fi
 
-	# Check the control sum
-	echo "${file_sum} ${filename}" | ${file_sumprg} -c --status \
-		|| ynh_die "Corrupt file"
+    # Get the length of the complete changelog.
+    local changelog_length=$(wc --lines "$original_changelog" | awk '{print $1}')
+    # Cut the file before the version to update to.
+    tail --lines=$(( $changelog_length - $update_version_line + 1 )) "$original_changelog" > "$temp_changelog"
 
-	# Create the destination directory, if it's not already.
-	mkdir -p "$dest_dir"
+    # Get the length of the troncated changelog.
+    changelog_length=$(wc --lines "$temp_changelog" | awk '{print $1}')
+    # Get the line of the current version into the changelog
+    # Keep only the last line found
+    local current_version_line=$(grep --line-number "^## \[$current_version" "$temp_changelog" | cut -d':' -f1 | tail --lines=1)
+    # If there's no entry for this version into the changelog
+    # Get the last available version
+    if [ -z "$current_version_line" ]
+    then
+        current_version_line=$(grep --line-number "^##" "$original_changelog" | cut -d':' -f1 | tail --lines=1)
+    fi
+    # Cut the file before the current version.
+    # Then grep the previous version into the changelog to get the line number of the previous version
+    local previous_version_line=$(tail --lines=$(( $changelog_length - $current_version_line )) \
+        "$temp_changelog" | grep --max-count=1 --line-number "^## " | cut -d':' -f1)
+    # If there's no previous version into the changelog
+    # Go until the end of the changelog
+    if [ -z "$previous_version_line" ]
+    then
+        previous_version_line=$changelog_length
+    fi
 
-	# Move the file to its destination
-	mv $filename $dest_dir
+    # Cut the file after the previous version to keep only the changelog between the current version and the version to update to.
+    head --lines=$(( $current_version_line + $previous_version_line - 1 )) "$temp_changelog" | tee "$final_changelog"
+
+    if [ "$format" = "html" ]
+    then
+        # Replace markdown links by html links
+        ynh_replace_string --match_string="\[\(.*\)\](\(.*\)))" --replace_string="<a href=\"\2\">\1</a>)" --target_file="$final_changelog"
+        ynh_replace_string --match_string="\[\(.*\)\](\(.*\))" --replace_string="<a href=\"\2\">\1</a>" --target_file="$final_changelog"
+    elif [ "$format" = "plain" ]
+    then
+        # Change title format.
+        ynh_replace_string --match_string="^##.*\[\(.*\)\](\(.*\)) - \(.*\)$" --replace_string="## \1 (\3) - \2" --target_file="$final_changelog"
+        # Change modifications lines format.
+        ynh_replace_string --match_string="^\([-*]\).*\[\(.*\)\]\(.*\)" --replace_string="\1 \2 \3" --target_file="$final_changelog"
+    fi
+    # else markdown. As the file is already in markdown, nothing to do.
+
+    # Keep only important changes into the changelog
+    # Remove all minor changes
+    sed '/^-/d' "$final_changelog" > "${final_changelog}_lite"
+    # Remove all blank lines (to keep a clear workspace)
+    sed --in-place '/^$/d' "${final_changelog}_lite"
+    # Add a blank line at the end
+    echo "" >> "${final_changelog}_lite"
+
+    # Clean titles if there's no significative changes
+    local line
+    local previous_line=""
+    while read line <&3
+    do
+        if [ -n "$previous_line" ]
+        then
+            # Remove the line if it's a title or a blank line, and the previous one was a title as well.
+            if ( [ "${line:0:1}" = "#" ] || [ ${#line} -eq 0 ] ) && [ "${previous_line:0:1}" = "#" ]
+            then
+                ynh_replace_special_string --match_string="${previous_line//[/.}" --replace_string="" --target_file="${final_changelog}_lite"
+            fi
+        fi
+        previous_line="$line"
+    done 3< "${final_changelog}_lite"
+
+    # Remove all blank lines again
+    sed --in-place '/^$/d' "${final_changelog}_lite"
+
+    # Restore changelog format with blank lines
+    ynh_replace_string --match_string="^##.*" --replace_string="\n\n&\n" --target_file="${final_changelog}_lite"
+    # Remove the 2 first blank lines
+    sed --in-place '1,2d' "${final_changelog}_lite"
+    # Add a blank line at the end
+    echo "" >> "${final_changelog}_lite"
+
+    # If changelog are empty, add an info
+    if [ $(wc --words "$final_changelog" | awk '{print $1}') -eq 0 ]
+    then
+        echo "No changes from the changelog..." > "$final_changelog"
+    fi
+    if [ $(wc --words "${final_changelog}_lite" | awk '{print $1}') -eq 0 ]
+    then
+        echo "No significative changes from the changelog..." > "${final_changelog}_lite"
+    fi
 }
 
 #=================================================
 
-# Create a changelog for an app after an upgrade.
+# Check the amount of available RAM
 #
-# The changelog is printed into the file ./changelog for the time of the upgrade.
-#
-# In order to create a changelog, ynh_app_changelog will get info from /etc/yunohost/apps/$app/status.json
-# In order to find the current commit use by the app.
-# The remote repository, and the branch.
-# The changelog will be only the commits since the current revision.
-#
-# Because of the need of those info, ynh_app_changelog works only
-# with apps that have been installed from a list.
-#
-# usage: ynh_app_changelog
-ynh_app_changelog () {
-	get_value_from_settings ()
-	{
-		local value="$1"
-		# Extract a value from the status.json file of an installed app.
+# usage: ynh_check_ram [--required=RAM required in Mb] [--no_swap|--only_swap] [--free_ram]
+# | arg: -r, --required= - Amount of RAM required in Mb. The helper will return 0 is there's enough RAM, or 1 otherwise.
+# If --required isn't set, the helper will print the amount of RAM, in Mb.
+# | arg: -s, --no_swap   - Ignore swap
+# | arg: -o, --only_swap - Ignore real RAM, consider only swap.
+# | arg: -f, --free_ram  - Count only free RAM, not the total amount of RAM available.
+ynh_check_ram () {
+	# Declare an array to define the options of this helper.
+	declare -Ar args_array=( [r]=required= [s]=no_swap [o]=only_swap [f]=free_ram )
+	local required
+	local no_swap
+	local only_swap
+	# Manage arguments with getopts
+	ynh_handle_getopts_args "$@"
+	required=${required:-}
+	no_swap=${no_swap:-0}
+	only_swap=${only_swap:-0}
 
-		grep "$value\": \"" /etc/yunohost/apps/$app/status.json | sed "s/.*$value\": \"\([^\"]*\).*/\1/"
-	}
+	local total_ram=$(vmstat --stats --unit M | grep "total memory" | awk '{print $1}')
+	local total_swap=$(vmstat --stats --unit M | grep "total swap" | awk '{print $1}')
+	local total_ram_swap=$(( total_ram + total_swap ))
 
-	local current_revision="$(get_value_from_settings revision)"
-	local repo="$(get_value_from_settings url)"
-	local branch="$(get_value_from_settings branch)"
-	# ynh_app_changelog works only with an app installed from a list.
-	if [ -z "$current_revision" ] || [ -z "$repo" ] || [ -z "$branch" ]
+	local free_ram=$(vmstat --stats --unit M | grep "free memory" | awk '{print $1}')
+	local free_swap=$(vmstat --stats --unit M | grep "free swap" | awk '{print $1}')
+	local free_ram_swap=$(( free_ram + free_swap ))
+
+	# Use the total amount of ram
+	local ram=$total_ram_swap
+	if [ $free_ram -eq 1 ]
 	then
-		ynh_print_warn "Unable to build the changelog..."
-		touch changelog
-		return 0
+		# Use the total amount of free ram
+		ram=$free_ram_swap
+		if [ $no_swap -eq 1 ]
+		then
+			# Use only the amount of free ram
+			ram=$free_ram
+		elif [ $only_swap -eq 1 ]
+		then
+			# Use only the amount of free swap
+			ram=$free_swap
+		fi
+	else
+		if [ $no_swap -eq 1 ]
+		then
+			# Use only the amount of free ram
+			ram=$total_ram
+		elif [ $only_swap -eq 1 ]
+		then
+			# Use only the amount of free swap
+			ram=$total_swap
+		fi
 	fi
 
-	# Fetch the history of the repository, without cloning it
-	mkdir git_history
-	(cd git_history
-	ynh_exec_warn_less git init
-	ynh_exec_warn_less git remote add -f origin $repo
-	# Get the line of the current commit of the installed app in the history.
-	local line_to_head=$(git log origin/$branch --pretty=oneline | grep --line-number "$current_revision" | cut -d':' -f1)
-	# Cut the history before the current commit, to keep only newer commits.
-	# Then use sed to reorganise each lines and have a nice list of commits since the last upgrade.
-	# This list is redirected into the file changelog
-	git log origin/$branch --pretty=oneline | head --lines=$(($line_to_head-1)) | sed 's/^\([[:alnum:]]*\)\(.*\)/*(\1) -> \2/g' > ../changelog)
-	# Remove 'Merge pull request' commits
-	sed -i '/Merge pull request #[[:digit:]]* from/d' changelog
-	# As well as conflict resolving commits
-	sed -i '/Merge branch .* into/d' changelog
+	if [ -n "$required" ]
+	then
+		# Return 1 if the amount of ram isn't enough.
+		if [ $ram -lt $required ]
+		then
+			return 1
+		else
+			return 0
+		fi
 
-	# Get the value of admin_mail_html
-	admin_mail_html=$(ynh_app_setting_get $app admin_mail_html)
-	admin_mail_html="${admin_mail_html:-0}"
+	# If no RAM is required, return the amount of available ram.
+	else
+		echo $ram
+	fi
+}
 
-	# If a html email is required. Apply html to the changelog.
- 	if [ "$admin_mail_html" -eq 1 ]
- 	then
-		sed -in-place "s@\*(\([[:alnum:]]*\)) -> \(.*\)@* __URL_TAG1__\2__URL_TAG2__${repo}/commit/\1__URL_TAG3__@g" changelog
- 	fi
+#=================================================
+
+# Define the values to configure php-fpm
+#
+# usage: ynh_get_scalable_phpfpm --usage=usage --footprint=footprint [--print]
+# | arg: -f, --footprint      - Memory footprint of the service (low/medium/high).
+# low    - Less than 20Mb of ram by pool.
+# medium - Between 20Mb and 40Mb of ram by pool.
+# high   - More than 40Mb of ram by pool.
+# Or specify exactly the footprint, the load of the service as Mb by pool instead of having a standard value.
+# To have this value, use the following command and stress the service.
+# watch -n0.5 ps -o user,cmd,%cpu,rss -u APP
+#
+# | arg: -u, --usage     - Expected usage of the service (low/medium/high).
+# low    - Personal usage, behind the sso.
+# medium - Low usage, few people or/and publicly accessible.
+# high   - High usage, frequently visited website.
+#
+# | arg: -p, --print - Print the result
+#
+#
+#
+# The footprint of the service will be used to defined the maximum footprint we can allow, which is half the maximum RAM.
+# So it will be used to defined 'pm.max_children'
+# A lower value for the footprint will allow more children for 'pm.max_children'. And so for
+#    'pm.start_servers', 'pm.min_spare_servers' and 'pm.max_spare_servers' which are defined from the
+#    value of 'pm.max_children'
+# NOTE: 'pm.max_children' can't exceed 4 times the number of processor's cores.
+#
+# The usage value will defined the way php will handle the children for the pool.
+# A value set as 'low' will set the process manager to 'ondemand'. Children will start only if the
+#   service is used, otherwise no child will stay alive. This config gives the lower footprint when the
+#   service is idle. But will use more proc since it has to start a child as soon it's used.
+# Set as 'medium', the process manager will be at dynamic. If the service is idle, a number of children
+#   equal to pm.min_spare_servers will stay alive. So the service can be quick to answer to any request.
+#   The number of children can grow if needed. The footprint can stay low if the service is idle, but
+#   not null. The impact on the proc is a little bit less than 'ondemand' as there's always a few
+#   children already available.
+# Set as 'high', the process manager will be set at 'static'. There will be always as many children as
+#   'pm.max_children', the footprint is important (but will be set as maximum a quarter of the maximum
+#   RAM) but the impact on the proc is lower. The service will be quick to answer as there's always many
+#   children ready to answer.
+ynh_get_scalable_phpfpm () {
+    local legacy_args=ufp
+    # Declare an array to define the options of this helper.
+    declare -Ar args_array=( [u]=usage= [f]=footprint= [p]=print )
+    local usage
+    local footprint
+    local print
+    # Manage arguments with getopts
+    ynh_handle_getopts_args "$@"
+    # Set all characters as lowercase
+    footprint=${footprint,,}
+    usage=${usage,,}
+    print=${print:-0}
+
+    if [ "$footprint" = "low" ]
+    then
+        footprint=20
+    elif [ "$footprint" = "medium" ]
+    then
+        footprint=35
+    elif [ "$footprint" = "high" ]
+    then
+        footprint=50
+    fi
+
+    # Define the way the process manager handle child processes.
+    if [ "$usage" = "low" ]
+    then
+        php_pm=ondemand
+    elif [ "$usage" = "medium" ]
+    then
+        php_pm=dynamic
+    elif [ "$usage" = "high" ]
+    then
+        php_pm=static
+    else
+        ynh_die --message="Does not recognize '$usage' as an usage value."
+    fi
+
+    # Get the total of RAM available, except swap.
+    local max_ram=$(ynh_check_ram --no_swap)
+
+    less0() {
+        # Do not allow value below 1
+        if [ $1 -le 0 ]
+        then
+            echo 1
+        else
+            echo $1
+        fi
+    }
+
+    # Define pm.max_children
+    # The value of pm.max_children is the total amount of ram divide by 2 and divide again by the footprint of a pool for this app.
+    # So if php-fpm start the maximum of children, it won't exceed half of the ram.
+    php_max_children=$(( $max_ram / 2 / $footprint ))
+    # If process manager is set as static, use half less children.
+    # Used as static, there's always as many children as the value of pm.max_children
+    if [ "$php_pm" = "static" ]
+    then
+        php_max_children=$(( $php_max_children / 2 ))
+    fi
+    php_max_children=$(less0 $php_max_children)
+
+    # To not overload the proc, limit the number of children to 4 times the number of cores.
+    local core_number=$(nproc)
+    local max_proc=$(( $core_number * 4 ))
+    if [ $php_max_children -gt $max_proc ]
+    then
+        php_max_children=$max_proc
+    fi
+
+    if [ "$php_pm" = "dynamic" ]
+    then
+        # Define pm.start_servers, pm.min_spare_servers and pm.max_spare_servers for a dynamic process manager
+        php_min_spare_servers=$(( $php_max_children / 8 ))
+        php_min_spare_servers=$(less0 $php_min_spare_servers)
+
+        php_max_spare_servers=$(( $php_max_children / 2 ))
+        php_max_spare_servers=$(less0 $php_max_spare_servers)
+
+        php_start_servers=$(( $php_min_spare_servers + ( $php_max_spare_servers - $php_min_spare_servers ) /2 ))
+        php_start_servers=$(less0 $php_start_servers)
+    else
+        php_min_spare_servers=0
+        php_max_spare_servers=0
+        php_start_servers=0
+    fi
+
+    if [ $print -eq 1 ]
+    then
+        ynh_debug --message="Footprint=${footprint}Mb by pool."
+        ynh_debug --message="Process manager=$php_pm"
+        ynh_debug --message="Max RAM=${max_ram}Mb"
+        if [ "$php_pm" != "static" ]; then
+            ynh_debug --message="\nMax estimated footprint=$(( $php_max_children * $footprint ))"
+            ynh_debug --message="Min estimated footprint=$(( $php_min_spare_servers * $footprint ))"
+        fi
+        if [ "$php_pm" = "dynamic" ]; then
+            ynh_debug --message="Estimated average footprint=$(( $php_max_spare_servers * $footprint ))"
+        elif [ "$php_pm" = "static" ]; then
+            ynh_debug --message="Estimated footprint=$(( $php_max_children * $footprint ))"
+        fi
+        ynh_debug --message="\nRaw php-fpm values:"
+        ynh_debug --message="pm.max_children = $php_max_children"
+        if [ "$php_pm" = "dynamic" ]; then
+            ynh_debug --message="pm.start_servers = $php_start_servers"
+            ynh_debug --message="pm.min_spare_servers = $php_min_spare_servers"
+            ynh_debug --message="pm.max_spare_servers = $php_max_spare_servers"
+        fi
+    fi
+}
+
+#=================================================
+
+# Execute a command as another user
+# usage: exec_as USER COMMAND [ARG ...]
+exec_as() {
+  local USER=$1
+  shift 1
+
+  if [[ $USER = $(whoami) ]]; then
+    eval "$@"
+  else
+    sudo -u "$USER" "$@"
+  fi
 }
