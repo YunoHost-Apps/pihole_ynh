@@ -3,7 +3,7 @@
 domain=$1
 
 # Trouve l'interface réseau par défaut
-main_iface=$(route | grep default | awk '{print $8;}' | head -n1)
+main_iface=$(route | grep --max-count=1 default | awk '{print $8;}' | head -n1)
 # Trouve l'ipv4 associée à l'interface trouvée
 localipv4=$(ifconfig | grep -A 1 "$main_iface" | tail -1 | awk '{print $2;}' | cut -d: -f2)
 

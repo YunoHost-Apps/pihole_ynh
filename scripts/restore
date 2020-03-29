@@ -82,6 +82,8 @@ ynh_system_user_create $app
 
 # Restore permissions on app files
 chown $app: -R "/etc/pihole"
+# /etc/pihole/logrotate have to belong to root, otherwise logrotate will failed silently...
+chown root: -R "/etc/pihole/logrotate"
 
 #=================================================
 # RESTORE THE PHP-FPM CONFIGURATION

@@ -23,11 +23,11 @@ Aucune démo pour cette application.
 
 ## Configuration
 
-Utiliser le panneau d'administration de votre Pi-hole pour configurer cette application.
+Utiliser le panneau d'administration de votre Pi-hole pour configurer cette application. Vous devrez peut-être aussi suivre le [guide de post-installation] (https://docs.pi-hole.net/main/post-install/) pour configurer Pi-hole en tant que *serveur DNS* ou *serveur DHCP*.
 
 ## Documentation
 
-* Documentation officielle: Impossible à trouver
+* Documentation officielle: https://docs.pi-hole.net/
 * Pi-hole en tant que serveur DHCP: [dhcp.md](./dhcp.md)
 * Documentation YunoHost: Il n'y a pas d'autre documentation, n'hésitez pas à contribuer.
 
