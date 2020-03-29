@@ -5,8 +5,8 @@
 
 *[Lire ce readme en français.](./README_fr.md)*
 
-> *This package allow you to install Pi-hole quickly and simply on a YunoHost server.  
-If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
+> *This package allow you to install Pi-hole quickly and easily on a YunoHost server.  
+If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to learn how to install and enjoy it.*
 
 ## Overview
 Network-wide ad blocking via your own Linux hardware
@@ -29,7 +29,7 @@ Use the admin panel of your Pi-hole to configure this app. You may also need to 
 
 * Official documentation: https://docs.pi-hole.net/
 * Pi-hole as a DHCP server: [dhcp.md](./dhcp.md)
-* YunoHost documentation: There no other documentations, feel free to contribute.
+* YunoHost documentation: There is no other documentation. Feel free to contribute!
 
 ## YunoHost specific features
 
@@ -45,8 +45,8 @@ Use the admin panel of your Pi-hole to configure this app. You may also need to 
 
 ## Limitations
 
-* Activate DHCP with Pi-hole need a manuel configuration of your router.
-* Pi-Hole can't be updated beyond the version 3.3.1, because higher versions use an integrated version of dnsmasq. This would forces to disable the version of dnsmasq used by YunoHost.
+* Activate DHCP with Pi-hole needs manual configuration of your router.
+* Pi-Hole can't be updated beyond version 3.3.1, because higher versions use an integrated version of dnsmasq. This would require disabling the version of dnsmasq used by YunoHost.
 
 ## Additionnal informations
 
@@ -64,7 +64,7 @@ Developers infos
 
 Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/pihole_ynh/tree/testing).
 
-To try the testing branch, please proceed like that.
+To try the testing branch, please do the following:
 ```
 sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
 or
