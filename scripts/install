@@ -8,6 +8,7 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+source _ynh_add_fpm_config
 # Load common variables for all scripts.
 source _variables
 
@@ -124,7 +125,7 @@ ynh_system_user_create $app
 ynh_script_progression --message="Configure php-fpm" --weight=2
 
 # Create a dedicated php-fpm config
-ynh_add_fpm_config
+ynh_add_fpm_config --usage=low --footprint=low
 
 #=================================================
 # SPECIFIC SETUP
