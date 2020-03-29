@@ -15,21 +15,22 @@ source _variables
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Load settings" --weight=3
+ynh_script_progression --message="Loading installation settings..." --weight=3
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get $app domain)
-path_url=$(ynh_app_setting_get $app path)
-admin=$(ynh_app_setting_get $app admin)
-query_logging=$(ynh_app_setting_get $app query_logging)
-final_path=$(ynh_app_setting_get $app final_path)
-enable_dhcp=$(ynh_app_setting_get $app enable_dhcp)
-port=$(ynh_app_setting_get $app port)
-overwrite_setupvars=$(ynh_app_setting_get $app overwrite_setupvars)
-overwrite_ftl=$(ynh_app_setting_get $app overwrite_ftl)
-overwrite_nginx=$(ynh_app_setting_get $app overwrite_nginx)
-overwrite_phpfpm=$(ynh_app_setting_get $app overwrite_phpfpm)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+path_url=$(ynh_app_setting_get --app=$app --key=path)
+admin=$(ynh_app_setting_get --app=$app --key=admin)
+query_logging=$(ynh_app_setting_get --app=$app --key=query_logging)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
+port=$(ynh_app_setting_get --app=$app --key=port)
+
+overwrite_setupvars=$(ynh_app_setting_get --app=$app --key=overwrite_setupvars)
+overwrite_ftl=$(ynh_app_setting_get --app=$app --key=overwrite_ftl)
+overwrite_nginx=$(ynh_app_setting_get --app=$app --key=overwrite_nginx)
+overwrite_phpfpm=$(ynh_app_setting_get --app=$app --key=overwrite_phpfpm)
 
 fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
 fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
@@ -43,30 +44,31 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-ynh_script_progression --message="Ensure downward compatibility"
+ynh_script_progression --message="Ensuring downward compatibility..."
 
 # If overwrite_setupvars doesn't exist, create it
 if [ -z "$overwrite_setupvars" ]; then
 	overwrite_setupvars=1
-	ynh_app_setting_set $app overwrite_setupvars $overwrite_setupvars
+	ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=$overwrite_setupvars
 fi
 
 # If overwrite_ftl doesn't exist, create it
 if [ -z "$overwrite_ftl" ]; then
 	overwrite_ftl=1
-	ynh_app_setting_set $app overwrite_ftl $overwrite_ftl
+	ynh_app_setting_set --app=$app --key=overwrite_ftl --value=$overwrite_ftl
 fi
 
 # If overwrite_nginx doesn't exist, create it
 if [ -z "$overwrite_nginx" ]; then
 	overwrite_nginx=1
-	ynh_app_setting_set $app overwrite_nginx $overwrite_nginx
+	ynh_app_setting_set --app=$app --key=overwrite_nginx --value=$overwrite_nginx
 fi
 
 # If overwrite_phpfpm doesn't exist, create it
 if [ -z "$overwrite_phpfpm" ]; then
 	overwrite_phpfpm=1
-	ynh_app_setting_set $app overwrite_phpfpm $overwrite_phpfpm
+	ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value=$overwrite_phpfpm
+fi
 
 # If fpm_footprint doesn't exist, create it
 if [ -z "$fpm_footprint" ]; then
@@ -83,7 +85,7 @@ fi
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_script_progression --message="Backup the app before upgrading" --weight=7
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=7
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
@@ -99,12 +101,12 @@ ynh_abort_if_errors
 #=================================================
 
 # Normalize the URL path syntax
-path_url=$(ynh_normalize_url_path $path_url)
+path_url=$(ynh_normalize_url_path --path_url=$path_url)
 
 #=================================================
 # ACTIVATE MAINTENANCE MODE
 #=================================================
-ynh_script_progression --message="Activate maintenance mode"
+ynh_script_progression --message="Activating maintenance mode..."
 
 ynh_maintenance_mode_ON
 
@@ -113,7 +115,7 @@ ynh_maintenance_mode_ON
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Upgrade dependencies" --weight=6
+ynh_script_progression --message="Upgrading dependencies..." --weight=6
 
 ynh_install_app_dependencies $app_depencencies
 
@@ -124,11 +126,11 @@ ynh_install_app_dependencies $app_depencencies
 pihole_local_repo="/etc/.pihole"
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Download, check and unpack source" --weight=4
+	ynh_script_progression --message="Upgrading source files..." --weight=4
 	# Update the local copy pihole repository (for Gravity)
-	ynh_setup_source "$pihole_local_repo"
+	ynh_setup_source --dest_dir="$pihole_local_repo"
 	# Update admin dashboard
-	ynh_setup_source "$final_path" admin_dashboard
+	ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
 fi
 
 #=================================================
@@ -138,7 +140,7 @@ fi
 # Overwrite the nginx configuration only if it's allowed
 if [ $overwrite_nginx -eq 1 ]
 then
-	ynh_script_progression --message="Reconfigure nginx" --weight=2
+	ynh_script_progression --message="Upgrading nginx web server configuration..." --weight=2
 	# Create a dedicated nginx config
 	ynh_add_nginx_config
 fi
@@ -146,10 +148,10 @@ fi
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Create a dedicated user"
+ynh_script_progression --message="Making sure dedicated system user exists..."
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create $app
+ynh_system_user_create --username=$app
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -158,7 +160,7 @@ ynh_system_user_create $app
 # Overwrite the php-fpm configuration only if it's allowed
 if [ $overwrite_phpfpm -eq 1 ]
 then
-	ynh_script_progression --message="Reconfigure php-fpm" --weight=3
+	ynh_script_progression --message="Upgrading php-fpm configuration..." --weight=3
 	# Create a dedicated php-fpm config
 	ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint
 fi
@@ -179,7 +181,7 @@ cp -a "$pihole_local_repo/advanced/Scripts/COL_TABLE" "$pihole_dir/"
 #=================================================
 # COPY PI-HOLE MAIN SCRIPT
 #=================================================
-ynh_script_progression --message="Copy Pi-Hole main script"
+ynh_script_progression --message="Copying Pi-Hole main script..."
 
 cp -a "$pihole_local_repo/pihole" /usr/local/bin/
 cp -a "$pihole_local_repo/advanced/bash-completion/pihole" /etc/bash_completion.d/pihole
@@ -205,7 +207,7 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 #=================================================
 # UPDATE PIHOLE-FTL
 #=================================================
-ynh_script_progression --message="Upgrade PiHole-FTL" --weight=35
+ynh_script_progression --message="Upgrading PiHole-FTL..." --weight=35
 
 ynh_systemd_action --action=stop --service_name=pihole-FTL
 
@@ -213,23 +215,23 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	# Get the source of Pi-Hole-FTL
 	FTL_temp_path=$(mktemp -d)
-	ynh_setup_source "$FTL_temp_path" FTL
+	ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL
 
 	# Instead of downloading a binary file, we're going to compile it
 	( cd "$FTL_temp_path"
 	ynh_exec_warn_less make
 	ynh_exec_warn_less make install )
-	ynh_secure_remove "$FTL_temp_path"
+	ynh_secure_remove --file="$FTL_temp_path"
 fi
 
 # Overwrite pihole-FTL config file only if it's allowed
 if [ $overwrite_ftl -eq 1 ]
 then
 	# Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
-	ynh_backup_if_checksum_is_different "$pihole_storage/pihole-FTL.conf"
+	ynh_backup_if_checksum_is_different --file="$pihole_storage/pihole-FTL.conf"
 	cp "../conf/pihole-FTL.conf" "$pihole_storage"
 	# Recalculate and store the checksum of the file for the next upgrade.
-	ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"
+	ynh_store_file_checksum --file="$pihole_storage/pihole-FTL.conf"
 fi
 
 cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
@@ -246,13 +248,13 @@ setupVars="$pihole_storage/setupVars.conf"
 if [ $overwrite_setupvars -eq 1 ]
 then
 	# Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
-	ynh_backup_if_checksum_is_different "$setupVars"
+	ynh_backup_if_checksum_is_different --file="$setupVars"
 
 	# Get the default network interface
 	main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
 	echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 	echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
-	echo "IPV6_ADDRESS=" >> $setupVars
+	echo "IPV6_ADDRESS=::1" >> $setupVars
 	echo "PIHOLE_DNS_1=" >> $setupVars
 	echo "PIHOLE_DNS_2=" >> $setupVars
 	if [ $query_logging -eq 1 ]; then
@@ -264,7 +266,7 @@ then
 	echo "INSTALL_WEB=true" >> $setupVars
 
 	# Recalculate and store the checksum of the file for the next upgrade.
-	ynh_store_file_checksum "$setupVars"
+	ynh_store_file_checksum --file="$setupVars"
 fi
 
 #=================================================
@@ -273,12 +275,12 @@ fi
 
 cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
 # Remove git usage for version. Which fails because we use here a release instead of master.
-ynh_replace_string ".*updatechecker.*" "#&" /etc/cron.d/pihole
+ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
 
 #=================================================
 # START PIHOLE-FTL
 #=================================================
-ynh_script_progression --message="Restart PiHole-FTL" --weight=2
+ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
 
 ynh_systemd_action --action=restart --service_name=pihole-FTL
 
@@ -291,14 +293,14 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reload nginx"
+ynh_script_progression --message="Reloading nginx web server..."
 
 ynh_systemd_action --action=reload --service_name=nginx
 
 #=================================================
 # DEACTIVE MAINTENANCE MODE
 #=================================================
-ynh_script_progression --message="Disable maintenance mode" --weight=5
+ynh_script_progression --message="Disabling maintenance mode..." --weight=5
 
 ynh_maintenance_mode_OFF
 
@@ -341,10 +343,10 @@ If you're facing an issue or want to improve this app, please open a new issue i
 Changelog since your last upgrade:
 $(cat changelog)" > mail_to_send
 
-ynh_send_readme_to_admin --app_message="mail_to_send" --recipients="$admin" --type="upgrade"
+ynh_send_readme_to_admin --app_message="mail_to_send" --recipients="$admin" --type=upgrade
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade completed" --last
+ynh_script_progression --message="Upgrade of $app completed" --last

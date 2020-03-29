@@ -54,6 +54,7 @@ Utiliser le panneau d'administration de votre Pi-hole pour configurer cette appl
 
  * Reporter un bug: https://github.com/YunoHost-Apps/pihole_ynh/issues
  * Site de Pi-hole: https://pi-hole.net/
+ * Dépôt de Pi-hole: https://github.com/pi-hole/pi-hole/
  * Site de YunoHost: https://yunohost.org/
 
 ---

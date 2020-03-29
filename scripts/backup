@@ -19,84 +19,84 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Load settings" --weight=2
+ynh_script_progression --message="Loading installation settings..." --weight=2
 
 app=$YNH_APP_INSTANCE_NAME
 
-final_path=$(ynh_app_setting_get $app final_path)
-path_url=$(ynh_app_setting_get $app path)
-domain=$(ynh_app_setting_get $app domain)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+path_url=$(ynh_app_setting_get --app=$app --key=path)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
 
 #=================================================
 # STANDARD BACKUP STEPS
 #=================================================
 # BACKUP THE MAIN APP DIRECTORIES
 #=================================================
-ynh_script_progression --message="Backup the app main directories" --weight=5
+ynh_script_progression --message="Backing up the main app directory..." --weight=5
 
 CHECK_SIZE "$final_path"
-ynh_backup "$final_path"
+ynh_backup --src_path="$final_path"
 
 CHECK_SIZE "/etc/.pihole"
-ynh_backup "/etc/.pihole"
+ynh_backup --src_path="/etc/.pihole"
 
 CHECK_SIZE "/etc/pihole"
-ynh_backup "/etc/pihole"
+ynh_backup --src_path="/etc/pihole"
 
 CHECK_SIZE "/opt/pihole"
-ynh_backup "/opt/pihole"
+ynh_backup --src_path="/opt/pihole"
 
 #=================================================
 # BACKUP NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Backup nginx configuration"
+ynh_script_progression --message="Backing up nginx web server configuration..."
 
-ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # BACKUP PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Backup php-fpm configuration"
+ynh_script_progression --message="Backing up php-fpm configuration..."
 
-ynh_backup "/etc/php/7.0/fpm/pool.d/$app.conf"
+ynh_backup --src_path="/etc/php/7.0/fpm/pool.d/$app.conf"
 
 #=================================================
 # SPECIFIC BACKUP
 #=================================================
 # BACKUP CRON FILE
 #=================================================
-ynh_script_progression --message="Backup cron file"
+ynh_script_progression --message="Backing up cron file..."
 
-ynh_backup "/etc/cron.d/pihole"
+ynh_backup --src_path="/etc/cron.d/pihole"
 
 #=================================================
 # BACKUP SPECIFIC FILES
 #=================================================
-ynh_script_progression --message="Backup specific files"
+ynh_script_progression --message="Backing specific files..."
 
-ynh_backup "/usr/local/bin/pihole"
-ynh_backup "/etc/bash_completion.d/pihole"
+ynh_backup --src_path="/usr/local/bin/pihole"
+ynh_backup --src_path="/etc/bash_completion.d/pihole"
 
-ynh_backup "/etc/sudoers.d/pihole"
+ynh_backup --src_path="/etc/sudoers.d/pihole"
 
-ynh_backup "/etc/init.d/pihole-FTL"
-ynh_backup "/usr/bin/pihole-FTL"
+ynh_backup --src_path="/etc/init.d/pihole-FTL"
+ynh_backup --src_path="/usr/bin/pihole-FTL"
 
-ynh_backup "/etc/dnsmasq.d/01-pihole.conf"
+ynh_backup --src_path="/etc/dnsmasq.d/01-pihole.conf"
 if test -e "/etc/dnsmasq.d/02-pihole-dhcp.conf"; then
-	ynh_backup "/etc/dnsmasq.d/02-pihole-dhcp.conf"
+	ynh_backup --src_path="/etc/dnsmasq.d/02-pihole-dhcp.conf"
 fi
 if test -e "/etc/dnsmasq.d/03-pihole-wildcard.conf"; then
-	ynh_backup "/etc/dnsmasq.d/03-pihole-wildcard.conf"
+	ynh_backup --src_path="/etc/dnsmasq.d/03-pihole-wildcard.conf"
 fi
 if test -e "/etc/dnsmasq.d/04-pihole-static-dhcp.conf"; then
-	ynh_backup "/etc/dnsmasq.d/04-pihole-static-dhcp.conf"
+	ynh_backup --src_path="/etc/dnsmasq.d/04-pihole-static-dhcp.conf"
 fi
 
-ynh_backup "/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+ynh_backup --src_path="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Backup completed" --last
+ynh_script_progression --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)." --last

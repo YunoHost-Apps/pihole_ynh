@@ -28,28 +28,24 @@ app=${YNH_APP_INSTANCE_NAME:-$YNH_APP_ID}
 # Otherwise, keep the value from the app config.
 
 # Overwrite setupVars.conf file
-old_overwrite_setupvars="$(ynh_app_setting_get $app overwrite_setupvars)"
-old_overwrite_setupvars=$(bool_to_true_false $old_overwrite_setupvars)
+old_overwrite_setupvars="$(ynh_app_setting_get --app=$app --key=overwrite_setupvars)"
 overwrite_setupvars="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_SETUPVARS:-$old_overwrite_setupvars}"
 
 # Overwrite pihole-FTL.conf file
-old_overwrite_ftl="$(ynh_app_setting_get $app overwrite_ftl)"
-old_overwrite_ftl=$(bool_to_true_false $old_overwrite_ftl)
+old_overwrite_ftl="$(ynh_app_setting_get --app=$app --key=overwrite_ftl)"
 overwrite_ftl="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_FTL:-$old_overwrite_ftl}"
 
 # Overwrite nginx configuration
-old_overwrite_nginx="$(ynh_app_setting_get $app overwrite_nginx)"
-old_overwrite_nginx=$(bool_to_true_false $old_overwrite_nginx)
+old_overwrite_nginx="$(ynh_app_setting_get --app=$app --key=overwrite_nginx)"
 overwrite_nginx="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX:-$old_overwrite_nginx}"
 
 # Overwrite php-fpm configuration
-old_overwrite_phpfpm="$(ynh_app_setting_get $app overwrite_phpfpm)"
-old_overwrite_phpfpm=$(bool_to_true_false $old_overwrite_phpfpm)
+old_overwrite_phpfpm="$(ynh_app_setting_get --app=$app --key=overwrite_phpfpm)"
 overwrite_phpfpm="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_PHPFPM:-$old_overwrite_phpfpm}"
 
+
 # Type of admin mail configuration
-old_admin_mail_html="$(ynh_app_setting_get $app admin_mail_html)"
-old_admin_mail_html=$(bool_to_true_false $old_admin_mail_html)
+old_admin_mail_html="$(ynh_app_setting_get --app=$app --key=admin_mail_html)"
 admin_mail_html="${YNH_CONFIG_MAIN_GLOBAL_CONFIG_EMAIL_TYPE:-$old_admin_mail_html}"
 
 
@@ -79,14 +75,15 @@ fpm_usage="${YNH_CONFIG_MAIN_PHP_FPM_CONFIG_USAGE:-$old_fpm_usage}"
 
 show_config() {
 	# here you are supposed to read some config file/database/other then print the values
-	# echo "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
+	# ynh_return "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
 
-	echo "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_SETUPVARS=$overwrite_setupvars"
-	echo "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_FTL=$overwrite_ftl"
-	echo "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX=$overwrite_nginx"
-	echo "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_PHPFPM=$overwrite_phpfpm"
+	ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_SETUPVARS=$overwrite_setupvars"
+	ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_FTL=$overwrite_ftl"
+	ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX=$overwrite_nginx"
+	ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_PHPFPM=$overwrite_phpfpm"
 
-	echo "YNH_CONFIG_MAIN_GLOBAL_CONFIG_EMAIL_TYPE=$admin_mail_html"
+	ynh_return "YNH_CONFIG_MAIN_GLOBAL_CONFIG_EMAIL_TYPE=$admin_mail_html"
+
 	ynh_return "YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FOOTPRINT=$fpm_footprint"
 	ynh_return "YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FREE_FOOTPRINT=$free_footprint"
 	ynh_return "YNH_CONFIG_MAIN_PHP_FPM_CONFIG_USAGE=$fpm_usage"
@@ -97,22 +94,26 @@ show_config() {
 #=================================================
 
 apply_config() {
+
+    #=================================================
+    # MODIFY OVERWRITTING SETTINGS
+    #=================================================
+
 	# Set overwrite_setupvars
-	overwrite_setupvars=$(bool_to_01 $overwrite_setupvars)
-	ynh_app_setting_set $app overwrite_setupvars "$overwrite_setupvars"
+	ynh_app_setting_set --app=$app --key=overwrite_setupvars --value="$overwrite_setupvars"
 	# Set overwrite_ftl
-	overwrite_ftl=$(bool_to_01 $overwrite_ftl)
-	ynh_app_setting_set $app overwrite_ftl "$overwrite_ftl"
+	ynh_app_setting_set --app=$app --key=overwrite_ftl --value="$overwrite_ftl"
 	# Set overwrite_nginx
-	overwrite_nginx=$(bool_to_01 $overwrite_nginx)
-	ynh_app_setting_set $app overwrite_nginx "$overwrite_nginx"
+	ynh_app_setting_set --app=$app --key=overwrite_nginx --value="$overwrite_nginx"
 	# Set overwrite_phpfpm
-	overwrite_phpfpm=$(bool_to_01 $overwrite_phpfpm)
-	ynh_app_setting_set $app overwrite_phpfpm "$overwrite_phpfpm"
+	ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value="$overwrite_phpfpm"
+
+    #=================================================
+    # MODIFY EMAIL SETTING
+    #=================================================
 
 	# Set admin_mail_html
-	admin_mail_html=$(bool_to_01 $admin_mail_html)
-	ynh_app_setting_set $app admin_mail_html "$admin_mail_html"
+	ynh_app_setting_set --app=$app --key=admin_mail_html --value="$admin_mail_html"
 
     #=================================================
     # RECONFIGURE PHP-FPM

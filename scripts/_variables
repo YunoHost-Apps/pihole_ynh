@@ -1,10 +1,4 @@
 #!/bin/bash
 
 # Dependencies
-app_depencencies="sqlite idn2"
-# dhcpcd5 has been removed because it can cause some problems with the internet connection.
-if [ "$(ynh_debian_release)" != "jessie" ]; then
-	app_depencencies="$app_depencencies php-sqlite3"
-else
-	app_depencencies="$app_depencencies php5-sqlite"
-fi
+app_depencencies="sqlite idn2 php7.0-sqlite3"

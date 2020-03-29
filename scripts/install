@@ -22,7 +22,6 @@ ynh_abort_if_errors
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
-ynh_script_progression --message="Retrieve arguments from the manifest"
 
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
@@ -35,50 +34,47 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THIS ARGS
 #=================================================
-ynh_script_progression --message="Check if the app can be installed"
+ynh_script_progression --message="Validating installation parameters..." --weight=2
 
 final_path=/var/www/$app
-test ! -e "$final_path" || ynh_die "This path already contains a folder"
-
-# Normalize the url path syntax
-path_url=$(ynh_normalize_url_path $path_url)
+test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
 # Register (book) web path
-ynh_webpath_register $app $domain $path_url
+ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-ynh_script_progression --message="Store settings from manifest" --weight=3
+ynh_script_progression --message="Storing installation settings..." --weight=3
 
-ynh_app_setting_set $app domain $domain
-ynh_app_setting_set $app path $path_url
-ynh_app_setting_set $app admin $admin
-ynh_app_setting_set $app query_logging $query_logging
-ynh_app_setting_set $app enable_dhcp $enable_dhcp
+ynh_app_setting_set --app=$app --key=domain --value=$domain
+ynh_app_setting_set --app=$app --key=path --value=$path_url
+ynh_app_setting_set --app=$app --key=admin --value=$admin
+ynh_app_setting_set --app=$app --key=query_logging --value=$query_logging
+ynh_app_setting_set --app=$app --key=enable_dhcp --value=$enable_dhcp
 
-ynh_app_setting_set $app overwrite_setupvars "1"
-ynh_app_setting_set $app overwrite_ftl "1"
-ynh_app_setting_set $app overwrite_nginx "1"
-ynh_app_setting_set $app overwrite_phpfpm "1"
-ynh_app_setting_set $app admin_mail_html "1"
+ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=1
+ynh_app_setting_set --app=$app --key=overwrite_ftl --value=1
+ynh_app_setting_set --app=$app --key=overwrite_nginx --value=1
+ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value=1
+ynh_app_setting_set --app=$app --key=admin_mail_html --value=1
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
-ynh_script_progression --message="Find and open a free port" --weight=12
+ynh_script_progression --message="Configuring firewall..." --weight=12
 
 # Find a free port
-port=$(ynh_find_port 4711)
+port=$(ynh_find_port --port=4711)
 if [ $port -gt 4720 ]
 then
-	ynh_die "The ports 4711 to 4720 are already in use. Pi-hole can't works on another port. Please try to free one of this ports."
+	ynh_die --message="The ports 4711 to 4720 are already in use. Pi-hole can't works on another port. Please try to free one of this ports."
 fi
 # Open this port
 ynh_exec_fully_quiet yunohost firewall allow --no-upnp TCP $port
-ynh_app_setting_set $app port $port
+ynh_app_setting_set --app=$app --key=port --value=$port
 
 # Disable the port 53 for upnp
 ynh_exec_fully_quiet yunohost firewall disallow Both 53 --no-reload
@@ -87,26 +83,26 @@ ynh_exec_fully_quiet yunohost firewall allow Both 53 --no-upnp
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Install dependencies" --weight=12
+ynh_script_progression --message="Installing dependencies..." --weight=12
 
 ynh_install_app_dependencies $app_depencencies
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Download, check and unpack source" --weight=4
+ynh_script_progression --message="Setting up source files..." --weight=4
 
-ynh_app_setting_set $app final_path $final_path
+ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Make a copy of local pihole repository (for Gravity)
 pihole_local_repo="/etc/.pihole"
-ynh_setup_source "$pihole_local_repo"
+ynh_setup_source --dest_dir="$pihole_local_repo"
 # Install admin dashboard
-ynh_setup_source "$final_path" admin_dashboard
+ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configure nginx" --weight=2
+ynh_script_progression --message="Configuring nginx web server..." --weight=2
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
@@ -114,15 +110,15 @@ ynh_add_nginx_config
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Create a dedicated user" --weight=2
+ynh_script_progression --message="Configuring system user..." --weight=2
 
 # Create a dedicated system user
-ynh_system_user_create $app
+ynh_system_user_create --username=$app
 
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configure php-fpm" --weight=2
+ynh_script_progression --message="Configuring php-fpm..." --weight=2
 
 # Create a dedicated php-fpm config
 ynh_add_fpm_config --usage=low --footprint=low
@@ -132,7 +128,7 @@ ynh_add_fpm_config --usage=low --footprint=low
 #=================================================
 # CREATE DIRECTORIES AND POPULATE THEM
 #=================================================
-ynh_script_progression --message="Create and populate directories"
+ynh_script_progression --message="Creating and populating directories..."
 
 pihole_storage="/etc/pihole"
 mkdir -p "$pihole_storage"
@@ -151,7 +147,7 @@ cp -a "$pihole_local_repo/advanced/Scripts/COL_TABLE" "$pihole_dir/"
 #=================================================
 # COPY PI-HOLE MAIN SCRIPT
 #=================================================
-ynh_script_progression --message="Copy Pi-Hole main script"
+ynh_script_progression --message="Copying Pi-Hole main script..."
 
 cp -a "$pihole_local_repo/pihole" /usr/local/bin/
 cp -a "$pihole_local_repo/advanced/bash-completion/pihole" /etc/bash_completion.d/pihole
@@ -185,21 +181,21 @@ sed -i "/# su #/d;" "$pihole_storage/logrotate"
 #=================================================
 # INSTALLATION OF PIHOLE-FTL
 #=================================================
-ynh_script_progression --message="Install PiHole-FTL" --weight=30
+ynh_script_progression --message="Installing PiHole-FTL..." --weight=30
 
 # Get the source of Pi-Hole-FTL
 FTL_temp_path=$(mktemp -d)
-ynh_setup_source "$FTL_temp_path" FTL
+ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL
 
 # Instead of downloading a binary file, we're going to compile it
 ( cd "$FTL_temp_path"
 ynh_exec_warn_less make
 ynh_exec_warn_less make install )
-ynh_secure_remove "$FTL_temp_path"
+ynh_secure_remove --file="$FTL_temp_path"
 
 cp "../conf/pihole-FTL.conf" "$pihole_storage"
 # Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum "$pihole_storage/pihole-FTL.conf"
+ynh_store_file_checksum --file="$pihole_storage/pihole-FTL.conf"
 
 cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
@@ -215,7 +211,7 @@ setupVars="$pihole_storage/setupVars.conf"
 main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
 echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
 echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
-echo "IPV6_ADDRESS=" >> $setupVars
+echo "IPV6_ADDRESS=::1" >> $setupVars
 echo "PIHOLE_DNS_1=" >> $setupVars
 echo "PIHOLE_DNS_2=" >> $setupVars
 if [ $query_logging -eq 1 ]; then
@@ -227,42 +223,42 @@ echo "QUERY_LOGGING=$query_logging" >> $setupVars
 echo "INSTALL_WEB=true" >> $setupVars
 
 # Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum "$setupVars"
+ynh_store_file_checksum --file="$setupVars"
 
 #=================================================
 # SET UP DNSMASQ CONFIG
 #=================================================
-ynh_script_progression --message="Set up Dnsmasq config" --weight=2
+ynh_script_progression --message="Setting up Dnsmasq config..." --weight=2
 
 ynh_systemd_action --action=stop --service_name=dnsmasq
 
 pihole_dnsmasq_config="/etc/dnsmasq.d/01-pihole.conf"
 cp "$pihole_local_repo/advanced/01-pihole.conf" $pihole_dnsmasq_config
 # Use dns from /etc/resolv.dnsmasq.conf
-ynh_replace_string "@DNS1@" "" $pihole_dnsmasq_config
-ynh_replace_string "@DNS2@" "" $pihole_dnsmasq_config
-ynh_replace_string "^no-resolv" "#no-resolv" $pihole_dnsmasq_config
+ynh_replace_string --match_string="@DNS1@" --replace_string="" --target_file=$pihole_dnsmasq_config
+ynh_replace_string --match_string="@DNS2@" --replace_string="" --target_file=$pihole_dnsmasq_config
+ynh_replace_string --match_string="^no-resolv" --replace_string="#no-resolv" --target_file=$pihole_dnsmasq_config
 
-ynh_replace_string "@INT@" "$main_iface" $pihole_dnsmasq_config
+ynh_replace_string --match_string="@INT@" --replace_string="$main_iface" --target_file=$pihole_dnsmasq_config
 if [ "$query_logging" = "true" ]; then
-	ynh_replace_string "^#log-queries" "log-queries" $pihole_dnsmasq_config
+	ynh_replace_string --match_string="^#log-queries" --replace_string="log-queries" --target_file=$pihole_dnsmasq_config
 else
-	ynh_replace_string "^log-queries" "#log-queries" $pihole_dnsmasq_config
+	ynh_replace_string --match_string="^log-queries" --replace_string="#log-queries" --target_file=$pihole_dnsmasq_config
 fi
 
 # Fix a too recent option for our dnsmasq version.
-ynh_replace_string "log-queries=extra" "log-queries" $pihole_dnsmasq_config
+ynh_replace_string --match_string="log-queries=extra" --replace_string="log-queries" --target_file=$pihole_dnsmasq_config
 
 # Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum "$pihole_dnsmasq_config"
+ynh_store_file_checksum --file="$pihole_dnsmasq_config"
 
 # To prevent any conflict with the original dnsmasq config, comment cache-size in the original config.
-ynh_replace_string "^cache-size=" "#pihole# cache-size=" /etc/dnsmasq.conf
+ynh_replace_string --match_string="^cache-size=" --replace_string="#pihole# cache-size=" --target_file=/etc/dnsmasq.conf
 
 #=================================================
 # CONFIGURE DNS FOR THE LOCAL DOMAINS
 #=================================================
-ynh_script_progression --message="Configure dns for the local domains" --weight=7
+ynh_script_progression --message="Configuring dns for the local domains..." --weight=7
 
 # Find the IP associated to the network interface
 localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
@@ -271,7 +267,7 @@ localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f
 while read perdomain
 do
 	# Comment domain resolution in /etc/hosts on 127.0.0.1, because they can interfere with the local network resolution.
-	ynh_replace_string "^127.0.0.1.*$perdomain" "#Commented by pihole# &" /etc/hosts
+	ynh_replace_string --match_string="^127.0.0.1.*$perdomain" --replace_string="#Commented by pihole# &" --target_file=/etc/hosts
 
 	# And add a resolution on the local IP instead
 	grep -q "^$localipv4.*$perdomain" /etc/hosts || \
@@ -284,7 +280,7 @@ done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
 
 if [ $enable_dhcp -eq 1 ]
 then
-	ynh_script_progression --message="Enable dhcp server"
+	ynh_script_progression --message="Enabling dhcp server..."
 	max_dhcp_range=250
 	dhcp_range=100
 	# Define the dhcp range from the current ip
@@ -305,9 +301,9 @@ then
 	cp "../conf/02-pihole-dhcp.conf" "/etc/dnsmasq.d/"
 
 	# And set the config
-	ynh_replace_string "__A_RANGE__" "$ip_beginning_part.$a_range" "/etc/dnsmasq.d/02-pihole-dhcp.conf"
-	ynh_replace_string "__B_RANGE__" "$ip_beginning_part.$b_range" "/etc/dnsmasq.d/02-pihole-dhcp.conf"
-	ynh_replace_string "__GATEWAY__" "$gateway" "/etc/dnsmasq.d/02-pihole-dhcp.conf"
+	ynh_replace_string --match_string="__A_RANGE__" --replace_string="$ip_beginning_part.$a_range" --target_file="/etc/dnsmasq.d/02-pihole-dhcp.conf"
+	ynh_replace_string --match_string="__B_RANGE__" --replace_string="$ip_beginning_part.$b_range" --target_file="/etc/dnsmasq.d/02-pihole-dhcp.conf"
+	ynh_replace_string --match_string="__GATEWAY__" --replace_string="$gateway" --target_file="/etc/dnsmasq.d/02-pihole-dhcp.conf"
 
 	# Set a static ip for the server.
 	echo "dhcp-host=$hw_adress,$localipv4" > "/etc/dnsmasq.d/04-pihole-static-dhcp.conf"
@@ -319,7 +315,7 @@ ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 #=================================================
 # RESTART DNSMASQ
 #=================================================
-ynh_script_progression --message="Restart Dnsmasq" --time --weight=2
+ynh_script_progression --message="Restarting Dnsmasq..." --weight=2
 
 ynh_systemd_action --action=restart --service_name=dnsmasq
 
@@ -329,12 +325,12 @@ ynh_systemd_action --action=restart --service_name=dnsmasq
 
 cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
 # Remove git usage for version. Which fails because we use here a release instead of master.
-ynh_replace_string ".*updatechecker.*" "#&" /etc/cron.d/pihole
+ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
 
 #=================================================
 # BUILD THE LISTS WITH GRAVITY
 #=================================================
-ynh_script_progression --message="Build the lists with Gravity" --weight=7
+ynh_script_progression --message="Building the lists with Gravity..." --weight=7
 
 cp "$pihole_local_repo/adlists.default" "$pihole_storage/adlists.default"
 ynh_exec_warn_less /opt/pihole/gravity.sh
@@ -342,7 +338,7 @@ ynh_exec_warn_less /opt/pihole/gravity.sh
 #=================================================
 # START PIHOLE-FTL
 #=================================================
-ynh_script_progression --message="Restart PiHole-FTL" --weight=2
+ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
 
 ynh_systemd_action --action=restart --service_name=pihole-FTL
 
@@ -363,16 +359,16 @@ yunohost service add pihole-FTL --description "PiHole backend service" --log "/v
 #=================================================
 # RESTRAIN THE ACCESS TO THE ADMIN ONLY
 #=================================================
-ynh_script_progression --message="Restrain the access to the admin only" --weight=2
+ynh_script_progression --message="Restraining the access to the admin only..." --weight=2
 
 yunohost app addaccess --users=$admin $app
 
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reload nginx" --weight=4
+ynh_script_progression --message="Reloading nginx web server..." --weight=3
 
-ynh_systemd_action --action=reload --service_name=nginx
+ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # SEND A README FOR THE ADMIN
@@ -396,10 +392,10 @@ You can also find some specific actions for this app by using the experimental _
 
 If you're facing an issue or want to improve this app, please open a new issue in this __URL_TAG1__project__URL_TAG2__https://github.com/YunoHost-Apps/pihole_ynh__URL_TAG3__." > mail_to_send
 
-ynh_send_readme_to_admin --app_message="mail_to_send" --recipients="$admin" --type="install"
+ynh_send_readme_to_admin --app_message="mail_to_send" --recipients="$admin" --type=install
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation completed" --last
+ynh_script_progression --message="Installation of $app completed" --last

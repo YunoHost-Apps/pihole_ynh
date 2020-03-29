@@ -12,10 +12,10 @@ source /usr/share/yunohost/helpers
 #=================================================
 # RETRIEVE ARGUMENTS
 #=================================================
-ynh_script_progression --message="Retrieve arguments from the manifest"
 
 app=${YNH_APP_INSTANCE_NAME:-$YNH_APP_ID}
-query_logging=$(ynh_app_setting_get $app query_logging)
+
+query_logging=$(ynh_app_setting_get --app=$app --key=query_logging)
 
 #=================================================
 # SORT OUT THE CONFIG FILE TO HANDLE
@@ -34,10 +34,10 @@ fi
 #=================================================
 # RESET THE CONFIG FILE
 #=================================================
-ynh_script_progression --message="Reset the config file $config_file" --weight=9
+ynh_script_progression --message="Resetting the config file $config_file..." --weight=9
 
 # Verify the checksum and backup the file if it's different
-ynh_backup_if_checksum_is_different "$config_file"
+ynh_backup_if_checksum_is_different --file="$config_file"
 
 if [ "$file" = "setupVars.conf" ]
 then
@@ -46,7 +46,7 @@ then
 	main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
 	echo "PIHOLE_INTERFACE=$main_iface" > "$config_file"
 	echo "IPV4_ADDRESS=127.0.0.1" >> "$config_file"
-	echo "IPV6_ADDRESS=" >> "$config_file"
+	echo "IPV6_ADDRESS=::1" >> "$config_file"
 	echo "PIHOLE_DNS_1=" >> "$config_file"
 	echo "PIHOLE_DNS_2=" >> "$config_file"
 	if [ $query_logging -eq 1 ]; then
@@ -62,14 +62,14 @@ then
 	# Get the default file and overwrite the current config
 	cp /etc/yunohost/apps/$app/conf/pihole-FTL.conf "$config_file"
 
-	ynh_script_progression --message="Restart PiHole" --weight=2
+	ynh_script_progression --message="Restarting PiHole..." --weight=2
 
 	# Restart pihole-FTL
 	ynh_systemd_action --action=restart --service_name=pihole-FTL
 fi
 
 # Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum "$config_file"
+ynh_store_file_checksum --file="$config_file"
 
 #=================================================
 # END OF SCRIPT
