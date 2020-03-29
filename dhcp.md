@@ -1,41 +1,41 @@
 Using Pi-hole as your DHCP server
 ==================
 
-> **Be carreful, you should considering that playing with your DHCP may break your network.  
-In case in your server become to be down, you're going to lose your dns resolution and your ip address.  
-By this way, you'll losing any internet connection and even the connection to your router.**
+> **Be careful, you should considering that playing with your DHCP may break your network.  
+In case your server is down, you will lose your dns resolution and ip address.  
+So, you will lose any internet connection and even the connection to your router.**
 
-> **If you encounter that kind of problem, please see "How to restore my network" at the end of this document.**
+> **If you encounter this kind of problem, please see "How to restore my network" at the end of this document.**
 
 ### How to configure Pi-hole
 
-There two ways to configure Pi-hole to be used as your DHCP server.
-- Either you can choose to use it when you're installing the app.
-- Or you can activate the DHCP server after in the "Settings" tab, "Pi-hole DHCP Server" part.  
+There're two ways to configure Pi-hole to be used as your DHCP server.
+- Either you can choose to use it when you install the app.
+- Or you can activate the DHCP server afterwards in the "Settings" tab, "Pi-hole DHCP Server" part.  
 In this second case, it can be better to set the ip of the server to a static address
 
 ### How to configure my router
 
-Your personnal router or the router of your ISP brings a DHCP server activate by default.  
-If you keep this DHCP, at the same time of Pi-hole's one, you will encouter a transparent conflict between them.  
-The first responding DHCP will distribute its own ip and parameters.  
+Your personal router or ISP's router has a DHCP server enabled by default.  
+If you keep this DHCP, along with Pi-hole's one, you will have transparent conflicts between them.  
+The first DHCP to respond will distribute its own ip and settings.  
 So you have to turn off the DHCP of your router to let Pi-hole managed your network.
 
-#### Why do I should use only the DHCP of Pi-hole ?
+#### Why should I use only the DHCP of Pi-hole ?
 
-By using the DHCP of Pi-hole, you'll allow it to give at each of your client its dns configuration. Like that, each of your request will be filtering by Pi-hole.
+By using the DHCP of Pi-hole, you allow Pi-hole to give at each of your client its dns configuration. This way every requests will be filtered by Pi-hole.
 
-An another use case of using Pi-hole's DHCP is if you have some hairpinning problems (You can't connect to your server because its IP is your public IP, and your router doesn't allow that).  
-In this case, use the dns of Pi-hole will allow you to connect to your server by its local adress instead of its public one.
+Another use case of using Pi-hole's DHCP is if you have hairpinning problems (You can't connect to your server because its IP is your public IP, and your router doesn't allow that).  
+In this case, using Pi-hole's dns will allow you to connect to your server by its local address instead of its public one.
 
 ### How to restore my network
 
 > Oh crap !  
-Your Pi-hole is down, and you don't have a DHCP anymore.  
-Don't panic, we can overcome it \o/
+Your Pi-hole server is down, and you don't have a DHCP anymore.  
+Don't panic, We'll get through it. \o/
 
 Use your favorite terminal on your desktop computer.  
-And first, get your main interface (`eth0` in most cases).
+And first, get your main interface (usually `eth0`).
 ``` bash
 sudo ifconfig
 ```
@@ -45,8 +45,8 @@ Then, set your ip as a static ip.
 sudo ifconfig eth0 192.168.1.100
 ```
 
-Now, you can connect to your router and turn on its DHCP server to reuse it.  
-You can now reset your ip and get a dynamic address
+Now, you can connect to your router and turn on its DHCP server to use it again.  
+You can now reset your ip and get a dynamic address.
 ``` bash
 sudo ifconfig eth0 0.0.0.0 && sudo dhclient eth0
 ```
