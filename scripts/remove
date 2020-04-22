@@ -18,6 +18,7 @@ app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 port=$(ynh_app_setting_get --app=$app --key=port)
+pihole_version="$(ynh_app_setting_get --app=$app --key=pihole_version)"
 
 #=================================================
 # STANDARD REMOVE
@@ -25,11 +26,14 @@ port=$(ynh_app_setting_get --app=$app --key=port)
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
 
-# Check if the service is declared in YunoHost
-if ynh_exec_fully_quiet yunohost service status pihole-FTL
+if [ "$pihole_version" == "Last 3.X" ]
 then
-	ynh_script_progression --message="Removing pihole-FTL service..." --weight=2
-	yunohost service remove pihole-FTL
+    # Check if the service is declared in YunoHost
+    if ynh_exec_fully_quiet yunohost service status pihole-FTL
+    then
+        ynh_script_progression --message="Removing pihole-FTL service..." --weight=2
+        yunohost service remove pihole-FTL
+    fi
 fi
 
 #=================================================
@@ -37,8 +41,19 @@ fi
 #=================================================
 ynh_script_progression --message="Stop and remove the service"
 
-ynh_systemd_action --action=stop --service_name=pihole-FTL
-ynh_exec_warn_less systemctl disable pihole-FTL
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    ynh_systemd_action --action=stop --service_name=pihole-FTL
+    ynh_exec_warn_less systemctl disable pihole-FTL
+else
+    ynh_systemd_action --action=stop --service_name=dnsmasq
+    # Restore dnsmasq as main DNS resolver
+    # Remove alternatives
+    update-alternatives --remove dnsmasq /usr/bin/pihole-FTL
+    update-alternatives --remove dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
+    # Move dnsmasq back to its original place
+    mv /usr/sbin/dnsmasq.backup_by_pihole /usr/sbin/dnsmasq
+fi
 rm -f "/etc/init.d/pihole-FTL" "/usr/bin/pihole-FTL" "/var/run/pihole-FTL.pid" "/var/run/pihole-FTL.port"
 
 #=================================================

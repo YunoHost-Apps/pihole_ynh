@@ -28,6 +28,7 @@ path_url=$YNH_APP_ARG_PATH
 admin=$YNH_APP_ARG_ADMIN
 query_logging=$YNH_APP_ARG_QUERY_LOGGING
 enable_dhcp=$YNH_APP_ARG_ENABLE_DHCP
+pihole_version="$YNH_APP_ARG_PIHOLE_VERSION"
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -52,6 +53,7 @@ ynh_app_setting_set --app=$app --key=path --value=$path_url
 ynh_app_setting_set --app=$app --key=admin --value=$admin
 ynh_app_setting_set --app=$app --key=query_logging --value=$query_logging
 ynh_app_setting_set --app=$app --key=enable_dhcp --value=$enable_dhcp
+ynh_app_setting_set --app=$app --key=pihole_version --value="$pihole_version"
 
 ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=1
 ynh_app_setting_set --app=$app --key=overwrite_ftl --value=1
@@ -95,9 +97,18 @@ ynh_script_progression --message="Setting up source files..." --weight=4
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Make a copy of local pihole repository (for Gravity)
 pihole_local_repo="/etc/.pihole"
-ynh_setup_source --dest_dir="$pihole_local_repo"
-# Install admin dashboard
-ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    # Install the version 3.3.1
+    ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app_3
+    # Install admin dashboard
+    ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard_3
+else
+    # Install the last version available
+    ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app_last
+    # Install admin dashboard
+    ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard_last
+fi
 
 #=================================================
 # NGINX CONFIGURATION
@@ -166,7 +177,12 @@ chown $dnsmasq_user:root /var/log/pihole.log
 #=================================================
 
 # This sudoers config allow pihole to execute /usr/local/bin/pihole as root without password. Nothing more.
-cp "$pihole_local_repo/advanced/pihole.sudo" /etc/sudoers.d/pihole
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    cp "$pihole_local_repo/advanced/pihole.sudo" /etc/sudoers.d/pihole
+else
+    cp "$pihole_local_repo/advanced/Templates/pihole.sudo" /etc/sudoers.d/pihole
+fi
 echo "$app ALL=NOPASSWD: /usr/local/bin/pihole" >> /etc/sudoers.d/pihole
 # echo "Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin" >> /etc/sudoers.d/pihole
 chmod 0440 /etc/sudoers.d/pihole
@@ -175,7 +191,12 @@ chmod 0440 /etc/sudoers.d/pihole
 # INSTALL LOGROTATE SCRIPT FOR PI-HOLE
 #=================================================
 
-cp "$pihole_local_repo/advanced/logrotate" "$pihole_storage/logrotate"
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    cp "$pihole_local_repo/advanced/logrotate" "$pihole_storage/logrotate"
+else
+    cp "$pihole_local_repo/advanced/Templates/logrotate" "$pihole_storage/logrotate"
+fi
 sed -i "/# su #/d;" "$pihole_storage/logrotate"
 
 #=================================================
@@ -185,7 +206,14 @@ ynh_script_progression --message="Installing PiHole-FTL..." --weight=30
 
 # Get the source of Pi-Hole-FTL
 FTL_temp_path=$(mktemp -d)
-ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    # Install the version 3.3.1
+    ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL_3
+else
+    # Install the last version available
+    ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL_last
+fi
 
 # Instead of downloading a binary file, we're going to compile it
 ( cd "$FTL_temp_path"
@@ -197,9 +225,24 @@ cp "../conf/pihole-FTL.conf" "$pihole_storage"
 # Calculate and store the config file checksum into the app settings
 ynh_store_file_checksum --file="$pihole_storage/pihole-FTL.conf"
 
-cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
-chmod +x /etc/init.d/pihole-FTL
-ynh_exec_warn_less systemctl enable pihole-FTL
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    # Version 3.3.1
+    cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
+    chmod +x /etc/init.d/q
+    ynh_exec_warn_less systemctl enable pihole-FTL
+else
+    # Last version available
+    # Stopped dnsmasq to replace it by pihole-FTL
+    ynh_systemd_action --action=stop --service_name=dnsmasq
+    # Move dnsmasq to preserve the current version
+    mv /usr/sbin/dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
+    # Replace dnsmasq by pihole-FTL
+    # NOTE: pihole-FTL is actually a modified version of dnsmasq
+    # https://github.com/pi-hole/FTL/tree/master/dnsmasq
+    update-alternatives --install /usr/sbin/dnsmasq dnsmasq /usr/bin/pihole-FTL 50
+    update-alternatives --install /usr/sbin/dnsmasq dnsmasq /usr/sbin/dnsmasq.backup_by_pihole 40
+fi
 
 #=================================================
 # BUILD VARIABLES FILE
@@ -313,6 +356,20 @@ fi
 ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 
 #=================================================
+# INSTALL CRON JOB
+#=================================================
+
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
+else
+    cp $pihole_local_repo/advanced/Templates/pihole.cron /etc/cron.d/pihole
+fi
+
+# Remove git usage for version. Which fails because we use here a release instead of master.
+ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
+
+#=================================================
 # RESTART DNSMASQ
 #=================================================
 ynh_script_progression --message="Restarting Dnsmasq..." --weight=2
@@ -320,27 +377,28 @@ ynh_script_progression --message="Restarting Dnsmasq..." --weight=2
 ynh_systemd_action --action=restart --service_name=dnsmasq
 
 #=================================================
-# INSTALL CRON JOB
+# START PIHOLE-FTL
 #=================================================
 
-cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
-# Remove git usage for version. Which fails because we use here a release instead of master.
-ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
+
+    ynh_systemd_action --action=restart --service_name=pihole-FTL
+fi
 
 #=================================================
 # BUILD THE LISTS WITH GRAVITY
 #=================================================
 ynh_script_progression --message="Building the lists with Gravity..." --weight=7
 
-cp "$pihole_local_repo/adlists.default" "$pihole_storage/adlists.default"
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    cp "$pihole_local_repo/adlists.default" "$pihole_storage/adlists.default"
+else
+    cp "../conf/adlists.default" "$pihole_storage/adlists.list"
+fi
 ynh_exec_warn_less /opt/pihole/gravity.sh
-
-#=================================================
-# START PIHOLE-FTL
-#=================================================
-ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
-
-ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
 # SET UP CONF_REGEN HOOK
@@ -354,7 +412,10 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log"
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log"
+fi
 
 #=================================================
 # RESTRAIN THE ACCESS TO THE ADMIN ONLY

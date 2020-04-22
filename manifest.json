@@ -76,6 +76,20 @@
 					"fr": "Si vous voulez faire ça, <a href=https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md target=_blank>vous devez vraiment lire cela avant</a> !"
 				},
 				"default": false
+			},
+			{
+				"name": "pihole_version",
+				"type": "string",
+				"ask": {
+					"en": "Which version of Pi-Hole do you want to install ?",
+					"fr": "Quelle version de Pi-Hole voulez-vous installer ?"
+				},
+				"help": {
+					"en": "The last 3.X version is the last version available with the Debian version of dnsmasq.",
+					"fr": "The last available version will replace the Debian version of dnsmasq by FTLDNS.<br>See the readme for more information."
+				},
+				"choices" : ["Last 3.X","Last available"],
+				"default": "Last 3.X"
 			}
 		]
 	}
