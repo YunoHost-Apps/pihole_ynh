@@ -26,14 +26,11 @@ pihole_version="$(ynh_app_setting_get --app=$app --key=pihole_version)"
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
 
-if [ "$pihole_version" == "Last 3.X" ]
+# Check if the service is declared in YunoHost
+if ynh_exec_fully_quiet yunohost service status pihole-FTL
 then
-    # Check if the service is declared in YunoHost
-    if ynh_exec_fully_quiet yunohost service status pihole-FTL
-    then
-        ynh_script_progression --message="Removing pihole-FTL service..." --weight=2
-        yunohost service remove pihole-FTL
-    fi
+    ynh_script_progression --message="Removing pihole-FTL service..." --weight=2
+    yunohost service remove pihole-FTL
 fi
 
 #=================================================
@@ -46,15 +43,30 @@ then
     ynh_systemd_action --action=stop --service_name=pihole-FTL
     ynh_exec_warn_less systemctl disable pihole-FTL
 else
-    ynh_systemd_action --action=stop --service_name=dnsmasq
+    ynh_systemd_action --action=stop --service_name=pihole-FTL
+
     # Restore dnsmasq as main DNS resolver
-    # Remove alternatives
-    update-alternatives --remove dnsmasq /usr/bin/pihole-FTL
-    update-alternatives --remove dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
     # Move dnsmasq back to its original place
-    mv /usr/sbin/dnsmasq.backup_by_pihole /usr/sbin/dnsmasq
+    if [ -e "/usr/sbin/dnsmasq.backup_by_pihole" ]
+    then    # Remove dnsmasq only if we have its backup
+        ynh_secure_remove --file="/usr/sbin/dnsmasq"
+        mv /usr/sbin/dnsmasq.backup_by_pihole /usr/sbin/dnsmasq
+    fi
+
+    # Move back the service configuration for dnsmasq
+    ynh_secure_remove --file="/etc/systemd/system/multi-user.target.wants/dnsmasq.service"
+    mv /lib/systemd/system/.dnsmasq.service.backup_by_pihole /lib/systemd/system/dnsmasq.service
+    mv /etc/init.d/.dnsmasq.backup_by_pihole /etc/init.d/dnsmasq
+
+    ynh_exec_warn_less systemctl enable dnsmasq
+    # Reload systemd config
+    systemctl daemon-reload
 fi
-rm -f "/etc/init.d/pihole-FTL" "/usr/bin/pihole-FTL" "/var/run/pihole-FTL.pid" "/var/run/pihole-FTL.port"
+
+ynh_secure_remove --file="/etc/init.d/pihole-FTL"
+ynh_secure_remove --file="/usr/bin/pihole-FTL"
+ynh_secure_remove --file="/var/run/pihole-FTL.pid"
+ynh_secure_remove --file="/var/run/pihole-FTL.port"
 
 #=================================================
 # REMOVE DEPENDENCIES

@@ -236,52 +236,30 @@ else
     # Stopped dnsmasq to replace it by pihole-FTL
     ynh_systemd_action --action=stop --service_name=dnsmasq
 
-systemctl disable dnsmasq
-# rm /lib/systemd/system/dnsmasq.service
-mv /lib/systemd/system/dnsmasq.service /lib/systemd/system/.dnsmasq.service
-# rm /etc/init.d/dnsmasq
-mv /etc/init.d/dnsmasq /etc/init.d/.dnsmasq
+    # Disable the real dnsmasq service
+    ynh_exec_warn_less systemctl disable dnsmasq
 
-    cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
-    chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL
-    # Move dnsmasq to preserve the current version
+    # And move the files that make the service available in systemd to really disable it
+    mv /lib/systemd/system/dnsmasq.service /lib/systemd/system/.dnsmasq.service.backup_by_pihole
+    mv /etc/init.d/dnsmasq /etc/init.d/.dnsmasq.backup_by_pihole
+
+    # Move dnsmasq to preserve the current binary
     mv /usr/sbin/dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
     # Replace dnsmasq by pihole-FTL
     # NOTE: pihole-FTL is actually a modified version of dnsmasq
     # https://github.com/pi-hole/FTL/tree/master/dnsmasq
-    update-alternatives --install /usr/sbin/dnsmasq dnsmasq /usr/bin/pihole-FTL 50
-    update-alternatives --install /usr/sbin/dnsmasq dnsmasq /usr/sbin/dnsmasq.backup_by_pihole 40
+    ln -s /usr/bin/pihole-FTL /usr/sbin/dnsmasq
 
-# cp /etc/init.d/pihole-FTL /etc/init.d/dnsmasq
-# systemctl enable dnsmasq
+    cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
+    chmod +x /etc/init.d/pihole-FTL
+    ynh_exec_warn_less systemctl enable pihole-FTL
 
-#     ln --symbolic /run/pihole-FTL.pid /run/dnsmasq/dnsmasq.pid
+    # Replace the service dnsmasq by pihole-FTL
+    # That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
+    ln -s /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/multi-user.target.wants/dnsmasq.service
 
-# lrwxrwxrwx 1 root root 35 Jun 22  2018 /etc/systemd/system/multi-user.target.wants/dnsmasq.service -> /lib/systemd/system/dnsmasq.service
-# /run/systemd/generator.late/pihole-FTL.service
-sudo ln -s /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/multi-user.target.wants/dnsmasq.service
-sudo systemctl daemon-reload
-
-# sudo yunohost app install github/pihole_ynh/ --args "admin=mcrudelis&pihole_version=Last available&" -f -n
-
-# >>> It does work, as we have both dnsmasq and pihole-FTL as the same.
-# But no more dns resolution...
-
-# sudo systemctl daemon-reload
-
-# /lib/systemd/system/dnsmasq.service
-# /etc/init.d/dnsmasq
-
-# systemctl stop dnsmasq
-# systemctl disable dnsmasq
-# If I remove /lib/systemd/system/dnsmasq.service and /etc/init.d/dnsmasq, it works.
-# sudo systemctl daemon-reload
-
-# But we don't have dnsmasq anymore...
-# Duplicating /etc/init.d/pihole-FTL in /etc/init.d/dnsmasq does work
-
-
+    # Reload systemd config
+    systemctl daemon-reload
 fi
 
 #=================================================
@@ -412,22 +390,22 @@ ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --ta
 #=================================================
 # RESTART DNSMASQ
 #=================================================
-ynh_script_progression --message="Restarting Dnsmasq..." --weight=2
 
-# ynh_systemd_action --action=restart --service_name=dnsmasq
+# Restart dnsmasq only for the version 3.X, otherwise we're going to restart it twice.
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    ynh_script_progression --message="Restarting Dnsmasq..." --weight=2
+
+    ynh_systemd_action --action=restart --service_name=dnsmasq
+fi
 
 #=================================================
 # START PIHOLE-FTL
 #=================================================
 
-if [ "$pihole_version" == "Last 3.X" ]
-then
-    ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
+ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
 
-    ynh_systemd_action --action=restart --service_name=pihole-FTL
-fi
-
-sleep 5
+ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
 # BUILD THE LISTS WITH GRAVITY
@@ -454,10 +432,7 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-if [ "$pihole_version" == "Last 3.X" ]
-then
-    yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log"
-fi
+yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log"
 
 #=================================================
 # RESTRAIN THE ACCESS TO THE ADMIN ONLY
