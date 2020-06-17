@@ -36,11 +36,11 @@ ynh_script_progression --message="Backing up the app before changing its url (ma
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
-	# Remove the new domain config file, the remove script won't do it as it doesn't know yet its location.
-	ynh_secure_remove --file="/etc/nginx/conf.d/$new_domain.d/$app.conf"
+    # Remove the new domain config file, the remove script won't do it as it doesn't know yet its location.
+    ynh_secure_remove --file="/etc/nginx/conf.d/$new_domain.d/$app.conf"
 
-	# restore it if the upgrade fails
-	ynh_restore_upgradebackup
+    # restore it if the upgrade fails
+    ynh_restore_upgradebackup
 }
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
@@ -61,13 +61,13 @@ ynh_maintenance_mode_ON
 change_domain=0
 if [ "$old_domain" != "$new_domain" ]
 then
-	change_domain=1
+    change_domain=1
 fi
 
 change_path=0
 if [ "$old_path" != "$new_path" ]
 then
-	change_path=1
+    change_path=1
 fi
 
 #=================================================
@@ -82,26 +82,26 @@ nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
 # Change the path in the nginx config file
 if [ $change_path -eq 1 ]
 then
-	# Make a backup of the original nginx config file if modified
-	ynh_backup_if_checksum_is_different --file="$nginx_conf_path"
+    # Make a backup of the original nginx config file if modified
+    ynh_backup_if_checksum_is_different --file="$nginx_conf_path"
 
-	# Set global variables for nginx helper
-	domain="$old_domain"
-	path_url="$new_path"
+    # Set global variables for nginx helper
+    domain="$old_domain"
+    path_url="$new_path"
 
-	# Create a dedicated nginx config
-	ynh_add_nginx_config
+    # Create a dedicated nginx config
+    ynh_add_nginx_config
 fi
 
 # Change the domain for nginx
 if [ $change_domain -eq 1 ]
 then
-	# Delete file checksum for the old conf file location
-	ynh_delete_file_checksum --file="$nginx_conf_path"
-	mv $nginx_conf_path /etc/nginx/conf.d/$new_domain.d/$app.conf
+    # Delete file checksum for the old conf file location
+    ynh_delete_file_checksum --file="$nginx_conf_path"
+    mv $nginx_conf_path /etc/nginx/conf.d/$new_domain.d/$app.conf
 
-	# Store file checksum for the new config file location
-	ynh_store_file_checksum --file="/etc/nginx/conf.d/$new_domain.d/$app.conf"
+    # Store file checksum for the new config file location
+    ynh_store_file_checksum --file="/etc/nginx/conf.d/$new_domain.d/$app.conf"
 fi
 
 #=================================================

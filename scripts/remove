@@ -113,14 +113,14 @@ ynh_script_progression --message="Closing port $port et 67..." --weight=13
 
 if yunohost firewall list | grep -q "\- $port$"
 then
-	ynh_print_info "Close port $port"
-	ynh_exec_quiet yunohost firewall disallow TCP $port
+    ynh_print_info "Close port $port"
+    ynh_exec_quiet yunohost firewall disallow TCP $port
 fi
 
 if yunohost firewall list | grep -q "\- 67$"
 then
-	ynh_print_info "Close port 67"
-	ynh_exec_quiet yunohost firewall disallow UDP 67
+    ynh_print_info "Close port 67"
+    ynh_exec_quiet yunohost firewall disallow UDP 67
 fi
 
 #=================================================
@@ -175,6 +175,12 @@ sed -i "/#Added by pihole#/d" /etc/hosts
 #=================================================
 ynh_script_progression --message="Restarting Dnsmasq..."
 
+if [ "$pihole_version" == "Last available" ]
+then
+    # Quietly start dnsmasq a first time, because it usually doesn't start correctly the first time.
+    ynh_exec_fully_quiet systemctl start dnsmasq
+    sleep 1
+fi
 ynh_systemd_action --action=restart --service_name=dnsmasq
 
 #=================================================

@@ -2,3 +2,14 @@
 
 # Dependencies
 app_depencencies="sqlite idn2 php7.0-sqlite3 nettle-dev libcap2-bin"
+
+if [ "$YNH_APP_ARG_PIHOLE_VERSION" == "Last 3.X" ]
+then
+    pihole_core_version=3.3.1
+    dashboard_version=3.3
+    FTL_version=3.0
+else
+    pihole_core_version=5.0
+    dashboard_version=5.0
+    FTL_version=5.0
+fi

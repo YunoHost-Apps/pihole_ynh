@@ -27,6 +27,9 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 
+# Get variable from ynh_add_fpm_config
+fpm_config_dir=$(ynh_app_setting_get --app=$app --key=fpm_config_dir)
+
 #=================================================
 # STANDARD BACKUP STEPS
 #=================================================
@@ -34,16 +37,9 @@ domain=$(ynh_app_setting_get --app=$app --key=domain)
 #=================================================
 ynh_script_progression --message="Backing up the main app directory..." --weight=5
 
-CHECK_SIZE "$final_path"
 ynh_backup --src_path="$final_path"
-
-CHECK_SIZE "/etc/.pihole"
 ynh_backup --src_path="/etc/.pihole"
-
-CHECK_SIZE "/etc/pihole"
 ynh_backup --src_path="/etc/pihole"
-
-CHECK_SIZE "/opt/pihole"
 ynh_backup --src_path="/opt/pihole"
 
 #=================================================
@@ -58,7 +54,8 @@ ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 ynh_script_progression --message="Backing up php-fpm configuration..."
 
-ynh_backup --src_path="/etc/php/7.0/fpm/pool.d/$app.conf"
+ynh_backup --src_path="$fpm_config_dir/php-fpm-$app.conf"
+ynh_backup --src_path="$fpm_config_dir/pool.d/$app.conf"
 
 #=================================================
 # SPECIFIC BACKUP
@@ -84,13 +81,13 @@ ynh_backup --src_path="/usr/bin/pihole-FTL"
 
 ynh_backup --src_path="/etc/dnsmasq.d/01-pihole.conf"
 if test -e "/etc/dnsmasq.d/02-pihole-dhcp.conf"; then
-	ynh_backup --src_path="/etc/dnsmasq.d/02-pihole-dhcp.conf"
+    ynh_backup --src_path="/etc/dnsmasq.d/02-pihole-dhcp.conf"
 fi
 if test -e "/etc/dnsmasq.d/03-pihole-wildcard.conf"; then
-	ynh_backup --src_path="/etc/dnsmasq.d/03-pihole-wildcard.conf"
+    ynh_backup --src_path="/etc/dnsmasq.d/03-pihole-wildcard.conf"
 fi
 if test -e "/etc/dnsmasq.d/04-pihole-static-dhcp.conf"; then
-	ynh_backup --src_path="/etc/dnsmasq.d/04-pihole-static-dhcp.conf"
+    ynh_backup --src_path="/etc/dnsmasq.d/04-pihole-static-dhcp.conf"
 fi
 
 ynh_backup --src_path="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"

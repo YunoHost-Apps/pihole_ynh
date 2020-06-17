@@ -11,7 +11,7 @@ Si vous n'avez pas YunoHost, merci de regarder [ici](https://yunohost.org/#/inst
 ## Résumé
 Blocage des publicités sur l'ensemble du réseau via votre propre matériel Linux
 
-**Version embarquée:** 3.3.1
+**Version embarquée:** 3.3.1 ou 5.0
 
 
 ## Captures d'écran
@@ -42,7 +42,7 @@ Utiliser le panneau d'administration de votre Pi-hole pour configurer cette appl
 
 * x86-64b - [![](https://ci-apps.yunohost.org/ci/logs/pihole%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/pihole/)
 * ARMv8-A - [![](https://ci-apps-arm.yunohost.org/ci/logs/pihole%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/pihole/)
-* Jessie x86-64b - [![](https://ci-stretch.nohost.me/ci/logs/pihole%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/pihole/)
+* Buster x86-64b - [![](https://ci-buster.nohost.me/ci/logs/pihole%20%28Apps%29.svg)](https://ci-buster.nohost.me/ci/apps/pihole/)
 
 ## Limitations
 
@@ -67,7 +67,7 @@ Merci de faire vos pull request sur la [branche testing](https://github.com/Yuno
 
 Pour tester la branche testing, merci de procéder ainsi.
 ```
-sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
+sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --force --debug
 ou
 sudo yunohost app upgrade pihole -u https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
 ```
