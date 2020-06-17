@@ -11,7 +11,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 ## Overview
 Network-wide ad blocking via your own Linux hardware
 
-**Shipped version:** 3.3.1
+**Shipped version:** 3.3.1 or 5.0
 
 ## Screenshots
 
@@ -41,7 +41,7 @@ Use the admin panel of your Pi-hole to configure this app. You may also need to 
 
 * x86-64b - [![](https://ci-apps.yunohost.org/ci/logs/pihole%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/pihole/)
 * ARMv8-A - [![](https://ci-apps-arm.yunohost.org/ci/logs/pihole%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/pihole/)
-* Jessie x86-64b - [![](https://ci-stretch.nohost.me/ci/logs/pihole%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/pihole/)
+* Buster x86-64b - [![](https://ci-buster.nohost.me/ci/logs/pihole%20%28Apps%29.svg)](https://ci-buster.nohost.me/ci/apps/pihole/)
 
 ## Limitations
 
@@ -66,7 +66,7 @@ Please do your pull request to the [testing branch](https://github.com/YunoHost-
 
 To try the testing branch, please do the following:
 ```
-sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
+sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --force --debug
 or
 sudo yunohost app upgrade pihole -u https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
 ```
