@@ -1,6 +1,6 @@
 {
 	"name": "Pi-hole",
-	"id": "pi-hole",
+	"id": "pihole",
 	"packaging_format": 1,
 	"description": {
 		"en": "Network-wide ad blocking via your own DNS server.",
