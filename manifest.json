@@ -1,17 +1,17 @@
 {
 	"name": "Pi-hole",
-	"id": "pihole",
+	"id": "pi-hole",
 	"packaging_format": 1,
 	"description": {
 		"en": "Network-wide ad blocking via your own DNS server.",
 		"fr": "Filtrage publicitaire sur l'ensemble du réseau via votre propre serveur DNS."
 	},
-	"version": "3.3.1~ynh6",
+	"version": "5.2.4~ynh6",
 	"url": "https://pi-hole.net/",
 	"license": "EUPL-1.2",
 	"maintainer": {
-		"name": "None...",
-		"email": ""
+		"name": "Benjamin Hartmann",
+		"email": "bwolkchen@gmail.com"
 	},
 	"previous_maintainers": [{
 		"name": "Maniack Crudelis",
