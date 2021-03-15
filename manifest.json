@@ -10,7 +10,7 @@
 	"url": "https://pi-hole.net/",
 	"license": "EUPL-1.2",
 	"maintainer": {
-		"name": "None...",
+		"name": "",
 		"email": ""
 	},
 	"previous_maintainers": [{
