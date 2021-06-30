@@ -11,7 +11,7 @@ Si vous n'avez pas YunoHost, merci de regarder [ici](https://yunohost.org/#/inst
 ## Résumé
 Blocage des publicités sur l'ensemble du réseau via votre propre matériel Linux
 
-**Version embarquée:** 3.3.1 ou 5.0
+**Version embarquée:** 3.3.1 ou 5.3.1
 
 
 ## Captures d'écran

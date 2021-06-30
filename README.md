@@ -11,7 +11,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 ## Overview
 Network-wide ad blocking via your own Linux hardware
 
-**Shipped version:** 3.3.1 or 5.0
+**Shipped version:** 3.3.1 or 5.3.1
 
 ## Screenshots
 
