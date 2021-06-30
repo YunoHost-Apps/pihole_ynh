@@ -8,6 +8,7 @@
 
 source scripts/_common.sh
 source /usr/share/yunohost/helpers
+source _ynh_add_fpm_config.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
