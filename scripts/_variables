@@ -1,4 +1,0 @@
-#!/bin/bash
-
-# Dependencies
-app_depencencies="sqlite idn2 php7.0-sqlite3"

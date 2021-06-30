@@ -8,9 +8,6 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
-source _ynh_add_fpm_config
-# Load common variables for all scripts.
-source _variables
 
 #=================================================
 # MANAGE FAILURE OF THE SCRIPT
@@ -85,7 +82,7 @@ ynh_exec_fully_quiet yunohost firewall allow Both 53 --no-upnp
 #=================================================
 ynh_script_progression --message="Installing dependencies..." --weight=12
 
-ynh_install_app_dependencies $app_depencencies
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -121,7 +118,8 @@ ynh_system_user_create --username=$app
 ynh_script_progression --message="Configuring php-fpm..." --weight=2
 
 # Create a dedicated php-fpm config
-ynh_add_fpm_config --usage=low --footprint=low
+ynh_add_fpm_config --usage=low --footprint=low --package="$extra_php_dependencies"
+phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 
 #=================================================
 # SPECIFIC SETUP
@@ -366,7 +364,7 @@ yunohost app addaccess --users=$admin $app
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --weight=3
+ynh_script_progression --message="Reloading NGINX web server..." --weight=3
 
 ynh_systemd_action --service_name=nginx --action=reload
 

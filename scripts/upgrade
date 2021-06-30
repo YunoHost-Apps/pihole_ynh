@@ -9,8 +9,6 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 source _ynh_add_fpm_config
-# Load common variables for all scripts.
-source _variables
 
 #=================================================
 # LOAD SETTINGS
@@ -34,6 +32,7 @@ overwrite_phpfpm=$(ynh_app_setting_get --app=$app --key=overwrite_phpfpm)
 
 fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
 fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
+phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 
 #=================================================
 # CHECK VERSION
@@ -97,13 +96,6 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# CHECK THE PATH
-#=================================================
-
-# Normalize the URL path syntax
-path_url=$(ynh_normalize_url_path --path_url=$path_url)
-
-#=================================================
 # ACTIVATE MAINTENANCE MODE
 #=================================================
 ynh_script_progression --message="Activating maintenance mode..."
@@ -117,7 +109,7 @@ ynh_maintenance_mode_ON
 #=================================================
 ynh_script_progression --message="Upgrading dependencies..." --weight=6
 
-ynh_install_app_dependencies $app_depencencies
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -160,9 +152,9 @@ ynh_system_user_create --username=$app
 # Overwrite the php-fpm configuration only if it's allowed
 if [ $overwrite_phpfpm -eq 1 ]
 then
-	ynh_script_progression --message="Upgrading php-fpm configuration..." --weight=3
+	ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
 	# Create a dedicated php-fpm config
-	ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint
+	ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --package="$extra_php_dependencies"
 fi
 
 #=================================================

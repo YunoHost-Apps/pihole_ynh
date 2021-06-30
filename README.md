@@ -39,9 +39,8 @@ Use the admin panel of your Pi-hole to configure this app. You may also need to 
 
 #### Supported architectures
 
-* x86-64b - [![](https://ci-apps.yunohost.org/ci/logs/pihole%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/pihole/)
-* ARMv8-A - [![](https://ci-apps-arm.yunohost.org/ci/logs/pihole%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/pihole/)
-* Jessie x86-64b - [![](https://ci-stretch.nohost.me/ci/logs/pihole%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/pihole/)
+* x86-64b - [![](https://ci-apps.yunohost.org/ci/logs/pihole.svg)](https://ci-apps.yunohost.org/ci/apps/pihole/)
+* ARMv8-A - [![](https://ci-apps-arm.yunohost.org/ci/logs/pihole.svg)](https://ci-apps-arm.yunohost.org/ci/apps/pihole/)
 
 ## Limitations
 
@@ -60,7 +59,6 @@ Use the admin panel of your Pi-hole to configure this app. You may also need to 
 ---
 
 Developers infos
-----------------
 
 Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/pihole_ynh/tree/testing).
 
