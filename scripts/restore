@@ -176,6 +176,7 @@ then
     # https://github.com/pi-hole/FTL/tree/master/dnsmasq
     ln -s /usr/bin/pihole-FTL /usr/sbin/dnsmasq
 
+    pihole_local_repo="/etc/.pihole"
     cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
     chmod +x /etc/init.d/pihole-FTL
     ynh_exec_warn_less systemctl enable pihole-FTL

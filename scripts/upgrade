@@ -163,7 +163,7 @@ then
     fi
 fi
 
-chown -R $app:www-data "$final_path"
+chown $app:www-data "$final_path"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -260,7 +260,10 @@ then
 
     # Instead of downloading a binary file, we're going to compile it
     ( cd "$FTL_temp_path"
-    ynh_exec_warn_less cmake .
+    if [ "$pihole_version" == "Last available" ]
+    then
+        ynh_exec_warn_less cmake .
+    fi
     ynh_exec_warn_less make
     ynh_exec_warn_less make install )
     ynh_secure_remove --file="$FTL_temp_path"

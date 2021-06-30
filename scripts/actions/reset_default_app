@@ -71,7 +71,7 @@ else
     YNH_CWD=$PWD ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard_last
 fi
 
-chown -R $app:www-data "$final_path"
+chown $app:www-data "$final_path"
 
 )
 
