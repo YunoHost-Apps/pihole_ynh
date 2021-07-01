@@ -357,10 +357,9 @@ yunohost service add pihole-FTL --description "PiHole backend service" --log "/v
 #=================================================
 # RESTRAIN THE ACCESS TO THE ADMIN ONLY
 #=================================================
-ynh_script_progression --message="Configuring permissions..." --weight=2
+ynh_script_progression --message="Restraining the access to the admin only..." --weight=2
 
-#yunohost app addaccess --users=$admin $app
-ynh_permission_create --permission="admin" --allowed="$admin"
+yunohost app addaccess --users=$admin $app
 
 #=================================================
 # RELOAD NGINX
