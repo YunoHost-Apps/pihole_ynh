@@ -232,10 +232,11 @@ pihole_storage="/etc/pihole"
 if [ "$pihole_version" == "Last 3.X" ]
 then
     cp "$pihole_local_repo/advanced/logrotate" "$pihole_storage/logrotate"
+    dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
 else
     cp "$pihole_local_repo/advanced/Templates/logrotate" "$pihole_storage/logrotate"
+    dnsmasq_user=$(grep FTLUSER= /etc/init.d/pihole-FTL | cut -d'=' -f2)
 fi
-dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
 sed -i "/# su #/d;" "$pihole_storage/logrotate"
 
 #=================================================
