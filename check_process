@@ -40,7 +40,7 @@
         pihole_version="Last 3.X"
     ; Checks
         setup_sub_dir=1
-        setup_root=0
+        setup_root=1
         upgrade=1
         upgrade=1	from_commit=d79ec131b3038ff4695c3317b5d3ee4eda9c8932
         backup_restore=1
