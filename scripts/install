@@ -11,7 +11,6 @@ source _variables
 
 source _common.sh
 source /usr/share/yunohost/helpers
-source _ynh_add_fpm_config.sh
 
 #=================================================
 # MANAGE FAILURE OF THE SCRIPT
@@ -67,7 +66,7 @@ ynh_app_setting_set --app=$app --key=admin_mail_html --value=1
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
-ynh_script_progression --message="Configuring firewall..." --weight=12
+ynh_script_progression --message="Finding an available port..." --weight=12
 
 # Find a free port
 port=$(ynh_find_port --port=4711)
@@ -239,7 +238,7 @@ then
     # Version 3.3.1
     cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
     chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL
+    ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 else
     # Last version available
     # Stopped dnsmasq to replace it by pihole-FTL
@@ -261,7 +260,7 @@ else
 
     cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
     chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL
+    ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 
     # Replace the service dnsmasq by pihole-FTL
     # That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
@@ -448,7 +447,7 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log"
+yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log" --needs_exposed_ports="$port"
 
 #=================================================
 # RESTRAIN THE ACCESS TO THE ADMIN ONLY

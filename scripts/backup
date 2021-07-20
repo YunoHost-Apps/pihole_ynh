@@ -19,7 +19,7 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --weight=2
+ynh_print_info  --message="Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -31,11 +31,15 @@ domain=$(ynh_app_setting_get --app=$app --key=domain)
 fpm_config_dir=$(ynh_app_setting_get --app=$app --key=fpm_config_dir)
 
 #=================================================
+# DECLARE DATA AND CONF FILES TO BACKUP
+#=================================================
+ynh_print_info --message="Declaring files to be backed up..."
+
+#=================================================
 # STANDARD BACKUP STEPS
 #=================================================
 # BACKUP THE MAIN APP DIRECTORIES
 #=================================================
-ynh_script_progression --message="Backing up the main app directory..." --weight=5
 
 ynh_backup --src_path="$final_path"
 ynh_backup --src_path="/etc/.pihole"
@@ -45,14 +49,12 @@ ynh_backup --src_path="/opt/pihole"
 #=================================================
 # BACKUP NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Backing up nginx web server configuration..."
 
 ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # BACKUP PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Backing up php-fpm configuration..."
 
 ynh_backup --src_path="$fpm_config_dir/php-fpm-$app.conf"
 ynh_backup --src_path="$fpm_config_dir/pool.d/$app.conf"
@@ -62,14 +64,12 @@ ynh_backup --src_path="$fpm_config_dir/pool.d/$app.conf"
 #=================================================
 # BACKUP CRON FILE
 #=================================================
-ynh_script_progression --message="Backing up cron file..."
 
 ynh_backup --src_path="/etc/cron.d/pihole"
 
 #=================================================
 # BACKUP SPECIFIC FILES
 #=================================================
-ynh_script_progression --message="Backing specific files..."
 
 ynh_backup --src_path="/usr/local/bin/pihole"
 ynh_backup --src_path="/etc/bash_completion.d/pihole"
@@ -96,4 +96,4 @@ ynh_backup --src_path="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)." --last
+ynh_print_info --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."

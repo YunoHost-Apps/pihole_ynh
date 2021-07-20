@@ -11,7 +11,6 @@ source ../settings/scripts/_variables
 
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
-source ../settings/scripts/_ynh_add_fpm_config.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
@@ -179,7 +178,7 @@ then
     pihole_local_repo="/etc/.pihole"
     cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
     chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL
+    ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 
     # Replace the service dnsmasq by pihole-FTL
     # That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
@@ -258,7 +257,7 @@ ynh_store_file_checksum --file="$setupVars"
 #=================================================
 ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
 
-ynh_exec_warn_less systemctl enable pihole-FTL
+ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
