@@ -11,7 +11,6 @@ source ../settings/scripts/_variables
 
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
-source ../settings/scripts/_ynh_add_fpm_config.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
