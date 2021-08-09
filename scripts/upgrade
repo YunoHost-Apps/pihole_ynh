@@ -110,13 +110,6 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# CHECK THE PATH
-#=================================================
-
-# Normalize the URL path syntax
-path_url=$(ynh_normalize_url_path --path_url=$path_url)
-
-#=================================================
 # ACTIVATE MAINTENANCE MODE
 #=================================================
 ynh_script_progression --message="Activating maintenance mode..."
@@ -171,7 +164,7 @@ chown $app:www-data "$final_path"
 # Overwrite the nginx configuration only if it's allowed
 if [ $overwrite_nginx -eq 1 ]
 then
-    ynh_script_progression --message="Upgrading nginx web server configuration..." --weight=2
+    ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
     # Create a dedicated nginx config
     ynh_add_nginx_config
 fi
@@ -183,7 +176,7 @@ fi
 # Overwrite the php-fpm configuration only if it's allowed
 if [ $overwrite_phpfpm -eq 1 ]
 then
-    ynh_script_progression --message="Upgrading php-fpm configuration..." --weight=3
+    ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
     # Create a dedicated php-fpm config
     ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_service
 fi
@@ -284,14 +277,14 @@ then
     # Version 3.3.1
     cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
     chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL
+    ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 else
     # Last version available
     # Stopped dnsmasq to replace it by pihole-FTL
     ynh_systemd_action --action=stop --service_name=dnsmasq
 
     # Disable the real dnsmasq service
-    ynh_exec_warn_less systemctl disable dnsmasq
+    ynh_exec_warn_less systemctl disable dnsmasq --quiet
 
     # And move the files that make the service available in systemd to really disable it
     if [ ! -e "/lib/systemd/system/.dnsmasq.service.backup_by_pihole" ]; then
@@ -377,7 +370,7 @@ ynh_systemd_action --action=restart --service_name=pihole-FTL
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log"
+yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log" --needs_exposed_ports="$port"
 
 #=================================================
 # UPDATE CONF_REGEN HOOK
@@ -388,7 +381,7 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..."
+ynh_script_progression --message="Reloading NGINX web server..."
 
 ynh_systemd_action --action=reload --service_name=nginx
 
