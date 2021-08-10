@@ -1,8 +1,8 @@
 ;; Test version last version
     ; Manifest
-        domain="domain.tld"	(DOMAIN)
-        path="/path"	(PATH)
-        admin="john"	(USER)
+        domain="domain.tld"
+        path="/path"
+        admin="john"
         query_logging=1
         enable_dhcp=0
         pihole_version="Last available"
@@ -26,15 +26,15 @@
         upgrade=1
         backup_restore=1
         multi_instance=0
-        port_already_use=1 (4711)
+        port_already_use=1
         change_url=1
         actions=1
         config_panel=1
 ;; Test version 3
     ; Manifest
-        domain="domain.tld"	(DOMAIN)
-        path="/path"	(PATH)
-        admin="john"	(USER)
+        domain="domain.tld"
+        path="/path"
+        admin="john"
         query_logging=1
         enable_dhcp=0
         pihole_version="Last 3.X"
@@ -45,8 +45,6 @@
         upgrade=1	from_commit=d79ec131b3038ff4695c3317b5d3ee4eda9c8932
         backup_restore=1
         actions=1
-;;; Levels
-    Level 5=auto
 ;;; Options
 Email=
 Notification=change

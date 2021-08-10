@@ -72,7 +72,7 @@ then
     # Get the default file and overwrite the current config
     cp /etc/yunohost/apps/$app/conf/pihole-FTL.conf "$config_file"
 
-    ynh_script_progression --message="Restarting PiHole..." --weight=2
+    ynh_script_progression --message="Restarting Pi-Hole..." --weight=2
 
     # Restart pihole-FTL
     ynh_systemd_action --action=restart --service_name=pihole-FTL
