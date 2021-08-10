@@ -370,7 +370,7 @@ ynh_systemd_action --action=restart --service_name=pihole-FTL
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log" --needs_exposed_ports="$port"
+yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log"
 
 #=================================================
 # UPDATE CONF_REGEN HOOK

@@ -119,7 +119,7 @@ ynh_install_app_dependencies $app_depencencies
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log" --needs_exposed_ports=$port
+yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log"
 
 #=================================================
 # RESTORE THE CRON FILE
