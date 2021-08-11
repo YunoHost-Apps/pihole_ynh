@@ -1,21 +1,21 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC STARTING
+# GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
 source _common.sh
 source /usr/share/yunohost/helpers
-source _ynh_add_fpm_config
-# Load common variables for all scripts.
-source _variables
 
 #=================================================
-# MANAGE FAILURE OF THE SCRIPT
+# MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	true
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -32,7 +32,7 @@ enable_dhcp=$YNH_APP_ARG_ENABLE_DHCP
 app=$YNH_APP_INSTANCE_NAME
 
 #=================================================
-# CHECK IF THE APP CAN BE INSTALLED WITH THIS ARGS
+# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
 ynh_script_progression --message="Validating installation parameters..." --weight=2
 
@@ -64,7 +64,7 @@ ynh_app_setting_set --app=$app --key=admin_mail_html --value=1
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
-ynh_script_progression --message="Configuring firewall..." --weight=12
+ynh_script_progression --message="Finding an available port..." --weight=12
 
 # Find a free port
 port=$(ynh_find_port --port=4711)
@@ -85,7 +85,15 @@ ynh_exec_fully_quiet yunohost firewall allow Both 53 --no-upnp
 #=================================================
 ynh_script_progression --message="Installing dependencies..." --weight=12
 
-ynh_install_app_dependencies $app_depencencies
+ynh_install_app_dependencies $pkg_dependencies
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Configuring system user..." --weight=2
+
+# Create a system user
+ynh_system_user_create --username=$app --home_dir=$final_path
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -99,28 +107,24 @@ ynh_setup_source --dest_dir="$pihole_local_repo"
 # Install admin dashboard
 ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
 
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring nginx web server..." --weight=2
+ynh_script_progression --message="Configuring NGINX web server..." --weight=2
 
-# Create a dedicated nginx config
+# Create a dedicated NGINX config
 ynh_add_nginx_config
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Configuring system user..." --weight=2
-
-# Create a dedicated system user
-ynh_system_user_create --username=$app
 
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring php-fpm..." --weight=2
+ynh_script_progression --message="Configuring PHP-FPM..." --weight=2
 
-# Create a dedicated php-fpm config
+# Create a dedicated PHP-FPM config
 ynh_add_fpm_config --usage=low --footprint=low
 
 #=================================================
@@ -351,8 +355,9 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 #=================================================
 # GENERIC FINALISATION
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
+ynh_script_progression --message="Integrating service in YunoHost..."
 
 yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log"
 
@@ -366,7 +371,7 @@ yunohost app addaccess --users=$admin $app
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --weight=3
+ynh_script_progression --message="Reloading NGINX web server..." --weight=3
 
 ynh_systemd_action --service_name=nginx --action=reload
 
@@ -374,7 +379,7 @@ ynh_systemd_action --service_name=nginx --action=reload
 # SEND A README FOR THE ADMIN
 #=================================================
 
-# Get main domain and buid the url of the admin panel of the app.
+# Get main domain and buid the URL of the admin panel of the app.
 admin_panel="https://$(grep portal_domain /etc/ssowat/conf.json | cut -d'"' -f4)/yunohost/admin/#/apps/$app"
 
 if [ $enable_dhcp -eq 1 ]

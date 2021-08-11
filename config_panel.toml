@@ -20,13 +20,13 @@ name = "PiHole configuration"
         help = "If the file is overwritten, a backup will be created."
 
         [main.overwrite_files.overwrite_nginx]
-        ask = "Overwrite the nginx config file ?"
+        ask = "Overwrite the NGINX config file ?"
         type = "boolean"
         default = true
         help = "If the file is overwritten, a backup will be created."
 
         [main.overwrite_files.overwrite_phpfpm]
-        ask = "Overwrite the php-fpm config file ?"
+        ask = "Overwrite the PHP-FPM config file ?"
         type = "boolean"
         default = true
         help = "If the file is overwritten, a backup will be created."

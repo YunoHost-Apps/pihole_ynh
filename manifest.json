@@ -1,86 +1,74 @@
 {
-	"name": "Pi-hole",
-	"id": "pihole",
-	"packaging_format": 1,
-	"description": {
-		"en": "Network-wide ad blocking via your own DNS server.",
-		"fr": "Filtrage publicitaire sur l'ensemble du réseau via votre propre serveur DNS."
-	},
-	"version": "3.3.1~ynh6",
-	"url": "https://pi-hole.net/",
-	"license": "EUPL-1.2",
-	"maintainer": {
-		"name": "",
-		"email": ""
-	},
-	"previous_maintainers": [{
-		"name": "Maniack Crudelis",
-		"email": "maniackc_dev@crudelis.fr"
-	}],
-	"requirements": {
-		"yunohost": ">= 3.6"
-	},
-	"multi_instance": false,
-	"services": [
-		"nginx",
-		"php7.0-fpm"
-	],
-	"arguments": {
-		"install" : [
-			{
-				"name": "domain",
-				"type": "domain",
-				"ask": {
-					"en": "Choose a domain for the admin interface of Pi-hole",
-					"fr": "Choisissez un domaine pour l'interface admin de Pi-hole"
-				},
-				"example": "domain.org"
-			},
-			{
-				"name": "path",
-				"type": "path",
-				"ask": {
-					"en": "Choose a path for the admin interface of Pi-hole",
-					"fr": "Choisissez un chemin pour l'interface admin de Pi-hole"
-				},
-				"example": "/pihole",
-				"default": "/pihole"
-			},
-			{
-				"name": "admin",
-				"type": "user",
-				"ask": {
-					"en": "Choose the Pi-hole administrator (must be an existing YunoHost user)",
-					"fr": "Administrateur de Pi-hole (doit être un utilisateur YunoHost existant)"
-				},
-				"example": "john"
-			},
-			{
-				"name": "query_logging",
-				"type": "boolean",
-				"ask": {
-					"en": "Do you want to log queries ?",
-					"fr": "Voulez-vous enregistrer les requêtes dns ?"
-				},
-				"help": {
-					"en": "Keeping this option deactivate will render graphs on the admin page useless. But will respect the privacy of the other users.",
-					"fr": "Garder cette option désactivée rendra les graphiques sur la page d'administration inutiles. Mais respectera la vie privée des autres utilisateurs."
-				},
-				"default": false
-			},
-			{
-				"name": "enable_dhcp",
-				"type": "boolean",
-				"ask": {
-					"en": "Do you want to set Pi-hole as your DHCP server ?",
-					"fr": "Voulez-vous utiliser Pi-hole an tant que serveur DHCP ?"
-				},
-				"help": {
-					"en": "If you want to do that, <a href=https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md target=_blank>you really have to read this before</a> !",
-					"fr": "Si vous voulez faire ça, <a href=https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md target=_blank>vous devez vraiment lire cela avant</a> !"
-				},
-				"default": false
-			}
-		]
-	}
+    "name": "Pi-hole",
+    "id": "pihole",
+    "packaging_format": 1,
+    "description": {
+        "en": "Network-wide ad blocking via your own DNS server.",
+        "fr": "Filtrage publicitaire sur l'ensemble du réseau via votre propre serveur DNS."
+    },
+    "version": "3.3.1~ynh6",
+    "url": "https://pi-hole.net/",
+    "license": "EUPL-1.2",
+    "maintainer": {
+        "name": "",
+        "email": ""
+    },
+    "previous_maintainers": [{
+        "name": "Maniack Crudelis",
+        "email": "maniackc_dev@crudelis.fr"
+    }],
+    "requirements": {
+        "yunohost": ">= 4.1.3"
+    },
+    "multi_instance": false,
+    "services": [
+        "nginx",
+        "php7.3-fpm"
+    ],
+    "arguments": {
+        "install" : [
+            {
+                "name": "domain",
+                "type": "domain",
+                "example": "example.com"
+            },
+            {
+                "name": "path",
+                "type": "path",
+                "example": "/pihole",
+                "default": "/pihole"
+            },
+            {
+                "name": "admin",
+                "type": "user",
+                "example": "johndoe"
+            },
+            {
+                "name": "query_logging",
+                "type": "boolean",
+                "ask": {
+                    "en": "Do you want to log queries ?",
+                    "fr": "Voulez-vous enregistrer les requêtes dns ?"
+                },
+                "help": {
+                    "en": "Keeping this option deactivate will render graphs on the admin page useless. But will respect the privacy of the other users.",
+                    "fr": "Garder cette option désactivée rendra les graphiques sur la page d'administration inutiles. Mais respectera la vie privée des autres utilisateurs."
+                },
+                "default": false
+            },
+            {
+                "name": "enable_dhcp",
+                "type": "boolean",
+                "ask": {
+                    "en": "Do you want to set Pi-hole as your DHCP server ?",
+                    "fr": "Voulez-vous utiliser Pi-hole an tant que serveur DHCP ?"
+                },
+                "help": {
+                    "en": "If you want to do that, <a href=https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md target=_blank>you really have to read this before</a> !",
+                    "fr": "Si vous voulez faire ça, <a href=https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md target=_blank>vous devez vraiment lire cela avant</a> !"
+                },
+                "default": false
+            }
+        ]
+    }
 }

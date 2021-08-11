@@ -6,10 +6,9 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
+# Keep this path for calling _common.sh inside the execution's context of backup and Restore scripts
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
-# Load common variables for all scripts.
-source ../settings/scripts/_variables
 
 #=================================================
 # MANAGE SCRIPT FAILURE
@@ -30,6 +29,7 @@ path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
+phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
@@ -49,15 +49,24 @@ ynh_script_progression --message="Activating maintenance mode..." --weight=2
 ynh_maintenance_mode_ON
 
 #=================================================
-# STANDARD RESTORE STEPS
+# STANDARD RESTORATION STEPS
 #=================================================
-# RESTORE THE NGINX CONFIGURATION
+# Restore THE NGINX CONFIGURATION
 #=================================================
+ynh_script_progression --message="Restoring the NGINX web server configuration..."
 
 ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
-# RESTORE THE MAIN DIRECTORIES OF THE APP
+# RECREATE THE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Recreating the dedicated system user..." --weight=2
+
+# Create the dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir=$final_path
+
+#=================================================
+# Restore THE APP MAIN DIR
 #=================================================
 ynh_script_progression --message="Restoring the app main directory..."
 
@@ -70,15 +79,7 @@ ynh_restore_file --origin_path="/etc/pihole"
 ynh_restore_file --origin_path="/opt/pihole"
 
 #=================================================
-# RECREATE THE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Recreating the dedicated system user..." --weight=2
-
-# Create the dedicated user (if not existing)
-ynh_system_user_create --username=$app
-
-#=================================================
-# RESTORE USER RIGHTS
+# Restore USER RIGHTS
 #=================================================
 
 # Restore permissions on app files
@@ -87,29 +88,26 @@ chown $app: -R "/etc/pihole"
 chown root: -R "/etc/pihole/logrotate"
 
 #=================================================
-# RESTORE THE PHP-FPM CONFIGURATION
+# Restore THE PHP-FPM CONFIGURATION
 #=================================================
+ynh_script_progression --message="Restoring the PHP-FPM configuration..."
 
-ynh_restore_file --origin_path="/etc/php/7.0/fpm/pool.d/$app.conf"
+ynh_restore_file --origin_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
 
 #=================================================
-# SPECIFIC RESTORE
+# SPECIFIC RESTORATION
 #=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
 ynh_script_progression --message="Reinstalling dependencies..." --weight=12
 
-ynh_install_app_dependencies $app_depencencies
+# Define and install dependencies
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
+# Restore VARIOUS FILES
 #=================================================
-
-yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log"
-
-#=================================================
-# RESTORE THE CRON FILE
-#=================================================
+ynh_script_progression --message="Restoring various files...
 
 ynh_restore_file --origin_path="/etc/cron.d/pihole"
 
@@ -123,7 +121,7 @@ dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
 chown $dnsmasq_user:root /var/log/pihole.log
 
 #=================================================
-# RESTORE SPECIFIC FILES
+# Restore SPECIFIC FILES
 #=================================================
 ynh_script_progression --message="Restoring specific files..."
 
@@ -138,7 +136,7 @@ ynh_restore_file --origin_path="/usr/bin/pihole-FTL"
 ynh_restore_file --origin_path="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 
 #=================================================
-# RESTORE DNSMASQ CONFIG
+# Restore DNSMASQ CONFIG
 #=================================================
 ynh_script_progression --message="Restoring Dnsmasq config..."
 
@@ -197,19 +195,26 @@ ynh_replace_string --match_string="^IPV4_ADDRESS=.*" --replace_string="IPV4_ADDR
 ynh_store_file_checksum --file="$setupVars"
 
 #=================================================
-# START PIHOLE-FTL
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
+ynh_script_progression --message="Integrating service in YunoHost..."
+
+yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log"
+
+#=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..." --weight=2
 
 ynh_exec_warn_less systemctl enable pihole-FTL
-ynh_systemd_action --action=restart --service_name=pihole-FTL
+ynh_systemd_action --service_name=pihole-FTL --action=restart
 
 #=================================================
-# GENERIC FINALISATION
+# GENERIC FINALIZATION
 #=================================================
 # RELOAD NGINX AND PHP-FPM
 #=================================================
-ynh_script_progression --message="Reloading nginx web server and php-fpm..."
+ynh_script_progression --message="Reloading NGINX web server and PHP-FPM..."
 
 ynh_systemd_action --action=reload --service_name=php7.0-fpm
 ynh_systemd_action --action=reload --service_name=nginx
@@ -225,7 +230,7 @@ ynh_maintenance_mode_OFF
 # SEND A README FOR THE ADMIN
 #=================================================
 
-# Get main domain and buid the url of the admin panel of the app.
+# Get main domain and buid the URL of the admin panel of the app.
 admin_panel="https://$(grep portal_domain /etc/ssowat/conf.json | cut -d'"' -f4)/yunohost/admin/#/apps/$app"
 
 if [ $enable_dhcp -eq 1 ]

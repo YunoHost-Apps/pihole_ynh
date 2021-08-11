@@ -24,7 +24,7 @@ Changelog
 * [Changelog & html email](https://github.com/YunoHost-Apps/pihole_ynh/pull/39/commits/2229f7817327ceb2d2ca41310493a5483fb94ef9)
 
 #### Changed
-- [Update php and nginx conf files to php7](https://github.com/YunoHost-Apps/pihole_ynh/pull/39/commits/65d1ba63fcaffba347ab01d690d9ced08837a69b)
+- [Update php and NGINX conf files to php7](https://github.com/YunoHost-Apps/pihole_ynh/pull/39/commits/65d1ba63fcaffba347ab01d690d9ced08837a69b)
 
 
 ## [3.3.1~ynh4](https://github.com/YunoHost-Apps/pihole_ynh/pull/36) - 2019-01-24

@@ -1,16 +1,13 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC STARTING
+# GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
 source _common.sh
 source /usr/share/yunohost/helpers
-source _ynh_add_fpm_config
-# Load common variables for all scripts.
-source _variables
 
 #=================================================
 # LOAD SETTINGS
@@ -38,8 +35,32 @@ fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
 #=================================================
 # CHECK VERSION
 #=================================================
+ynh_script_progression --message="Checking version..."
 
 upgrade_type=$(ynh_check_app_version_changed)
+
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=7
+
+# Backup the current version of the app
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+	# Restore it if the upgrade fails
+	ynh_restore_upgradebackup
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# ACTIVATE MAINTENANCE MODE
+#=================================================
+ynh_script_progression --message="Activating maintenance mode..."
+
+ynh_maintenance_mode_ON
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -83,41 +104,12 @@ if [ -z "$fpm_usage" ]; then
 fi
 
 #=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+# CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=7
+ynh_script_progression --message="Making sure dedicated system user exists..."
 
-# Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
-	# restore it if the upgrade fails
-	ynh_restore_upgradebackup
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# CHECK THE PATH
-#=================================================
-
-# Normalize the URL path syntax
-path_url=$(ynh_normalize_url_path --path_url=$path_url)
-
-#=================================================
-# ACTIVATE MAINTENANCE MODE
-#=================================================
-ynh_script_progression --message="Activating maintenance mode..."
-
-ynh_maintenance_mode_ON
-
-#=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Upgrading dependencies..." --weight=6
-
-ynh_install_app_dependencies $app_depencencies
+# Create a dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir=$final_path
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -133,35 +125,38 @@ then
 	ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
 fi
 
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 
-# Overwrite the nginx configuration only if it's allowed
+# Overwrite the NGINX configuration only if it's allowed
 if [ $overwrite_nginx -eq 1 ]
 then
-	ynh_script_progression --message="Upgrading nginx web server configuration..." --weight=2
-	# Create a dedicated nginx config
+	ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
+	# Create a dedicated NGINX config
 	ynh_add_nginx_config
 fi
 
 #=================================================
-# CREATE DEDICATED USER
+# UPGRADE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..."
+ynh_script_progression --message="Upgrading dependencies..." --weight=6
 
-# Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
 
-# Overwrite the php-fpm configuration only if it's allowed
+# Overwrite the PHP-FPM configuration only if it's allowed
 if [ $overwrite_phpfpm -eq 1 ]
 then
-	ynh_script_progression --message="Upgrading php-fpm configuration..." --weight=3
-	# Create a dedicated php-fpm config
+	ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
+	# Create a dedicated PHP-FPM config
 	ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint
 fi
 
@@ -278,6 +273,13 @@ cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
 ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
 
 #=================================================
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..."
+
+yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log"
+
+#=================================================
 # START PIHOLE-FTL
 #=================================================
 ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
@@ -293,7 +295,7 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..."
+ynh_script_progression --message="Reloading NGINX web server..."
 
 ynh_systemd_action --action=reload --service_name=nginx
 
@@ -308,7 +310,7 @@ ynh_maintenance_mode_OFF
 # SEND A README FOR THE ADMIN
 #=================================================
 
-# Get main domain and buid the url of the admin panel of the app.
+# Get main domain and buid the URL of the admin panel of the app.
 admin_panel="https://$(grep portal_domain /etc/ssowat/conf.json | cut -d'"' -f4)/yunohost/admin/#/apps/$app"
 
 # Build the changelog

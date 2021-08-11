@@ -8,7 +8,6 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
-source _ynh_add_fpm_config
 
 #=================================================
 # RETRIEVE ARGUMENTS
@@ -35,11 +34,11 @@ overwrite_setupvars="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_SETUPVARS:-$old
 old_overwrite_ftl="$(ynh_app_setting_get --app=$app --key=overwrite_ftl)"
 overwrite_ftl="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_FTL:-$old_overwrite_ftl}"
 
-# Overwrite nginx configuration
+# Overwrite NGINX configuration
 old_overwrite_nginx="$(ynh_app_setting_get --app=$app --key=overwrite_nginx)"
 overwrite_nginx="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX:-$old_overwrite_nginx}"
 
-# Overwrite php-fpm configuration
+# Overwrite PHP-FPM configuration
 old_overwrite_phpfpm="$(ynh_app_setting_get --app=$app --key=overwrite_phpfpm)"
 overwrite_phpfpm="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_PHPFPM:-$old_overwrite_phpfpm}"
 

@@ -5,7 +5,7 @@ Using Pi-hole as your DHCP server
 In case your server is down, you will lose your dns resolution and ip address.  
 So, you will lose any internet connection and even the connection to your router.**
 
-> **If you encounter this kind of problem, please see "How to restore my network" at the end of this document.**
+> **If you encounter this kind of problem, please see "How to Restore my network" at the end of this document.**
 
 ### How to configure Pi-hole
 
@@ -28,7 +28,7 @@ By using the DHCP of Pi-hole, you allow Pi-hole to give at each of your client i
 Another use case of using Pi-hole's DHCP is if you have hairpinning problems (You can't connect to your server because its IP is your public IP, and your router doesn't allow that).  
 In this case, using Pi-hole's dns will allow you to connect to your server by its local address instead of its public one.
 
-### How to restore my network
+### How to Restore my network
 
 > Oh crap !  
 Your Pi-hole server is down, and you don't have a DHCP anymore.  
