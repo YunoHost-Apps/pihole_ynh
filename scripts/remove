@@ -109,7 +109,7 @@ ynh_remove_fpm_config
 #=================================================
 # CLOSE PORTS
 #=================================================
-ynh_script_progression --message="Closing ports $port et 67..." --weight=13
+ynh_script_progression --message="Closing ports $port and 67..." --weight=13
 
 if yunohost firewall list | grep -q "\- $port$"
 then

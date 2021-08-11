@@ -265,11 +265,7 @@ fi
 # Overwrite pihole-FTL config file only if it's allowed
 if [ $overwrite_ftl -eq 1 ]
 then
-    # Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
-    ynh_backup_if_checksum_is_different --file="$pihole_storage/pihole-FTL.conf"
-    cp "../conf/pihole-FTL.conf" "$pihole_storage"
-    # Recalculate and store the checksum of the file for the next upgrade.
-    ynh_store_file_checksum --file="$pihole_storage/pihole-FTL.conf"
+    ynh_add_config --template="../conf/pihole-FTL.conf" --destination="$pihole_storage/pihole-FTL.conf"
 fi
 
 if [ "$pihole_version" == "Last 3.X" ]

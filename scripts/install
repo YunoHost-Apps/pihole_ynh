@@ -74,10 +74,6 @@ if [ $port -gt 4720 ]
 then
     ynh_die --message="The ports 4711 to 4720 are already in use. Pi-hole can't work on another port. Please try to free one of these ports."
 fi
-
-ynh_script_progression --message="Configuring firewall..." --weight=1
-# Open this port
-ynh_exec_fully_quiet yunohost firewall allow --no-upnp TCP $port
 ynh_app_setting_set --app=$app --key=port --value=$port
 
 # Disable the port 53 for upnp
@@ -230,10 +226,8 @@ ynh_exec_warn_less make install )
 ynh_secure_remove --file="$FTL_temp_path"
 
 cp "../conf/dns-servers.conf" "$pihole_storage"
-cp "../conf/pihole-FTL.conf" "$pihole_storage"
 
-# Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum --file="$pihole_storage/pihole-FTL.conf"
+ynh_add_config --template="../conf/pihole-FTL.conf" --destination="$pihole_storage/pihole-FTL.conf"
 
 if [ "$pihole_version" == "Last 3.X" ]
 then

@@ -70,7 +70,8 @@ then
 elif [ "$file" = "pihole-FTL.conf" ]
 then
     # Get the default file and overwrite the current config
-    cp /etc/yunohost/apps/$app/conf/pihole-FTL.conf "$config_file"
+    port=$(ynh_app_setting_get --app=$app --key=port)
+    ynh_add_config --template="/etc/yunohost/apps/$app/conf/pihole-FTL.conf" --destination="$config_file"
 
     ynh_script_progression --message="Restarting Pi-Hole..." --weight=2
 
