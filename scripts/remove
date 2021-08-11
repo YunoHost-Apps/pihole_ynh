@@ -41,7 +41,7 @@ ynh_script_progression --message="Stop and remove the service"
 if [ "$pihole_version" == "Last 3.X" ]
 then
     ynh_systemd_action --action=stop --service_name=pihole-FTL
-    ynh_exec_warn_less systemctl disable pihole-FTL
+    ynh_exec_warn_less systemctl disable pihole-FTL --quiet
 else
     ynh_systemd_action --action=stop --service_name=pihole-FTL
 
@@ -58,7 +58,7 @@ else
     mv /lib/systemd/system/.dnsmasq.service.backup_by_pihole /lib/systemd/system/dnsmasq.service
     mv /etc/init.d/.dnsmasq.backup_by_pihole /etc/init.d/dnsmasq
 
-    ynh_exec_warn_less systemctl enable dnsmasq
+    ynh_exec_warn_less systemctl enable dnsmasq --quiet
     # Reload systemd config
     systemctl daemon-reload
 fi
@@ -93,7 +93,7 @@ ynh_secure_remove --file="/etc/.pihole"
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Removing nginx web server configuration..."
+ynh_script_progression --message="Removing NGINX web server configuration..."
 
 # Remove the dedicated nginx config
 ynh_remove_nginx_config
@@ -101,7 +101,7 @@ ynh_remove_nginx_config
 #=================================================
 # REMOVE PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Removing php-fpm configuration..." --weight=2
+ynh_script_progression --message="Removing PHP-FPM configuration..." --weight=2
 
 # Remove the dedicated php-fpm config
 ynh_remove_fpm_config
@@ -109,7 +109,7 @@ ynh_remove_fpm_config
 #=================================================
 # CLOSE PORTS
 #=================================================
-ynh_script_progression --message="Closing port $port et 67..." --weight=13
+ynh_script_progression --message="Closing ports $port et 67..." --weight=13
 
 if yunohost firewall list | grep -q "\- $port$"
 then

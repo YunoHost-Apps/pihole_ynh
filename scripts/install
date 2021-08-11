@@ -66,14 +66,16 @@ ynh_app_setting_set --app=$app --key=admin_mail_html --value=1
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
-ynh_script_progression --message="Configuring firewall..." --weight=12
+ynh_script_progression --message="Finding an available port..." --weight=12
 
 # Find a free port
 port=$(ynh_find_port --port=4711)
 if [ $port -gt 4720 ]
 then
-    ynh_die --message="The ports 4711 to 4720 are already in use. Pi-hole can't works on another port. Please try to free one of this ports."
+    ynh_die --message="The ports 4711 to 4720 are already in use. Pi-hole can't work on another port. Please try to free one of these ports."
 fi
+
+ynh_script_progression --message="Configuring firewall..." --weight=1
 # Open this port
 ynh_exec_fully_quiet yunohost firewall allow --no-upnp TCP $port
 ynh_app_setting_set --app=$app --key=port --value=$port
@@ -238,14 +240,14 @@ then
     # Version 3.3.1
     cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
     chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL
+    ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 else
     # Last version available
     # Stopped dnsmasq to replace it by pihole-FTL
     ynh_systemd_action --action=stop --service_name=dnsmasq
 
     # Disable the real dnsmasq service
-    ynh_exec_warn_less systemctl disable dnsmasq
+    ynh_exec_warn_less systemctl disable dnsmasq --quiet
 
     # And move the files that make the service available in systemd to really disable it
     mv /lib/systemd/system/dnsmasq.service /lib/systemd/system/.dnsmasq.service.backup_by_pihole
@@ -260,7 +262,7 @@ else
 
     cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
     chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL
+    ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 
     # Replace the service dnsmasq by pihole-FTL
     # That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
@@ -447,7 +449,7 @@ cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmas
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add pihole-FTL --description "PiHole backend service" --log "/var/log/pihole-FTL.log"
+yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log"
 
 #=================================================
 # RESTRAIN THE ACCESS TO THE ADMIN ONLY
@@ -459,7 +461,7 @@ ynh_permission_update --permission="main" --add="$admin" --remove="all_users"
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --weight=3
+ynh_script_progression --message="Reloading NGINX web server..." --weight=3
 
 ynh_systemd_action --service_name=nginx --action=reload
 

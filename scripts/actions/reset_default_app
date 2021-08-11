@@ -38,14 +38,14 @@ pihole_version="$(ynh_app_setting_get --app=$app --key=pihole_version)"
 #=================================================
 # ACTIVATE MAINTENANCE MODE
 #=================================================
-ynh_script_progression --message="Activating maintenance mode..." --time --weight=1
+ynh_script_progression --message="Activating maintenance mode..." --weight=1
 
 ynh_maintenance_mode_ON
 
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..." --time --weight=1
+ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
 
 # Create a dedicated user (if not existing)
 ynh_system_user_create --username=$app
@@ -53,7 +53,7 @@ ynh_system_user_create --username=$app
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Resetting source files..." --time --weight=1
+ynh_script_progression --message="Resetting source files..." --weight=1
 
 # Download, check integrity, uncompress and patch the source from app.src
 pihole_local_repo="/etc/.pihole"
@@ -78,7 +78,7 @@ chown $app:www-data "$final_path"
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Resetting nginx web server configuration..." --time --weight=1
+ynh_script_progression --message="Resetting NGINX web server configuration..." --weight=1
 
 # Create a dedicated nginx config
 yunohost app action run $app reset_default_nginx
@@ -86,7 +86,7 @@ yunohost app action run $app reset_default_nginx
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Resetting php-fpm configuration..." --time --weight=1
+ynh_script_progression --message="Resetting PHP-FPM configuration..." --weight=1
 
 # Create a dedicated php-fpm config
 yunohost app action run $app reset_default_phpfpm
@@ -94,7 +94,7 @@ yunohost app action run $app reset_default_phpfpm
 #=================================================
 # RECREATE DIRECTORIES
 #=================================================
-ynh_script_progression --message="Recreating and populating directories..." --time --weight=1
+ynh_script_progression --message="Recreating and populating directories..." --weight=1
 
 pihole_storage="/etc/pihole"
 mkdir -p "$pihole_storage"
@@ -241,14 +241,14 @@ ynh_systemd_action --action=restart --service_name=pihole-FTL
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --time --weight=1
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # DEACTIVE MAINTENANCE MODE
 #=================================================
-ynh_script_progression --message="Disabling maintenance mode..." --time --weight=1
+ynh_script_progression --message="Disabling maintenance mode..." --weight=1
 
 ynh_maintenance_mode_OFF
 
@@ -256,4 +256,4 @@ ynh_maintenance_mode_OFF
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Execution completed" --time --last
+ynh_script_progression --message="Execution completed" --last
