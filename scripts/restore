@@ -101,7 +101,7 @@ ynh_restore_file --origin_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
 #=================================================
 ynh_script_progression --message="Reinstalling dependencies..." --weight=12
 
-ynh_install_app_dependencies $app_depencencies
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # RESTORE THE CRON FILE
