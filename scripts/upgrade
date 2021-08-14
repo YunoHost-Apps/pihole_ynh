@@ -227,7 +227,7 @@ fi
 
 cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
-ynh_exec_warn_less systemctl enable pihole-FTL
+ynh_exec_warn_less systemctl enable pihole-FTL--quiet
 
 #=================================================
 # BUILD VARIABLES FILE

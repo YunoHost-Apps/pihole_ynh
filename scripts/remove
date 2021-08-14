@@ -38,7 +38,7 @@ fi
 ynh_script_progression --message="Stopping and removing the systemd service..."
 
 ynh_systemd_action --action=stop --service_name=pihole-FTL
-ynh_exec_warn_less systemctl disable pihole-FTL
+ynh_exec_warn_less systemctl disable pihole-FTL --quiet
 rm -f "/etc/init.d/pihole-FTL" "/usr/bin/pihole-FTL" "/var/run/pihole-FTL.pid" "/var/run/pihole-FTL.port"
 
 #=================================================

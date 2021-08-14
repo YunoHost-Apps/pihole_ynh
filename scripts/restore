@@ -203,7 +203,7 @@ yunohost service add pihole-FTL --description "PiHole backend service" --log "/v
 #=================================================
 ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
 
-ynh_exec_warn_less systemctl enable pihole-FTL
+ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
