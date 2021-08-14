@@ -38,16 +38,12 @@ ynh_print_info --message="Declaring files to be backed up..."
 # BACKUP THE APP MAIN DIR
 #=================================================
 
-CHECK_SIZE "$final_path"
 ynh_backup --src_path="$final_path"
 
-CHECK_SIZE "/etc/.pihole"
 ynh_backup --src_path="/etc/.pihole"
 
-CHECK_SIZE "/etc/pihole"
 ynh_backup --src_path="/etc/pihole"
 
-CHECK_SIZE "/opt/pihole"
 ynh_backup --src_path="/opt/pihole"
 
 #=================================================
