@@ -8,6 +8,14 @@
     },
     "version": "3.3.1~ynh6",
     "url": "https://pi-hole.net/",
+    "upstream": {
+        "license": "EUPL-1.2",
+        "website": "https://pi-hole.net/",
+        "demo": "https://demo.example.com",
+        "admindoc": "https://docs.pi-hole.net/",
+        "userdoc": "https://yunohost.org/apps",
+        "code": "https://github.com/pi-hole/pi-hole/"
+    },
     "license": "EUPL-1.2",
     "maintainer": {
         "name": "",

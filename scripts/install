@@ -104,10 +104,6 @@ ynh_setup_source --dest_dir="$pihole_local_repo"
 # Install admin dashboard
 ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
-
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
