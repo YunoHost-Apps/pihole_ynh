@@ -29,6 +29,7 @@ path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
+phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
