@@ -7,47 +7,47 @@ pending_conf=$4 # Path of the pending conf file
 temp_dir=/tmp/pi-hole.bck
 
 do_pre_regen() {
-  if [ $dryrun -eq 0 ]
-  then
-	# Créer une sauvegarde des config dnsmasq de pi-hole. Que la regen-conf va sauvagement supprimer
-	mkdir $temp_dir
-	cp -a "/etc/dnsmasq.d/01-pihole.conf" "$temp_dir"
-	test -e "/etc/dnsmasq.d/02-pihole-dhcp.conf" && cp -a "/etc/dnsmasq.d/02-pihole-dhcp.conf" "$temp_dir"
-	test -e "/etc/dnsmasq.d/03-pihole-wildcard.conf" && cp -a "/etc/dnsmasq.d/03-pihole-wildcard.conf" "$temp_dir"
+    if [ $dryrun -eq 0 ]
+    then
+        # Créer une sauvegarde des config dnsmasq de pi-hole. Que la regen-conf va sauvagement supprimer
+        mkdir $temp_dir
+        cp -a "/etc/dnsmasq.d/01-pihole.conf" "$temp_dir"
+        test -e "/etc/dnsmasq.d/02-pihole-dhcp.conf" && cp -a "/etc/dnsmasq.d/02-pihole-dhcp.conf" "$temp_dir"
+        test -e "/etc/dnsmasq.d/03-pihole-wildcard.conf" && cp -a "/etc/dnsmasq.d/03-pihole-wildcard.conf" "$temp_dir"
 
-	# Décommente le cache-size de la config par défaut
-	sed --in-place "s/^#pihole# cache-size=/cache-size=/g" /etc/dnsmasq.conf
-	# Et commente celui de pi-hole
-	sed --in-place "s/^cache-size=/#cache-size=/g" /etc/dnsmasq.d/01-pihole.conf
-  fi
+        # Décommente le cache-size de la config par défaut
+        sed --in-place "s/^#pihole# cache-size=/cache-size=/g" /etc/dnsmasq.conf
+        # Et commente celui de pi-hole
+        sed --in-place "s/^cache-size=/#cache-size=/g" /etc/dnsmasq.d/01-pihole.conf
+    fi
 }
 
 do_post_regen() {
-  # Restaure la config dnsmasq de pi-hole
-  cp -a "$temp_dir/01-pihole.conf"	"/etc/dnsmasq.d/"
-  test -e "$temp_dir/02-pihole-dhcp.conf" && cp -a "$temp_dir/02-pihole-dhcp.conf" "/etc/dnsmasq.d/"
-  test -e "$temp_dir/03-pihole-wildcard.conf" && cp -a "$temp_dir/03-pihole-wildcard.conf" "/etc/dnsmasq.d/"
-  # Supprime le dossier temporaire
-  test -n $temp_dir && rm -r $temp_dir
+    # Restaure la config dnsmasq de pi-hole
+    cp -a "$temp_dir/01-pihole.conf"	"/etc/dnsmasq.d/"
+    test -e "$temp_dir/02-pihole-dhcp.conf" && cp -a "$temp_dir/02-pihole-dhcp.conf" "/etc/dnsmasq.d/"
+    test -e "$temp_dir/03-pihole-wildcard.conf" && cp -a "$temp_dir/03-pihole-wildcard.conf" "/etc/dnsmasq.d/"
+    # Supprime le dossier temporaire
+    test -n $temp_dir && rm -r $temp_dir
 
-  # Commente le cache-size de la config par défaut
-  sed --in-place "s/^cache-size=/#pihole# cache-size=/g" /etc/dnsmasq.conf
+    # Commente le cache-size de la config par défaut
+    sed --in-place "s/^cache-size=/#pihole# cache-size=/g" /etc/dnsmasq.conf
 
-  # Reload dnsmasq
-  systemctl reload dnsmasq
+    # Reload dnsmasq
+    systemctl reload dnsmasq
 }
 
 case "$1" in
-  pre)
-    do_pre_regen
-    ;;
-  post)
-    do_post_regen
-    ;;
-  *)
-    echo "Hook called with unknown argument \`$1'" >&2
-    exit 1
-    ;;
+    pre)
+        do_pre_regen
+        ;;
+    post)
+        do_post_regen
+        ;;
+    *)
+        echo "Hook called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
 esac
 
 exit 0

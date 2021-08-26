@@ -1,0 +1,6 @@
+SOURCE_URL=https://github.com/pi-hole/FTL/archive/v5.8.1.tar.gz
+SOURCE_SUM=6177f775a8d0be703b235741befe90b6192bdc0baab5a6e028019a9af00a44ae
+SOURCE_SUM_PRG=sha256sum
+SOURCE_FORMAT=tar.gz
+SOURCE_IN_SUBDIR=true
+SOURCE_FILENAME=

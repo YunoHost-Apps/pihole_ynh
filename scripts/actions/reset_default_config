@@ -10,10 +10,17 @@ source scripts/_common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
 # RETRIEVE ARGUMENTS
 #=================================================
 
-app=${YNH_APP_INSTANCE_NAME:-$YNH_APP_ID}
+app=$YNH_APP_INSTANCE_NAME
 
 query_logging=$(ynh_app_setting_get --app=$app --key=query_logging)
 
@@ -24,9 +31,11 @@ query_logging=$(ynh_app_setting_get --app=$app --key=query_logging)
 file="$1"
 
 if [ "$file" = "setupVars.conf" ]; then
-	config_file="/etc/pihole/setupVars.conf"
+    config_file="/etc/pihole/setupVars.conf"
 elif [ "$file" = "pihole-FTL.conf" ]; then
-	config_file="/etc/pihole/pihole-FTL.conf"
+    config_file="/etc/pihole/pihole-FTL.conf"
+elif [ "$file" = "01-pihole.conf" ]; then
+    config_file="/etc/dnsmasq.d/01-pihole.conf"
 fi
 
 #=================================================
@@ -39,33 +48,56 @@ ynh_script_progression --message="Resetting the config file $config_file..." --w
 # Verify the checksum and backup the file if it's different
 ynh_backup_if_checksum_is_different --file="$config_file"
 
+main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
+
 if [ "$file" = "setupVars.conf" ]
 then
-	# Recreate the default config
-	# Trouve l'interface réseau par défaut
-	main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
-	echo "PIHOLE_INTERFACE=$main_iface" > "$config_file"
-	echo "IPV4_ADDRESS=127.0.0.1" >> "$config_file"
-	echo "IPV6_ADDRESS=::1" >> "$config_file"
-	echo "PIHOLE_DNS_1=" >> "$config_file"
-	echo "PIHOLE_DNS_2=" >> "$config_file"
-	if [ $query_logging -eq 1 ]; then
-		query_logging=true
-	else
-		query_logging=false
-	fi
-	echo "QUERY_LOGGING=$query_logging" >> "$config_file"
-	echo "INSTALL_WEB=true" >> "$config_file"
+    # Recreate the default config
+    # Trouve l'interface réseau par défaut
+    echo "PIHOLE_INTERFACE=$main_iface" > "$config_file"
+    echo "IPV4_ADDRESS=127.0.0.1" >> "$config_file"
+    echo "IPV6_ADDRESS=::1" >> "$config_file"
+    echo "PIHOLE_DNS_1=" >> "$config_file"
+    echo "PIHOLE_DNS_2=" >> "$config_file"
+    if [ $query_logging -eq 1 ]; then
+        query_logging=true
+    else
+        query_logging=false
+    fi
+    echo "QUERY_LOGGING=$query_logging" >> "$config_file"
+    echo "INSTALL_WEB=true" >> "$config_file"
 
 elif [ "$file" = "pihole-FTL.conf" ]
 then
-	# Get the default file and overwrite the current config
-	cp /etc/yunohost/apps/$app/conf/pihole-FTL.conf "$config_file"
+    # Get the default file and overwrite the current config
+    port=$(ynh_app_setting_get --app=$app --key=port)
+    ynh_add_config --template="/etc/yunohost/apps/$app/conf/pihole-FTL.conf" --destination="$config_file"
 
-	ynh_script_progression --message="Restarting PiHole..." --weight=2
+    ynh_script_progression --message="Restarting Pi-Hole..." --weight=2
 
-	# Restart pihole-FTL
-	ynh_systemd_action --action=restart --service_name=pihole-FTL
+    # Restart pihole-FTL
+    ynh_systemd_action --action=restart --service_name=pihole-FTL
+
+elif [ "$file" = "01-pihole.conf" ]
+then
+    cp "$pihole_local_repo/advanced/01-pihole.conf" $config_file
+    # Use dns from /etc/resolv.dnsmasq.conf
+    ynh_replace_string --match_string="@DNS1@" --replace_string="" --target_file=$config_file
+    ynh_replace_string --match_string="@DNS2@" --replace_string="" --target_file=$config_file
+    ynh_replace_string --match_string="^no-resolv" --replace_string="#no-resolv" --target_file=$config_file
+
+    ynh_replace_string --match_string="@INT@" --replace_string="$main_iface" --target_file=$config_file
+    if [ "$query_logging" = "true" ]; then
+        ynh_replace_string --match_string="^#log-queries" --replace_string="log-queries" --target_file=$config_file
+    else
+        ynh_replace_string --match_string="^log-queries" --replace_string="#log-queries" --target_file=$config_file
+    fi
+
+    # Fix a too recent option for our dnsmasq version.
+    ynh_replace_string --match_string="log-queries=extra" --replace_string="log-queries" --target_file=$config_file
+
+    # To prevent any conflict with the original dnsmasq config, comment cache-size in the original config.
+    ynh_replace_string --match_string="^cache-size=" --replace_string="#pihole# cache-size=" --target_file=/etc/dnsmasq.conf
 fi
 
 # Calculate and store the config file checksum into the app settings
