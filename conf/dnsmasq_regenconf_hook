@@ -14,7 +14,20 @@ do_pre_regen() {
         mkdir -p "$dnsmasq_dir"
         cp -a "/etc/dnsmasq.conf" "${pending_conf}/etc/dnsmasq.conf"
         # Créer une sauvegarde des config dnsmasq de pi-hole. Que la regen-conf va sauvagement supprimer
-        cp -a "/etc/dnsmasq.d/01-pihole.conf" "$dnsmasq_dir/"
+        cp -a "/etc/.pihole/advanced/01-pihole.conf" "$dnsmasq_dir/"
+        ynh_replace_string --match_string="@DNS1@" --replace_string="" --target_file="$dnsmasq_dir/01-pihole.conf"
+        ynh_replace_string --match_string="@DNS2@" --replace_string="" --target_file="$dnsmasq_dir/01-pihole.conf"
+        ynh_replace_string --match_string="^no-resolv" --replace_string="#no-resolv" --target_file="$dnsmasq_dir/01-pihole.conf"
+
+        ynh_replace_string --match_string="@INT@" --replace_string="$main_iface" --target_file="$dnsmasq_dir/01-pihole.conf"
+        if [ "$query_logging" = "true" ]; then
+            ynh_replace_string --match_string="^#log-queries" --replace_string="log-queries" --target_file="$dnsmasq_dir/01-pihole.conf"
+        else
+            ynh_replace_string --match_string="^log-queries" --replace_string="#log-queries" --target_file="$dnsmasq_dir/01-pihole.conf"
+        fi
+
+        # Fix a too recent option for our dnsmasq version.
+        ynh_replace_string --match_string="log-queries=extra" --replace_string="log-queries" --target_file="$dnsmasq_dir/01-pihole.conf"
 
         ynh_replace_string --match_string="^cache-size=" --replace_string="#pihole# cache-size=" --target_file="${pending_conf}/etc/dnsmasq.conf"
 
