@@ -188,6 +188,11 @@ ynh_systemd_action --action=restart --service_name=dnsmasq
 #=================================================
 ynh_script_progression --message="Removing the dedicated system user..." --weight=2
 
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    # Dirty hack to remove correctly the user
+    killall -u $app
+fi
 ynh_system_user_delete --username=$app
 
 #=================================================

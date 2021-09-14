@@ -347,6 +347,8 @@ then
     ynh_script_progression --message="Restarting Dnsmasq..." --weight=2
 
     ynh_systemd_action --action=restart --service_name=dnsmasq
+
+    ynh_systemd_action --action=restart --service_name=pihole-FTL
 fi
 
 #=================================================
