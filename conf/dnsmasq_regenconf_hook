@@ -28,8 +28,6 @@ if [ "$query_logging" = "true" ]; then
 else
     ynh_replace_string --match_string="^log-queries" --replace_string="#log-queries" --target_file="$dnsmasq_dir/01-pihole.conf"
 fi
-# Fix a too recent option for our dnsmasq version.
-ynh_replace_string --match_string="log-queries=extra" --replace_string="log-queries" --target_file="$dnsmasq_dir/01-pihole.conf"
 
 #
 # Tweak dnsmsasq's general conf cache-size
