@@ -228,7 +228,11 @@ ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --ta
 # REINSTALL CONF_REGEN HOOK
 #=================================================
 
-(cd scripts; cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app)
+(
+    cd scripts
+    cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+    ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+)
 
 #=================================================
 # RESTART PIHOLE-FTL

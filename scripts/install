@@ -260,7 +260,7 @@ else
 
     # Replace the service dnsmasq by pihole-FTL
     # That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
-    ln -s /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/multi-user.target.wants/dnsmasq.service
+    ln -s /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/dnsmasq.service
 
     # Reload systemd config
     systemctl daemon-reload
@@ -436,6 +436,7 @@ ynh_exec_warn_less /opt/pihole/gravity.sh
 #=================================================
 
 cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 
 #=================================================
 # GENERIC FINALISATION

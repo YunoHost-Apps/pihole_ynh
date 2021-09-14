@@ -54,7 +54,7 @@ else
     fi
 
     # Move back the service configuration for dnsmasq
-    ynh_secure_remove --file="/etc/systemd/system/multi-user.target.wants/dnsmasq.service"
+    ynh_secure_remove --file="/etc/systemd/system/dnsmasq.service"
     mv /lib/systemd/system/.dnsmasq.service.backup_by_pihole /lib/systemd/system/dnsmasq.service
     mv /etc/init.d/.dnsmasq.backup_by_pihole /etc/init.d/dnsmasq
 
