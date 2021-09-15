@@ -305,7 +305,7 @@ else
 
     # Replace the service dnsmasq by pihole-FTL
     # That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
-    ln -sf /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/multi-user.target.wants/dnsmasq.service
+    ln -sf /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/dnsmasq.service
 
     # Reload systemd config
     systemctl daemon-reload
@@ -356,13 +356,6 @@ fi
 ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
 
 #=================================================
-# START PIHOLE-FTL
-#=================================================
-ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
-
-ynh_systemd_action --action=restart --service_name=pihole-FTL
-
-#=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
@@ -373,6 +366,17 @@ yunohost service add pihole-FTL --description="PiHole backend service" --log="/v
 #=================================================
 
 cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+
+systemctl daemon-reload
+ynh_exec_warn_less yunohost tools regen-conf dnsmasq
+
+#=================================================
+# START PIHOLE-FTL
+#=================================================
+ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
+
+ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
 # RELOAD NGINX

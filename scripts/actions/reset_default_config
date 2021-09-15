@@ -34,8 +34,6 @@ if [ "$file" = "setupVars.conf" ]; then
     config_file="/etc/pihole/setupVars.conf"
 elif [ "$file" = "pihole-FTL.conf" ]; then
     config_file="/etc/pihole/pihole-FTL.conf"
-elif [ "$file" = "01-pihole.conf" ]; then
-    config_file="/etc/dnsmasq.d/01-pihole.conf"
 fi
 
 #=================================================
@@ -77,27 +75,6 @@ then
 
     # Restart pihole-FTL
     ynh_systemd_action --action=restart --service_name=pihole-FTL
-
-elif [ "$file" = "01-pihole.conf" ]
-then
-    cp "$pihole_local_repo/advanced/01-pihole.conf" $config_file
-    # Use dns from /etc/resolv.dnsmasq.conf
-    ynh_replace_string --match_string="@DNS1@" --replace_string="" --target_file=$config_file
-    ynh_replace_string --match_string="@DNS2@" --replace_string="" --target_file=$config_file
-    ynh_replace_string --match_string="^no-resolv" --replace_string="#no-resolv" --target_file=$config_file
-
-    ynh_replace_string --match_string="@INT@" --replace_string="$main_iface" --target_file=$config_file
-    if [ "$query_logging" = "true" ]; then
-        ynh_replace_string --match_string="^#log-queries" --replace_string="log-queries" --target_file=$config_file
-    else
-        ynh_replace_string --match_string="^log-queries" --replace_string="#log-queries" --target_file=$config_file
-    fi
-
-    # Fix a too recent option for our dnsmasq version.
-    ynh_replace_string --match_string="log-queries=extra" --replace_string="log-queries" --target_file=$config_file
-
-    # To prevent any conflict with the original dnsmasq config, comment cache-size in the original config.
-    ynh_replace_string --match_string="^cache-size=" --replace_string="#pihole# cache-size=" --target_file=/etc/dnsmasq.conf
 fi
 
 # Calculate and store the config file checksum into the app settings

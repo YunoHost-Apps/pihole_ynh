@@ -260,7 +260,7 @@ else
 
     # Replace the service dnsmasq by pihole-FTL
     # That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
-    ln -s /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/multi-user.target.wants/dnsmasq.service
+    ln -s /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/dnsmasq.service
 
     # Reload systemd config
     systemctl daemon-reload
@@ -291,36 +291,6 @@ echo "INSTALL_WEB=true" >> $setupVars
 ynh_store_file_checksum --file="$setupVars"
 
 #=================================================
-# SET UP DNSMASQ CONFIG
-#=================================================
-ynh_script_progression --message="Setting up Dnsmasq config..." --weight=2
-
-# ynh_systemd_action --action=stop --service_name=dnsmasq
-
-pihole_dnsmasq_config="/etc/dnsmasq.d/01-pihole.conf"
-cp "$pihole_local_repo/advanced/01-pihole.conf" $pihole_dnsmasq_config
-# Use dns from /etc/resolv.dnsmasq.conf
-ynh_replace_string --match_string="@DNS1@" --replace_string="" --target_file=$pihole_dnsmasq_config
-ynh_replace_string --match_string="@DNS2@" --replace_string="" --target_file=$pihole_dnsmasq_config
-ynh_replace_string --match_string="^no-resolv" --replace_string="#no-resolv" --target_file=$pihole_dnsmasq_config
-
-ynh_replace_string --match_string="@INT@" --replace_string="$main_iface" --target_file=$pihole_dnsmasq_config
-if [ "$query_logging" = "true" ]; then
-    ynh_replace_string --match_string="^#log-queries" --replace_string="log-queries" --target_file=$pihole_dnsmasq_config
-else
-    ynh_replace_string --match_string="^log-queries" --replace_string="#log-queries" --target_file=$pihole_dnsmasq_config
-fi
-
-# Fix a too recent option for our dnsmasq version.
-ynh_replace_string --match_string="log-queries=extra" --replace_string="log-queries" --target_file=$pihole_dnsmasq_config
-
-# Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum --file="$pihole_dnsmasq_config"
-
-# To prevent any conflict with the original dnsmasq config, comment cache-size in the original config.
-ynh_replace_string --match_string="^cache-size=" --replace_string="#pihole# cache-size=" --target_file=/etc/dnsmasq.conf
-
-#=================================================
 # CONFIGURE DNS FOR THE LOCAL DOMAINS
 #=================================================
 ynh_script_progression --message="Configuring dns for the local domains..." --weight=7
@@ -342,37 +312,6 @@ done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
 #=================================================
 # ENABLE DHCP SERVER
 #=================================================
-
-if [ $enable_dhcp -eq 1 ]
-then
-    ynh_script_progression --message="Enabling dhcp server..."
-    max_dhcp_range=250
-    dhcp_range=100
-    # Define the dhcp range from the current ip
-    ip_beginning_part=$(echo "$localipv4" | cut -d. -f1-3)
-    ip_fourth_part=$(echo "$localipv4" | cut -d. -f4)
-    b_range=$(( $ip_fourth_part + $dhcp_range ))
-    if [ $b_range -gt $max_dhcp_range ]; then
-        b_range=$max_dhcp_range
-    fi
-    a_range=$(( $b_range - $dhcp_range ))
-
-    # Get the gateway
-    gateway=$(ip route | grep default | awk '{print $3;}')
-    # And the mac adress
-    hw_adress=$(ip link | grep -A1 "$main_iface" | tail -n1 | awk '{print $2;}')
-
-    # Copy the config file
-    cp "../conf/02-pihole-dhcp.conf" "/etc/dnsmasq.d/"
-
-    # And set the config
-    ynh_replace_string --match_string="__A_RANGE__" --replace_string="$ip_beginning_part.$a_range" --target_file="/etc/dnsmasq.d/02-pihole-dhcp.conf"
-    ynh_replace_string --match_string="__B_RANGE__" --replace_string="$ip_beginning_part.$b_range" --target_file="/etc/dnsmasq.d/02-pihole-dhcp.conf"
-    ynh_replace_string --match_string="__GATEWAY__" --replace_string="$gateway" --target_file="/etc/dnsmasq.d/02-pihole-dhcp.conf"
-
-    # Set a static ip for the server.
-    echo "dhcp-host=$hw_adress,$localipv4" > "/etc/dnsmasq.d/04-pihole-static-dhcp.conf"
-fi
 
 # Open the UDP port 67 for dhcp
 ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
@@ -408,15 +347,9 @@ then
     ynh_script_progression --message="Restarting Dnsmasq..." --weight=2
 
     ynh_systemd_action --action=restart --service_name=dnsmasq
+
+    ynh_systemd_action --action=restart --service_name=pihole-FTL
 fi
-
-#=================================================
-# START PIHOLE-FTL
-#=================================================
-
-ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
-
-ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
 # BUILD THE LISTS WITH GRAVITY
@@ -436,6 +369,18 @@ ynh_exec_warn_less /opt/pihole/gravity.sh
 #=================================================
 
 cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+
+systemctl daemon-reload
+ynh_exec_warn_less yunohost tools regen-conf dnsmasq
+
+#=================================================
+# START PIHOLE-FTL
+#=================================================
+
+ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
+
+ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
 # GENERIC FINALISATION

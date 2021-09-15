@@ -54,7 +54,7 @@ else
     fi
 
     # Move back the service configuration for dnsmasq
-    ynh_secure_remove --file="/etc/systemd/system/multi-user.target.wants/dnsmasq.service"
+    ynh_secure_remove --file="/etc/systemd/system/dnsmasq.service"
     mv /lib/systemd/system/.dnsmasq.service.backup_by_pihole /lib/systemd/system/dnsmasq.service
     mv /etc/init.d/.dnsmasq.backup_by_pihole /etc/init.d/dnsmasq
 
@@ -151,13 +151,7 @@ ynh_secure_remove --file="/etc/sudoers.d/pihole"
 #=================================================
 ynh_script_progression --message="Removing Dnsmasq config..." --weight=2
 
-ynh_systemd_action --action=stop --service_name=dnsmasq
-ynh_secure_remove --file="/etc/dnsmasq.d/01-pihole.conf"
-ynh_secure_remove --file="/etc/dnsmasq.d/02-pihole-dhcp.conf"
 ynh_secure_remove --file="/etc/dnsmasq.d/03-pihole-wildcard.conf"
-ynh_secure_remove --file="/etc/dnsmasq.d/04-pihole-static-dhcp.conf"
-
-ynh_replace_string --match_string="#pihole# " --replace_string="" --target_file=/etc/dnsmasq.conf
 
 #=================================================
 # CLEAN /etc/hosts
@@ -171,23 +165,21 @@ ynh_replace_string --match_string="#Commented by pihole# " --replace_string="" -
 sed -i "/#Added by pihole#/d" /etc/hosts
 
 #=================================================
+# REMOVE CONF_REGEN HOOK
+#=================================================
+
+ynh_systemd_action --action=stop --service_name=dnsmasq
+
+ynh_secure_remove --file=/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+
+ynh_exec_warn_less yunohost tools regen-conf dnsmasq
+
+#=================================================
 # RESTART DNSMASQ
 #=================================================
 ynh_script_progression --message="Restarting Dnsmasq..."
 
-if [ "$pihole_version" == "Last available" ]
-then
-    # Quietly start dnsmasq a first time, because it usually doesn't start correctly the first time.
-    ynh_exec_fully_quiet systemctl start dnsmasq
-    sleep 1
-fi
 ynh_systemd_action --action=restart --service_name=dnsmasq
-
-#=================================================
-# REMOVE CONF_REGEN HOOK
-#=================================================
-
-ynh_secure_remove --file=/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
 
 #=================================================
 # GENERIC FINALISATION
@@ -196,6 +188,11 @@ ynh_secure_remove --file=/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
 #=================================================
 ynh_script_progression --message="Removing the dedicated system user..." --weight=2
 
+if [ "$pihole_version" == "Last 3.X" ]
+then
+    # Dirty hack to remove correctly the user
+    killall -u $app
+fi
 ynh_system_user_delete --username=$app
 
 #=================================================
