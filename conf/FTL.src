@@ -1,9 +1,0 @@
-SOURCE_URL=https://github.com/pi-hole/FTL/archive/v2.13.2.tar.gz
-SOURCE_SUM=07383d2b3de1ef31526b090603e783b3
-SOURCE_SUM_PRG=md5sum
-SOURCE_FORMAT=tar.gz
-SOURCE_IN_SUBDIR=true
-SOURCE_FILENAME=
-
-# Be carrefull, the version 3.0 isn't compatible with the version of dnsmasq available on Jessie.
-# So, we need to stay stick on the version 2.13.2.
