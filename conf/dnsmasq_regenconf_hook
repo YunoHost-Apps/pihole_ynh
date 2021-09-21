@@ -22,6 +22,7 @@ ynh_replace_string --match_string="@DNS1@" --replace_string="" --target_file="$d
 ynh_replace_string --match_string="@DNS2@" --replace_string="" --target_file="$dnsmasq_dir/01-pihole.conf"
 ynh_replace_string --match_string="^no-resolv" --replace_string="#no-resolv" --target_file="$dnsmasq_dir/01-pihole.conf"
 ynh_replace_string --match_string="@INT@" --replace_string="$main_iface" --target_file="$dnsmasq_dir/01-pihole.conf"
+ynh_replace_string --match_string="@cache-size@" --replace_string="1000" --target_file="$dnsmasq_dir/01-pihole.conf"
 query_logging=$(ynh_app_setting_get --app=$app --key=query_logging)
 if [ "$query_logging" = "true" ]; then
     ynh_replace_string --match_string="^#log-queries" --replace_string="log-queries" --target_file="$dnsmasq_dir/01-pihole.conf"
@@ -34,6 +35,9 @@ fi
 #
 
 ynh_replace_string --match_string="^cache-size=" --replace_string="#pihole# cache-size=" --target_file="${pending_conf}/etc/dnsmasq.conf"
+ynh_replace_string --match_string="^listen-address=" --replace_string="#pihole# cache-size=" --target_file="${pending_conf}/etc/dnsmasq.conf"
+
+echo "conf-dir=/etc/dnsmasq.d/" >> "${pending_conf}/etc/dnsmasq.conf"
 
 #
 # Regen /etc/dnsmasq.d/02-pihole-dhcp.conf
