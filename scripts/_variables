@@ -9,7 +9,7 @@ then
     dashboard_version=3.3
     FTL_version=3.0
 else
-    pihole_core_version=5.3.1
-    dashboard_version=5.5
-    FTL_version=5.8.1
+    pihole_core_version=5.4
+    dashboard_version=5.6
+    FTL_version=5.9
 fi

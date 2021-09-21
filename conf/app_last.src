@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/pi-hole/pi-hole/archive/v5.3.1.tar.gz
-SOURCE_SUM=19c856584f180b2ed5b3d0500cd3567f00e37fa9c493282bc119be8276cdddd9
+SOURCE_URL=https://github.com/pi-hole/pi-hole/archive/v5.4.tar.gz
+SOURCE_SUM=dc82465f3b257d170cd0089a249bdee5378a8f52166ae95d1d7dc00512ef505c
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
