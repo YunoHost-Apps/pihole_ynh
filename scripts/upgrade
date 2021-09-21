@@ -343,6 +343,13 @@ then
 fi
 
 #=================================================
+# SET VERSIONS FOR THE FOOTER OF THE WEB INTERFACE
+#=================================================
+
+echo "master master master" > $pihole_storage/localbranches
+echo "$pihole_core_version $dashboard_version $FTL_version" | tee $pihole_storage/{GitHubVersions,localversions}  > /dev/null
+
+#=================================================
 # UPDATE CRON JOB
 #=================================================
 
