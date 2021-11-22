@@ -37,8 +37,7 @@ Use the admin panel of your Pi-hole to configure this app. You may also need to 
 * Pi-Hole can't be updated beyond version 3.3.1, because higher versions use an integrated version of dnsmasq. This would require disabling the version of dnsmasq used by YunoHost.
 
 
-Using Pi-hole as your DHCP server
-==================
+## Using Pi-hole as your DHCP server
 
 > **Be careful, you should considering that playing with your DHCP may break your network.  
 In case your server is down, you will lose your dns resolution and ip address.  
