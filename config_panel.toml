@@ -1,4 +1,4 @@
-version = "0.1"
+version = "1.0"
 name = "PiHole configuration panel"
 
 [main]
@@ -26,7 +26,7 @@ name = "PiHole configuration"
         help = "If the file is overwritten, a backup will be created."
 
         [main.overwrite_files.overwrite_phpfpm]
-        ask = "Overwrite the php-fpm config file?"
+        ask = "Overwrite the PHP-FPM config file?"
         type = "boolean"
         default = true
         help = "If the file is overwritten, a backup will be created."
