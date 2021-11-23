@@ -368,10 +368,8 @@ ynh_exec_warn_less /opt/pihole/gravity.sh
 # SET UP CONF_REGEN HOOK
 #=================================================
 
-ynh_add_config --template="../conf/dnsmasq_regenconf_hook" --destination="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
-
-#cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
-#ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 
 systemctl daemon-reload
 ynh_exec_warn_less yunohost tools regen-conf dnsmasq
