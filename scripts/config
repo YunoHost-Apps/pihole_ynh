@@ -9,6 +9,8 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
+ynh_abort_if_errors
+
 #=================================================
 # RETRIEVE ARGUMENTS
 #=================================================
@@ -165,10 +167,4 @@ apply_config() {
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
-# SELECT THE ACTION FOLLOWING THE GIVEN ARGUMENT
-#=================================================
-
-case $1 in
-    show) show_config;;
-    apply) apply_config;;
-esac
+ynh_app_config_run $1

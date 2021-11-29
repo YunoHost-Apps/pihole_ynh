@@ -1,6 +1,6 @@
 ## Configuration
 
-Utiliser le panneau d'administration de votre Pi-hole pour configurer cette application. Vous devrez peut-être aussi suivre le [guide de post-installation] (https://docs.pi-hole.net/main/post-install/) pour configurer Pi-hole en tant que *serveur DNS* ou *serveur DHCP*.
+Utiliser le panneau d'administration de votre Pi-hole pour configurer cette application. Vous devrez peut-être aussi suivre le [guide de post-installation](https://docs.pi-hole.net/main/post-install/) pour configurer Pi-hole en tant que *serveur DNS* ou *serveur DHCP*.
 
 ## Limitations
 
@@ -8,8 +8,7 @@ Utiliser le panneau d'administration de votre Pi-hole pour configurer cette appl
 * Pi-Hole ne peut pas être mis à jour au-delà de la version 3.3.1, car les versions supérieures utilisent une version intégrée de dnsmasq. Ce qui oblige a désactiver la version de dnsmasq utilisée par YunoHost.
 
 
-Faire de Pi-hole votre serveur DHCP
-==================
+## Faire de Pi-hole votre serveur DHCP
 
 > **Attention, vous devez savoir que toucher à votre DHCP pourrait casser votre réseau.  
 Dans le cas où votre serveur serait inaccessible, vous perdriez votre résolution dns et votre adresse IP.  

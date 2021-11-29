@@ -121,7 +121,7 @@ chown $app:www-data "$final_path"
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring nginx web server..." --weight=2
+ynh_script_progression --message="Configuring NGINX web server..." --weight=2
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
@@ -129,7 +129,7 @@ ynh_add_nginx_config
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring php-fpm..." --weight=2
+ynh_script_progression --message="Configuring PHP-FPM..." --weight=2
 
 # Create a dedicated php-fpm config
 ynh_add_fpm_config --usage=low --footprint=low --dedicated_service
@@ -293,7 +293,7 @@ ynh_store_file_checksum --file="$setupVars"
 #=================================================
 # CONFIGURE DNS FOR THE LOCAL DOMAINS
 #=================================================
-ynh_script_progression --message="Configuring dns for the local domains..." --weight=7
+ynh_script_progression --message="Configuring DNS for the local domains..." --weight=7
 
 # Find the IP associated to the network interface
 localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
