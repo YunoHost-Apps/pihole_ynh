@@ -13,7 +13,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 Filtrage publicitaire via votre propre serveur DNS
 
-**Version incluse :** 5.6~ynh1
+**Version incluse :** 5.7~ynh1
 
 
 
