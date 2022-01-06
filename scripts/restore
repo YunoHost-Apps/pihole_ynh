@@ -31,7 +31,6 @@ path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
-pihole_version="$(ynh_app_setting_get --app=$app --key=pihole_version)"
 
 # Get variables from ynh_add_fpm_config
 fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
@@ -153,38 +152,36 @@ ynh_restore_file --origin_path="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_
 # REPLACE THE DEFAULT DNSMASQ BY PIHOLE-FTL
 #=================================================
 
-if [ "$pihole_version" == "Last available" ]
-then
-    # Last version available
-    # Stopped dnsmasq to replace it by pihole-FTL
-    ynh_systemd_action --action=stop --service_name=dnsmasq
+# Last version available
+# Stopped dnsmasq to replace it by pihole-FTL
+ynh_systemd_action --action=stop --service_name=dnsmasq
 
-    # Disable the real dnsmasq service
-    ynh_exec_warn_less systemctl disable dnsmasq --quiet
+# Disable the real dnsmasq service
+#ynh_exec_warn_less systemctl disable dnsmasq --quiet
 
-    # And move the files that make the service available in systemd to really disable it
-    mv /lib/systemd/system/dnsmasq.service /lib/systemd/system/.dnsmasq.service.backup_by_pihole
-    mv /etc/init.d/dnsmasq /etc/init.d/.dnsmasq.backup_by_pihole
+# And move the files that make the service available in systemd to really disable it
+#mv /lib/systemd/system/dnsmasq.service /lib/systemd/system/.dnsmasq.service.backup_by_pihole
+#mv /etc/init.d/dnsmasq /etc/init.d/.dnsmasq.backup_by_pihole
 
-    # Move dnsmasq to preserve the current binary
-    mv /usr/sbin/dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
-    # Replace dnsmasq by pihole-FTL
-    # NOTE: pihole-FTL is actually a modified version of dnsmasq
-    # https://github.com/pi-hole/FTL/tree/master/dnsmasq
-    ln -s /usr/bin/pihole-FTL /usr/sbin/dnsmasq
+# Move dnsmasq to preserve the current binary
+#mv /usr/sbin/dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
+# Replace dnsmasq by pihole-FTL
+# NOTE: pihole-FTL is actually a modified version of dnsmasq
+# https://github.com/pi-hole/FTL/tree/master/dnsmasq
+#ln -s /usr/bin/pihole-FTL /usr/sbin/dnsmasq
 
-    pihole_local_repo="/etc/.pihole"
-    cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
-    chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL --quiet
+pihole_local_repo="/etc/.pihole"
+cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
+chmod +x /etc/init.d/pihole-FTL
+ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 
-    # Replace the service dnsmasq by pihole-FTL
-    # That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
-    ln -s /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/dnsmasq.service
+# Replace the service dnsmasq by pihole-FTL
+# That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
+#ln -s /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/dnsmasq.service
+systemctl mask dnsmasq.service
 
-    # Reload systemd config
-    systemctl daemon-reload
-fi
+# Reload systemd config
+systemctl daemon-reload
 
 #=================================================
 # RESTORE DNSMASQ CONFIG
@@ -217,18 +214,6 @@ do
     grep -q "^$localipv4.*$perdomain" /etc/hosts || \
         echo "$localipv4	$perdomain #Added by pihole#" >> /etc/hosts
 done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
-
-#=================================================
-# RESTART DNSMASQ
-#=================================================
-
-# Restart dnsmasq only for the version 3.X, otherwise we're going to restart it twice.
-if [ "$pihole_version" == "Last 3.X" ]
-then
-    ynh_script_progression --message="Restarting Dnsmasq..."
-
-    ynh_systemd_action --action=restart --service_name=dnsmasq
-fi
 
 #=================================================
 # UPDATE VARIABLES FILE
