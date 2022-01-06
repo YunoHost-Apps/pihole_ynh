@@ -37,9 +37,10 @@ fi
 #
 
 ynh_replace_string --match_string="^cache-size=" --replace_string="#pihole# cache-size=" --target_file="${pending_conf}/etc/dnsmasq.conf"
-ynh_replace_string --match_string="^listen-address=" --replace_string="#pihole# cache-size=" --target_file="${pending_conf}/etc/dnsmasq.conf"
+ynh_replace_string --match_string="^listen-address=" --replace_string="#pihole# listen-address=" --target_file="${pending_conf}/etc/dnsmasq.conf"
 
-echo "conf-dir=/etc/dnsmasq.d/" >> "${pending_conf}/etc/dnsmasq.conf"
+echo "
+conf-dir=/etc/dnsmasq.d/" >> "${pending_conf}/etc/dnsmasq.conf"
 
 #
 # Regen /etc/dnsmasq.d/02-pihole-dhcp.conf
