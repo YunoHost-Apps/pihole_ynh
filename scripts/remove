@@ -18,7 +18,6 @@ app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 port=$(ynh_app_setting_get --app=$app --key=port)
-pihole_version="$(ynh_app_setting_get --app=$app --key=pihole_version)"
 
 #=================================================
 # STANDARD REMOVE
@@ -38,30 +37,25 @@ fi
 #=================================================
 ynh_script_progression --message="Stop and remove the service"
 
-if [ "$pihole_version" == "Last 3.X" ]
-then
-    ynh_systemd_action --action=stop --service_name=pihole-FTL
-    ynh_exec_warn_less systemctl disable pihole-FTL --quiet
-else
-    ynh_systemd_action --action=stop --service_name=pihole-FTL
+ynh_systemd_action --action=stop --service_name=pihole-FTL
 
-    # Restore dnsmasq as main DNS resolver
-    # Move dnsmasq back to its original place
-    if [ -e "/usr/sbin/dnsmasq.backup_by_pihole" ]
-    then    # Remove dnsmasq only if we have its backup
-        ynh_secure_remove --file="/usr/sbin/dnsmasq"
-        mv /usr/sbin/dnsmasq.backup_by_pihole /usr/sbin/dnsmasq
-    fi
+# Restore dnsmasq as main DNS resolver
+# Move dnsmasq back to its original place
+#if [ -e "/usr/sbin/dnsmasq.backup_by_pihole" ]
+#then    # Remove dnsmasq only if we have its backup
+#    ynh_secure_remove --file="/usr/sbin/dnsmasq"
+#    mv /usr/sbin/dnsmasq.backup_by_pihole /usr/sbin/dnsmasq
+#fi
 
-    # Move back the service configuration for dnsmasq
-    ynh_secure_remove --file="/etc/systemd/system/dnsmasq.service"
-    mv /lib/systemd/system/.dnsmasq.service.backup_by_pihole /lib/systemd/system/dnsmasq.service
-    mv /etc/init.d/.dnsmasq.backup_by_pihole /etc/init.d/dnsmasq
+# Move back the service configuration for dnsmasq
+#ynh_secure_remove --file="/etc/systemd/system/dnsmasq.service"
+#mv /lib/systemd/system/.dnsmasq.service.backup_by_pihole /lib/systemd/system/dnsmasq.service
+#mv /etc/init.d/.dnsmasq.backup_by_pihole /etc/init.d/dnsmasq
+systemctl unmask dnsmasq.service
 
-    ynh_exec_warn_less systemctl enable dnsmasq --quiet
-    # Reload systemd config
-    systemctl daemon-reload
-fi
+#ynh_exec_warn_less systemctl enable dnsmasq --quiet
+# Reload systemd config
+systemctl daemon-reload
 
 ynh_secure_remove --file="/etc/init.d/pihole-FTL"
 ynh_secure_remove --file="/usr/bin/pihole-FTL"
@@ -188,11 +182,8 @@ ynh_systemd_action --action=restart --service_name=dnsmasq
 #=================================================
 ynh_script_progression --message="Removing the dedicated system user..." --weight=2
 
-if [ "$pihole_version" == "Last 3.X" ]
-then
-    # Dirty hack to remove correctly the user
-    killall -u $app
-fi
+# Dirty hack to remove correctly the user
+killall -u $app
 ynh_system_user_delete --username=$app
 
 #=================================================
