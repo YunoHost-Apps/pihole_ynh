@@ -1,7 +1,14 @@
 #!/bin/bash
 
 #=================================================
-# FUTUR OFFICIAL HELPERS
+# COMMON VARIABLES
+#=================================================
+
+# dependencies used by the app
+pkg_dependencies="sqlite3 idn2 php7.3-sqlite3 nettle-dev libcap2-bin build-essential libgmp-dev m4 cmake libidn11-dev libreadline-dev xxd"
+
+#=================================================
+# PERSONAL HELPERS
 #=================================================
 
 #=================================================
@@ -365,3 +372,7 @@ ynh_app_changelog () {
         echo "No significative changes from the changelog..." > "${final_changelog}_lite"
     fi
 }
+
+#=================================================
+# FUTURE OFFICIAL HELPERS
+#=================================================

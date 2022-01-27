@@ -1,14 +1,13 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC STARTING
+# GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
 # Load common variables for all scripts.
 source _variables
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -39,61 +38,9 @@ fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
 #=================================================
 # CHECK VERSION
 #=================================================
+ynh_script_progression --message="Checking version..."
 
 upgrade_type=$(ynh_check_app_version_changed)
-
-#=================================================
-# ENSURE DOWNWARD COMPATIBILITY
-#=================================================
-ynh_script_progression --message="Ensuring downward compatibility..."
-
-# If overwrite_setupvars doesn't exist, create it
-if [ -z "$overwrite_setupvars" ]; then
-    overwrite_setupvars=1
-    ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=$overwrite_setupvars
-fi
-
-# If overwrite_ftl doesn't exist, create it
-if [ -z "$overwrite_ftl" ]; then
-    overwrite_ftl=1
-    ynh_app_setting_set --app=$app --key=overwrite_ftl --value=$overwrite_ftl
-fi
-
-# If overwrite_nginx doesn't exist, create it
-if [ -z "$overwrite_nginx" ]; then
-    overwrite_nginx=1
-    ynh_app_setting_set --app=$app --key=overwrite_nginx --value=$overwrite_nginx
-fi
-
-# If overwrite_phpfpm doesn't exist, create it
-if [ -z "$overwrite_phpfpm" ]; then
-    overwrite_phpfpm=1
-    ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value=$overwrite_phpfpm
-fi
-
-# If admin_mail_html doesn't exist, create it
-if [ -z "$admin_mail_html" ]; then
-    admin_mail_html=1
-    ynh_app_setting_set --app=$app --key=admin_mail_html --value=$admin_mail_html
-fi
-
-# If fpm_footprint doesn't exist, create it
-if [ -z "$fpm_footprint" ]; then
-    fpm_footprint=low
-    ynh_app_setting_set --app=$app --key=fpm_footprint --value=$fpm_footprint
-fi
-
-# If fpm_usage doesn't exist, create it
-if [ -z "$fpm_usage" ]; then
-    fpm_usage=low
-    ynh_app_setting_set --app=$app --key=fpm_usage --value=$fpm_usage
-fi
-
-# If pihole_version doesn't exist, create it
-if [ -z "$pihole_version" ]; then
-    pihole_version="Last 3.X"
-    ynh_app_setting_set --app=$app --key=pihole_version --value="$pihole_version"
-fi
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
@@ -103,8 +50,8 @@ ynh_script_progression --message="Backing up the app before upgrading (may take 
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
-    # restore it if the upgrade fails
-    ynh_restore_upgradebackup
+	# Restore it if the upgrade fails
+	ynh_restore_upgradebackup
 }
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
@@ -119,11 +66,57 @@ ynh_maintenance_mode_ON
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
-# INSTALL DEPENDENCIES
+# ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-ynh_script_progression --message="Upgrading dependencies..." --weight=6
+ynh_script_progression --message="Ensuring downward compatibility..."
 
-ynh_install_app_dependencies $app_depencencies
+# If overwrite_setupvars doesn't exist, create it
+if [ -z "$overwrite_setupvars" ]; then
+	overwrite_setupvars=1
+	ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=$overwrite_setupvars
+fi
+
+# If overwrite_ftl doesn't exist, create it
+if [ -z "$overwrite_ftl" ]; then
+	overwrite_ftl=1
+	ynh_app_setting_set --app=$app --key=overwrite_ftl --value=$overwrite_ftl
+fi
+
+# If overwrite_nginx doesn't exist, create it
+if [ -z "$overwrite_nginx" ]; then
+	overwrite_nginx=1
+	ynh_app_setting_set --app=$app --key=overwrite_nginx --value=$overwrite_nginx
+fi
+
+# If overwrite_phpfpm doesn't exist, create it
+if [ -z "$overwrite_phpfpm" ]; then
+	overwrite_phpfpm=1
+	ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value=$overwrite_phpfpm
+fi
+
+# If admin_mail_html doesn't exist, create it
+if [ -z "$admin_mail_html" ]; then
+	admin_mail_html=1
+	ynh_app_setting_set --app=$app --key=admin_mail_html --value=$admin_mail_html
+fi
+
+# If fpm_footprint doesn't exist, create it
+if [ -z "$fpm_footprint" ]; then
+	fpm_footprint=low
+	ynh_app_setting_set --app=$app --key=fpm_footprint --value=$fpm_footprint
+fi
+
+# If fpm_usage doesn't exist, create it
+if [ -z "$fpm_usage" ]; then
+	fpm_usage=low
+	ynh_app_setting_set --app=$app --key=fpm_usage --value=$fpm_usage
+fi
+
+# If pihole_version doesn't exist, create it
+if [ -z "$pihole_version" ]; then
+	pihole_version="Last 3.X"
+	ynh_app_setting_set --app=$app --key=pihole_version --value="$pihole_version"
+fi
 
 #=================================================
 # CREATE DEDICATED USER
@@ -140,19 +133,19 @@ ynh_system_user_create --username=$app
 pihole_local_repo="/etc/.pihole"
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-    ynh_script_progression --message="Upgrading source files..." --weight=4
-    if [ "$pihole_version" == "Last 3.X" ]
-    then
-        # Update the version 3.X
-        ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app_3
-        # Update admin dashboard
-        ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard_3
-    else
-        # Update the last version available
-        ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app_last
-        # Update admin dashboard
-        ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard_last
-    fi
+	ynh_script_progression --message="Upgrading source files..." --weight=4
+	if [ "$pihole_version" == "Last 3.X" ]
+	then
+		# Update the version 3.X
+		ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app_3
+		# Update admin dashboard
+		ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard_3
+	else
+		# Update the last version available
+		ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app_last
+		# Update admin dashboard
+		ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard_last
+	fi
 fi
 
 chown $app:www-data "$final_path"
@@ -164,10 +157,17 @@ chown $app:www-data "$final_path"
 # Overwrite the nginx configuration only if it's allowed
 if [ $overwrite_nginx -eq 1 ]
 then
-    ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
-    # Create a dedicated nginx config
-    ynh_add_nginx_config
+	ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
+	# Create a dedicated NGINX config
+	ynh_add_nginx_config
 fi
+
+#=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Upgrading dependencies..." --weight=6
+
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -176,9 +176,9 @@ fi
 # Overwrite the php-fpm configuration only if it's allowed
 if [ $overwrite_phpfpm -eq 1 ]
 then
-    ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
-    # Create a dedicated php-fpm config
-    ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_service
+	ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
+	# Create a dedicated php-fpm config
+	ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_service
 fi
 
 #=================================================
@@ -209,9 +209,9 @@ cp -a "$pihole_local_repo/advanced/bash-completion/pihole" /etc/bash_completion.
 # This sudoers config allow pihole to execute /usr/local/bin/pihole as root without password. Nothing more.
 if [ "$pihole_version" == "Last 3.X" ]
 then
-    cp "$pihole_local_repo/advanced/pihole.sudo" /etc/sudoers.d/pihole
+	cp "$pihole_local_repo/advanced/pihole.sudo" /etc/sudoers.d/pihole
 else
-    cp "$pihole_local_repo/advanced/Templates/pihole.sudo" /etc/sudoers.d/pihole
+	cp "$pihole_local_repo/advanced/Templates/pihole.sudo" /etc/sudoers.d/pihole
 fi
 echo "$app ALL=NOPASSWD: /usr/local/bin/pihole" >> /etc/sudoers.d/pihole
 chmod 0440 /etc/sudoers.d/pihole
@@ -223,11 +223,11 @@ chmod 0440 /etc/sudoers.d/pihole
 pihole_storage="/etc/pihole"
 if [ "$pihole_version" == "Last 3.X" ]
 then
-    cp "$pihole_local_repo/advanced/logrotate" "$pihole_storage/logrotate"
-    dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
+	cp "$pihole_local_repo/advanced/logrotate" "$pihole_storage/logrotate"
+	dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
 else
-    cp "$pihole_local_repo/advanced/Templates/logrotate" "$pihole_storage/logrotate"
-    dnsmasq_user=$(grep FTLUSER= /etc/init.d/pihole-FTL | cut -d'=' -f2)
+	cp "$pihole_local_repo/advanced/Templates/logrotate" "$pihole_storage/logrotate"
+	dnsmasq_user=$(grep FTLUSER= /etc/init.d/pihole-FTL | cut -d'=' -f2)
 fi
 sed -i "/# su #/d;" "$pihole_storage/logrotate"
 
@@ -240,75 +240,75 @@ ynh_systemd_action --action=stop --service_name=pihole-FTL
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-    # Get the source of Pi-Hole-FTL
-    FTL_temp_path=$(mktemp -d)
-    if [ "$pihole_version" == "Last 3.X" ]
-    then
-        # Install the version 3.3.1
-        ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL_3
-    else
-        # Install the last version available
-        ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL_last
-    fi
+	# Get the source of Pi-Hole-FTL
+	FTL_temp_path=$(mktemp -d)
+	if [ "$pihole_version" == "Last 3.X" ]
+	then
+		# Install the version 3.3.1
+		ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL_3
+	else
+		# Install the last version available
+		ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL_last
+	fi
 
-    # Instead of downloading a binary file, we're going to compile it
-    ( cd "$FTL_temp_path"
-    if [ "$pihole_version" == "Last available" ]
-    then
-        ynh_exec_warn_less cmake .
-    fi
-    ynh_exec_warn_less make
-    ynh_exec_warn_less make install )
-    ynh_secure_remove --file="$FTL_temp_path"
+	# Instead of downloading a binary file, we're going to compile it
+	( cd "$FTL_temp_path"
+	if [ "$pihole_version" == "Last available" ]
+	then
+		ynh_exec_warn_less cmake .
+	fi
+	ynh_exec_warn_less make
+	ynh_exec_warn_less make install )
+	ynh_secure_remove --file="$FTL_temp_path"
 fi
 
 # Overwrite pihole-FTL config file only if it's allowed
 if [ $overwrite_ftl -eq 1 ]
 then
-    ynh_add_config --template="../conf/pihole-FTL.conf" --destination="$pihole_storage/pihole-FTL.conf"
+	ynh_add_config --template="../conf/pihole-FTL.conf" --destination="$pihole_storage/pihole-FTL.conf"
 fi
 
 if [ "$pihole_version" == "Last 3.X" ]
 then
-    # Version 3.3.1
-    cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
-    chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL --quiet
+	# Version 3.3.1
+	cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
+	chmod +x /etc/init.d/pihole-FTL
+	ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 else
-    # Last version available
-    # Stopped dnsmasq to replace it by pihole-FTL
-    ynh_systemd_action --action=stop --service_name=dnsmasq
+	# Last version available
+	# Stopped dnsmasq to replace it by pihole-FTL
+	ynh_systemd_action --action=stop --service_name=dnsmasq
 
-    # Disable the real dnsmasq service
-    ynh_exec_warn_less systemctl disable dnsmasq --quiet
+	# Disable the real dnsmasq service
+	ynh_exec_warn_less systemctl disable dnsmasq --quiet
 
-    # And move the files that make the service available in systemd to really disable it
-    if [ ! -e "/lib/systemd/system/.dnsmasq.service.backup_by_pihole" ]; then
-        mv /lib/systemd/system/dnsmasq.service /lib/systemd/system/.dnsmasq.service.backup_by_pihole
-    fi
-    if [ ! -e "/etc/init.d/.dnsmasq.backup_by_pihole" ]; then
-        mv /etc/init.d/dnsmasq /etc/init.d/.dnsmasq.backup_by_pihole
-    fi
+	# And move the files that make the service available in systemd to really disable it
+	if [ ! -e "/lib/systemd/system/.dnsmasq.service.backup_by_pihole" ]; then
+		mv /lib/systemd/system/dnsmasq.service /lib/systemd/system/.dnsmasq.service.backup_by_pihole
+	fi
+	if [ ! -e "/etc/init.d/.dnsmasq.backup_by_pihole" ]; then
+		mv /etc/init.d/dnsmasq /etc/init.d/.dnsmasq.backup_by_pihole
+	fi
 
-    # Move dnsmasq to preserve the current binary
-    if [ ! -e "/usr/sbin/dnsmasq.backup_by_pihole" ]; then
-        mv /usr/sbin/dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
-    fi
-    # Replace dnsmasq by pihole-FTL
-    # NOTE: pihole-FTL is actually a modified version of dnsmasq
-    # https://github.com/pi-hole/FTL/tree/master/dnsmasq
-    ln -sf /usr/bin/pihole-FTL /usr/sbin/dnsmasq
+	# Move dnsmasq to preserve the current binary
+	if [ ! -e "/usr/sbin/dnsmasq.backup_by_pihole" ]; then
+		mv /usr/sbin/dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
+	fi
+	# Replace dnsmasq by pihole-FTL
+	# NOTE: pihole-FTL is actually a modified version of dnsmasq
+	# https://github.com/pi-hole/FTL/tree/master/dnsmasq
+	ln -sf /usr/bin/pihole-FTL /usr/sbin/dnsmasq
 
-    cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
-    chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL --quiet
+	cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
+	chmod +x /etc/init.d/pihole-FTL
+	ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 
-    # Replace the service dnsmasq by pihole-FTL
-    # That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
-    ln -sf /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/dnsmasq.service
+	# Replace the service dnsmasq by pihole-FTL
+	# That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
+	ln -sf /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/dnsmasq.service
 
-    # Reload systemd config
-    systemctl daemon-reload
+	# Reload systemd config
+	systemctl daemon-reload
 fi
 
 #=================================================
@@ -320,26 +320,26 @@ setupVars="$pihole_storage/setupVars.conf"
 # Overwrite the setupVars config file only if it's allowed
 if [ $overwrite_setupvars -eq 1 ]
 then
-    # Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
-    ynh_backup_if_checksum_is_different --file="$setupVars"
+	# Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
+	ynh_backup_if_checksum_is_different --file="$setupVars"
 
-    # Get the default network interface
-    main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
-    echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
-    echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
-    echo "IPV6_ADDRESS=::1" >> $setupVars
-    echo "PIHOLE_DNS_1=" >> $setupVars
-    echo "PIHOLE_DNS_2=" >> $setupVars
-    if [ $query_logging -eq 1 ]; then
-        query_logging=true
-    else
-        query_logging=false
-    fi
-    echo "QUERY_LOGGING=$query_logging" >> $setupVars
-    echo "INSTALL_WEB=true" >> $setupVars
+	# Get the default network interface
+	main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
+	echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
+	echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
+	echo "IPV6_ADDRESS=::1" >> $setupVars
+	echo "PIHOLE_DNS_1=" >> $setupVars
+	echo "PIHOLE_DNS_2=" >> $setupVars
+	if [ $query_logging -eq 1 ]; then
+		query_logging=true
+	else
+		query_logging=false
+	fi
+	echo "QUERY_LOGGING=$query_logging" >> $setupVars
+	echo "INSTALL_WEB=true" >> $setupVars
 
-    # Recalculate and store the checksum of the file for the next upgrade.
-    ynh_store_file_checksum --file="$setupVars"
+	# Recalculate and store the checksum of the file for the next upgrade.
+	ynh_store_file_checksum --file="$setupVars"
 fi
 
 #=================================================
@@ -355,17 +355,17 @@ echo "$pihole_core_version $dashboard_version $FTL_version" | tee $pihole_storag
 
 if [ "$pihole_version" == "Last 3.X" ]
 then
-    cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
+	cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
 else
-    cp $pihole_local_repo/advanced/Templates/pihole.cron /etc/cron.d/pihole
+	cp $pihole_local_repo/advanced/Templates/pihole.cron /etc/cron.d/pihole
 fi
 # Remove git usage for version. Which fails because we use here a release instead of master.
 ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
 
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-
+ynh_script_progression --message="Integrating service in YunoHost..."
 yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log"
 
 #=================================================
@@ -410,20 +410,20 @@ admin_panel="https://$(grep portal_domain /etc/ssowat/conf.json | cut -d'"' -f4)
 
 # If a html email is required. Apply html to the changelog.
 if [ "$admin_mail_html" -eq 1 ]; then
-    format=html
+	format=html
 else
-    format=plain
+	format=plain
 fi
 ynh_app_changelog --format=$format
 
 if [ $enable_dhcp -eq 1 ]
 then
-    dhcp_alert="You asked to use the internal DHCP server of dnsmasq with PiHole.
+	dhcp_alert="You asked to use the internal DHCP server of dnsmasq with PiHole.
 You should really read the documentation about that, https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md
 
 "
 else
-    dhcp_alert=""
+	dhcp_alert=""
 fi
 
 echo "${dhcp_alert}You can configure this app easily by using the experimental __URL_TAG1__config-panel feature__URL_TAG2__$admin_panel/config-panel__URL_TAG3__.

@@ -6,6 +6,7 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
+# Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
@@ -36,7 +37,7 @@ fpm_config_dir=$(ynh_app_setting_get --app=$app --key=fpm_config_dir)
 ynh_print_info --message="Declaring files to be backed up..."
 
 #=================================================
-# BACKUP THE MAIN APP DIRECTORIES
+# BACKUP THE APP MAIN DIRECTORIES
 #=================================================
 
 ynh_backup --src_path="$final_path"
@@ -45,13 +46,13 @@ ynh_backup --src_path="/etc/pihole"
 ynh_backup --src_path="/opt/pihole"
 
 #=================================================
-# BACKUP NGINX CONFIGURATION
+# BACKUP THE NGINX CONFIGURATION
 #=================================================
 
 ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
-# BACKUP PHP-FPM CONFIGURATION
+# BACKUP THE PHP-FPM CONFIGURATION
 #=================================================
 
 ynh_backup --src_path="$fpm_config_dir/php-fpm-$app.conf"
@@ -60,14 +61,10 @@ ynh_backup --src_path="$fpm_config_dir/pool.d/$app.conf"
 #=================================================
 # SPECIFIC BACKUP
 #=================================================
-# BACKUP CRON FILE
+# BACKUP VARIOUS FILES
 #=================================================
 
 ynh_backup --src_path="/etc/cron.d/pihole"
-
-#=================================================
-# BACKUP SPECIFIC FILES
-#=================================================
 
 ynh_backup --src_path="/usr/local/bin/pihole"
 ynh_backup --src_path="/etc/bash_completion.d/pihole"
@@ -78,7 +75,7 @@ ynh_backup --src_path="/etc/init.d/pihole-FTL"
 ynh_backup --src_path="/usr/bin/pihole-FTL"
 
 if test -e "/etc/dnsmasq.d/03-pihole-wildcard.conf"; then
-    ynh_backup --src_path="/etc/dnsmasq.d/03-pihole-wildcard.conf"
+	ynh_backup --src_path="/etc/dnsmasq.d/03-pihole-wildcard.conf"
 fi
 
 ynh_backup --src_path="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
