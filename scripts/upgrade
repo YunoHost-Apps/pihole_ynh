@@ -31,7 +31,7 @@ overwrite_setupvars=$(ynh_app_setting_get --app=$app --key=overwrite_setupvars)
 overwrite_ftl=$(ynh_app_setting_get --app=$app --key=overwrite_ftl)
 overwrite_nginx=$(ynh_app_setting_get --app=$app --key=overwrite_nginx)
 overwrite_phpfpm=$(ynh_app_setting_get --app=$app --key=overwrite_phpfpm)
-
+admin_mail_html=$(ynh_app_setting_get --app=$app --key=admin_mail_html)
 fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
 fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
 
