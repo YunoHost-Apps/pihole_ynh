@@ -366,16 +366,16 @@ ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --ta
 # INTEGRATE SERVICE IN YUNOHOST
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
+
 yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log"
 
 #=================================================
 # UPDATE CONF_REGEN HOOK
 #=================================================
+ynh_script_progression --message="Updating conf_regen hook..."
 
-ynh_add_config --template="../conf/dnsmasq_regenconf_hook" --destination="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
-
-#cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
-#ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 
 systemctl daemon-reload
 ynh_exec_warn_less yunohost tools regen-conf dnsmasq
