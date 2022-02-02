@@ -17,6 +17,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Network-wide ad blocking via your own DNS server
 
+
 **Shipped version:** 5.6~ynh1
 
 
