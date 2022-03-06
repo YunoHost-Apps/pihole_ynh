@@ -23,6 +23,7 @@
         setup_private=1
         setup_public=0
         upgrade=1
+        upgrade=1   from_commit=cfa9c5a3dbcfb765dcca3b2e7d179756afe26def
         backup_restore=1
         multi_instance=0
         port_already_use=1
@@ -31,4 +32,7 @@
         config_panel=1
 ;;; Options
 Email=
-Notification=change
+Notification=none
+;;; Upgrade options
+    ; commit=cfa9c5a3dbcfb765dcca3b2e7d179756afe26def
+        name=Merge pull request #66
