@@ -11,7 +11,8 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 ## Vue d'ensemble
 
-Filtrage publicitaire via votre propre serveur DNS
+Network-wide ad blocking via your own DNS server
+
 
 **Version incluse :** 5.9~ynh1
 

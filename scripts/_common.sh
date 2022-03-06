@@ -378,3 +378,7 @@ ynh_app_changelog () {
         echo "No significative changes from the changelog..." > "${final_changelog}_lite"
     fi
 }
+
+#=================================================
+# FUTURE OFFICIAL HELPERS
+#=================================================
