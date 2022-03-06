@@ -7,8 +7,6 @@
 #=================================================
 
 # Load common variables for all scripts.
-source scripts/_variables
-
 source scripts/_common.sh
 source /usr/share/yunohost/helpers
 

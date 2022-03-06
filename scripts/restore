@@ -7,8 +7,6 @@
 #=================================================
 
 # Load common variables for all scripts.
-source ../settings/scripts/_variables
-
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
@@ -109,7 +107,7 @@ ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_ser
 #=================================================
 ynh_script_progression --message="Reinstalling dependencies..." --weight=12
 
-ynh_install_app_dependencies $app_depencencies
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL

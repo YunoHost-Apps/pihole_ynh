@@ -1,6 +1,19 @@
 #!/bin/bash
 
 #=================================================
+# COMMON VARIABLES
+#=================================================
+
+YNH_PHP_VERSION="7.3"
+
+# Dependencies
+pkg_dependencies="sqlite3 idn2 php${YNH_PHP_VERSION}-sqlite3 nettle-dev libcap2-bin build-essential libgmp-dev m4 cmake libidn11-dev libreadline-dev xxd"
+
+pihole_core_version=5.ç
+dashboard_version=5.11
+FTL_version=5.14
+
+#=================================================
 # FUTUR OFFICIAL HELPERS
 #=================================================
 
