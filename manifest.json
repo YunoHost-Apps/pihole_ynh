@@ -6,7 +6,7 @@
         "en": "Network-wide ad blocking via your own DNS server",
         "fr": "Filtrage publicitaire via votre propre serveur DNS"
     },
-    "version": "5.7~ynh1",
+    "version": "5.9~ynh1",
     "url": "https://pi-hole.net/",
     "upstream": {
         "license": "EUPL-1.2",
