@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# Dependencies
-app_depencencies="sqlite3 idn2 php7.3-sqlite3 nettle-dev libcap2-bin build-essential libgmp-dev m4 cmake libidn11-dev libreadline-dev xxd"
-
-pihole_core_version=5.6
-dashboard_version=5.8
-FTL_version=5.11
