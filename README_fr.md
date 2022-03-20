@@ -11,8 +11,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 ## Vue d'ensemble
 
-Network-wide ad blocking via your own DNS server
-
+The Pi-hole® is a DNS sinkhole that protects your devices from unwanted content without installing any client-side software.
 
 **Version incluse :** 5.9~ynh1
 
