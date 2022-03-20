@@ -5,7 +5,16 @@
         admin="john"
         query_logging=1
         enable_dhcp=0
-        pihole_version="Last available"
+    ; Config_panel
+        main.overwrite_files.overwrite_setupvars=0|1
+        main.overwrite_files.overwrite_ftl=0|1
+        main.overwrite_files.overwrite_nginx=0|1
+        main.overwrite_files.overwrite_phpfpm=0|1
+        main.global_config.email_type=0|1
+        main.php_fpm_config.footprint=low|medium|high
+        main.php_fpm_config.free_footprint=20
+        main.php_fpm_config.usage=low|medium|high
+        main.php_fpm_config.force_max_children=20|0
     ; Checks
         pkg_linter=1
         setup_sub_dir=1
@@ -14,34 +23,16 @@
         setup_private=1
         setup_public=0
         upgrade=1
+        upgrade=1   from_commit=cfa9c5a3dbcfb765dcca3b2e7d179756afe26def
         backup_restore=1
         multi_instance=0
         port_already_use=1
         change_url=1
         actions=0
         config_panel=0
-;; Test version 3
-    ; Manifest
-        domain="domain.tld"
-        path="/path"
-        admin="john"
-        query_logging=1
-        enable_dhcp=0
-        pihole_version="Last 3.X"
-    ; Checks
-        setup_sub_dir=1
-        setup_root=1
-        upgrade=1
-        # 3.3.1~ynh1
-        upgrade=1   from_commit=d79ec131b3038ff4695c3317b5d3ee4eda9c8932
-        # 5.4~ynh1
-        upgrade=1   from_commit=cfa9c5a3dbcfb765dcca3b2e7d179756afe26def
-        backup_restore=1
-        actions=1
 ;;; Options
 Email=
-Notification=change
+Notification=none
 ;;; Upgrade options
-    ; commit=d79ec131b3038ff4695c3317b5d3ee4eda9c8932
-        name= Stretch fix
-        manifest_arg=domain=DOMAIN&path=PATH&admin=USER&query_logging=1&
+    ; commit=cfa9c5a3dbcfb765dcca3b2e7d179756afe26def
+        name=Merge pull request #66

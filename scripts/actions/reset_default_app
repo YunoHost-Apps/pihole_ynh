@@ -7,8 +7,6 @@
 #=================================================
 
 # Load common variables for all scripts.
-source scripts/_variables
-
 source scripts/_common.sh
 source /usr/share/yunohost/helpers
 
@@ -32,7 +30,6 @@ app=$YNH_APP_INSTANCE_NAME
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-pihole_version="$(ynh_app_setting_get --app=$app --key=pihole_version)"
 
 #=================================================
 # SPECIFIC ACTION
@@ -58,21 +55,14 @@ ynh_script_progression --message="Resetting source files..." --weight=1
 
 # Download, check integrity, uncompress and patch the source from app.src
 pihole_local_repo="/etc/.pihole"
-(cd scripts
-if [ "$pihole_version" == "Last 3.X" ]
-then
-    # Overwrite the version 3.3.1
-    YNH_CWD=$PWD ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app_3
-    # Overwrite admin dashboard
-    YNH_CWD=$PWD ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard_3
-else
+(
+    cd scripts
     # Overwrite the last version available
-    YNH_CWD=$PWD ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app_last
+    YNH_CWD=$PWD ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app
     # Overwrite admin dashboard
-    YNH_CWD=$PWD ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard_last
-fi
+    YNH_CWD=$PWD ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
 
-chown $app:www-data "$final_path"
+    chown $app:www-data "$final_path"
 
 )
 
@@ -133,12 +123,7 @@ chown $dnsmasq_user:root /var/log/{pihole,pihole-FTL}.log
 #=================================================
 
 # This sudoers config allow pihole to execute /usr/local/bin/pihole as root without password. Nothing more.
-if [ "$pihole_version" == "Last 3.X" ]
-then
-    cp "$pihole_local_repo/advanced/pihole.sudo" /etc/sudoers.d/pihole
-else
-    cp "$pihole_local_repo/advanced/Templates/pihole.sudo" /etc/sudoers.d/pihole
-fi
+cp "$pihole_local_repo/advanced/Templates/pihole.sudo" /etc/sudoers.d/pihole
 echo "$app ALL=NOPASSWD: /usr/local/bin/pihole" >> /etc/sudoers.d/pihole
 # echo "Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin" >> /etc/sudoers.d/pihole
 chmod 0440 /etc/sudoers.d/pihole
@@ -147,12 +132,7 @@ chmod 0440 /etc/sudoers.d/pihole
 # REINSTALL LOGROTATE SCRIPT FOR PI-HOLE
 #=================================================
 
-if [ "$pihole_version" == "Last 3.X" ]
-then
-    cp "$pihole_local_repo/advanced/logrotate" "$pihole_storage/logrotate"
-else
-    cp "$pihole_local_repo/advanced/Templates/logrotate" "$pihole_storage/logrotate"
-fi
+cp "$pihole_local_repo/advanced/Templates/logrotate" "$pihole_storage/logrotate"
 sed -i "/# su #/d;" "$pihole_storage/logrotate"
 
 #=================================================
@@ -162,19 +142,15 @@ ynh_script_progression --message="Reinstalling PiHole-FTL..." --weight=30
 
 # Get the source of Pi-Hole-FTL
 FTL_temp_path=$(mktemp -d)
-if [ "$pihole_version" == "Last 3.X" ]
-then
-    # Install the version 3.3.1
-    ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL_3
-else
-    # Install the last version available
-    ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL_last
-fi
+# Install the last version available
+ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL
 
 # Instead of downloading a binary file, we're going to compile it
-( cd "$FTL_temp_path"
-ynh_exec_warn_less make
-ynh_exec_warn_less make install )
+( 
+    cd "$FTL_temp_path"
+    ynh_exec_warn_less make
+    ynh_exec_warn_less make install
+)
 ynh_secure_remove --file="$FTL_temp_path"
 
 cp "../conf/dns-servers.conf" "$pihole_storage"
@@ -182,20 +158,12 @@ cp "../conf/dns-servers.conf" "$pihole_storage"
 # Restore the default pihole-FTL.conf
 yunohost app action run $app reset_default_ftl
 
-if [ "$pihole_version" == "Last 3.X" ]
-then
-    # Version 3.3.1
-    cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
-    chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL
-else
-    cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
-    chmod +x /etc/init.d/pihole-FTL
-    ynh_exec_warn_less systemctl enable pihole-FTL
+cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
+chmod +x /etc/init.d/pihole-FTL
+ynh_exec_warn_less systemctl enable pihole-FTL
 
-    # Reload systemd config
-    systemctl daemon-reload
-fi
+# Reload systemd config
+systemctl daemon-reload
 
 #=================================================
 # RESET THE VARIABLES FILE
@@ -215,12 +183,7 @@ yunohost app action run $app reset_default_dnsmasq
 # REINSTALL CRON JOB
 #=================================================
 
-if [ "$pihole_version" == "Last 3.X" ]
-then
-    cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
-else
-    cp $pihole_local_repo/advanced/Templates/pihole.cron /etc/cron.d/pihole
-fi
+cp $pihole_local_repo/advanced/Templates/pihole.cron /etc/cron.d/pihole
 
 # Remove git usage for version. Which fails because we use here a release instead of master.
 ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole

@@ -7,7 +7,6 @@
 #=================================================
 
 # Load common variables for all scripts.
-source _variables
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -119,6 +118,36 @@ if [ -z "$pihole_version" ]; then
 fi
 
 #=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=7
+
+# Backup the current version of the app
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+    # restore it if the upgrade fails
+    ynh_restore_upgradebackup
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# ACTIVATE MAINTENANCE MODE
+#=================================================
+ynh_script_progression --message="Activating maintenance mode..."
+
+ynh_maintenance_mode_ON
+
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Upgrading dependencies..." --weight=6
+
+ynh_install_app_dependencies $pkg_dependencies
+
+#=================================================
 # CREATE DEDICATED USER
 #=================================================
 ynh_script_progression --message="Making sure dedicated system user exists..."
@@ -133,19 +162,11 @@ ynh_system_user_create --username=$app
 pihole_local_repo="/etc/.pihole"
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Upgrading source files..." --weight=4
-	if [ "$pihole_version" == "Last 3.X" ]
-	then
-		# Update the version 3.X
-		ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app_3
-		# Update admin dashboard
-		ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard_3
-	else
-		# Update the last version available
-		ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app_last
-		# Update admin dashboard
-		ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard_last
-	fi
+    ynh_script_progression --message="Upgrading source files..." --weight=4
+    # Update the last version available
+    ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app
+    # Update admin dashboard
+    ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
 fi
 
 chown $app:www-data "$final_path"
@@ -207,12 +228,7 @@ cp -a "$pihole_local_repo/advanced/bash-completion/pihole" /etc/bash_completion.
 #=================================================
 
 # This sudoers config allow pihole to execute /usr/local/bin/pihole as root without password. Nothing more.
-if [ "$pihole_version" == "Last 3.X" ]
-then
-	cp "$pihole_local_repo/advanced/pihole.sudo" /etc/sudoers.d/pihole
-else
-	cp "$pihole_local_repo/advanced/Templates/pihole.sudo" /etc/sudoers.d/pihole
-fi
+cp "$pihole_local_repo/advanced/Templates/pihole.sudo" /etc/sudoers.d/pihole
 echo "$app ALL=NOPASSWD: /usr/local/bin/pihole" >> /etc/sudoers.d/pihole
 chmod 0440 /etc/sudoers.d/pihole
 
@@ -221,14 +237,7 @@ chmod 0440 /etc/sudoers.d/pihole
 #=================================================
 
 pihole_storage="/etc/pihole"
-if [ "$pihole_version" == "Last 3.X" ]
-then
-	cp "$pihole_local_repo/advanced/logrotate" "$pihole_storage/logrotate"
-	dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
-else
-	cp "$pihole_local_repo/advanced/Templates/logrotate" "$pihole_storage/logrotate"
-	dnsmasq_user=$(grep FTLUSER= /etc/init.d/pihole-FTL | cut -d'=' -f2)
-fi
+cp "$pihole_local_repo/advanced/Templates/logrotate" "$pihole_storage/logrotate"
 sed -i "/# su #/d;" "$pihole_storage/logrotate"
 
 #=================================================
@@ -240,26 +249,19 @@ ynh_systemd_action --action=stop --service_name=pihole-FTL
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	# Get the source of Pi-Hole-FTL
-	FTL_temp_path=$(mktemp -d)
-	if [ "$pihole_version" == "Last 3.X" ]
-	then
-		# Install the version 3.3.1
-		ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL_3
-	else
-		# Install the last version available
-		ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL_last
-	fi
+    # Get the source of Pi-Hole-FTL
+    FTL_temp_path=$(mktemp -d)
+    # Install the last version available
+    ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL
 
-	# Instead of downloading a binary file, we're going to compile it
-	( cd "$FTL_temp_path"
-	if [ "$pihole_version" == "Last available" ]
-	then
-		ynh_exec_warn_less cmake .
-	fi
-	ynh_exec_warn_less make
-	ynh_exec_warn_less make install )
-	ynh_secure_remove --file="$FTL_temp_path"
+    # Instead of downloading a binary file, we're going to compile it
+    ( 
+        cd "$FTL_temp_path"
+        ynh_exec_warn_less cmake .
+        ynh_exec_warn_less make
+        ynh_exec_warn_less make install
+    )
+    ynh_secure_remove --file="$FTL_temp_path"
 fi
 
 # Overwrite pihole-FTL config file only if it's allowed
@@ -268,48 +270,41 @@ then
 	ynh_add_config --template="../conf/pihole-FTL.conf" --destination="$pihole_storage/pihole-FTL.conf"
 fi
 
-if [ "$pihole_version" == "Last 3.X" ]
-then
-	# Version 3.3.1
-	cp -a $pihole_local_repo/advanced/pihole-FTL.service /etc/init.d/pihole-FTL
-	chmod +x /etc/init.d/pihole-FTL
-	ynh_exec_warn_less systemctl enable pihole-FTL --quiet
-else
-	# Last version available
-	# Stopped dnsmasq to replace it by pihole-FTL
-	ynh_systemd_action --action=stop --service_name=dnsmasq
+# Last version available
+# Stopped dnsmasq to replace it by pihole-FTL
+ynh_systemd_action --action=stop --service_name=dnsmasq
 
-	# Disable the real dnsmasq service
-	ynh_exec_warn_less systemctl disable dnsmasq --quiet
+# Disable the real dnsmasq service
+#ynh_exec_warn_less systemctl disable dnsmasq --quiet
 
-	# And move the files that make the service available in systemd to really disable it
-	if [ ! -e "/lib/systemd/system/.dnsmasq.service.backup_by_pihole" ]; then
-		mv /lib/systemd/system/dnsmasq.service /lib/systemd/system/.dnsmasq.service.backup_by_pihole
-	fi
-	if [ ! -e "/etc/init.d/.dnsmasq.backup_by_pihole" ]; then
-		mv /etc/init.d/dnsmasq /etc/init.d/.dnsmasq.backup_by_pihole
-	fi
+# And move the files that make the service available in systemd to really disable it
+#if [ ! -e "/lib/systemd/system/.dnsmasq.service.backup_by_pihole" ]; then
+#    mv /lib/systemd/system/dnsmasq.service /lib/systemd/system/.dnsmasq.service.backup_by_pihole
+#fi
+#if [ ! -e "/etc/init.d/.dnsmasq.backup_by_pihole" ]; then
+#    mv /etc/init.d/dnsmasq /etc/init.d/.dnsmasq.backup_by_pihole
+#fi
 
-	# Move dnsmasq to preserve the current binary
-	if [ ! -e "/usr/sbin/dnsmasq.backup_by_pihole" ]; then
-		mv /usr/sbin/dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
-	fi
-	# Replace dnsmasq by pihole-FTL
-	# NOTE: pihole-FTL is actually a modified version of dnsmasq
-	# https://github.com/pi-hole/FTL/tree/master/dnsmasq
-	ln -sf /usr/bin/pihole-FTL /usr/sbin/dnsmasq
+# Move dnsmasq to preserve the current binary
+#if [ ! -e "/usr/sbin/dnsmasq.backup_by_pihole" ]; then
+#    mv /usr/sbin/dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
+#fi
+# Replace dnsmasq by pihole-FTL
+# NOTE: pihole-FTL is actually a modified version of dnsmasq
+# https://github.com/pi-hole/FTL/tree/master/dnsmasq
+#ln -sf /usr/bin/pihole-FTL /usr/sbin/dnsmasq
 
-	cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
-	chmod +x /etc/init.d/pihole-FTL
-	ynh_exec_warn_less systemctl enable pihole-FTL --quiet
+cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
+chmod +x /etc/init.d/pihole-FTL
+ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 
-	# Replace the service dnsmasq by pihole-FTL
-	# That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
-	ln -sf /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/dnsmasq.service
+# Replace the service dnsmasq by pihole-FTL
+# That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
+#ln -sf /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/dnsmasq.service
+systemctl mask dnsmasq.service
 
-	# Reload systemd config
-	systemctl daemon-reload
-fi
+# Reload systemd config
+systemctl daemon-reload
 
 #=================================================
 # BUILD VARIABLES FILE
@@ -353,12 +348,8 @@ echo "$pihole_core_version $dashboard_version $FTL_version" | tee $pihole_storag
 # UPDATE CRON JOB
 #=================================================
 
-if [ "$pihole_version" == "Last 3.X" ]
-then
-	cp $pihole_local_repo/advanced/pihole.cron /etc/cron.d/pihole
-else
-	cp $pihole_local_repo/advanced/Templates/pihole.cron /etc/cron.d/pihole
-fi
+cp $pihole_local_repo/advanced/Templates/pihole.cron /etc/cron.d/pihole
+
 # Remove git usage for version. Which fails because we use here a release instead of master.
 ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
 

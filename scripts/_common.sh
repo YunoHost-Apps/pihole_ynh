@@ -4,11 +4,17 @@
 # COMMON VARIABLES
 #=================================================
 
-# dependencies used by the app
-pkg_dependencies="sqlite3 idn2 php7.3-sqlite3 nettle-dev libcap2-bin build-essential libgmp-dev m4 cmake libidn11-dev libreadline-dev xxd"
+YNH_PHP_VERSION="7.3"
+
+# Dependencies
+pkg_dependencies="sqlite3 idn2 php${YNH_PHP_VERSION}-sqlite3 nettle-dev libcap2-bin build-essential libgmp-dev m4 cmake libidn11-dev libreadline-dev xxd"
+
+pihole_core_version=5.9
+dashboard_version=5.11
+FTL_version=5.14
 
 #=================================================
-# PERSONAL HELPERS
+# FUTUR OFFICIAL HELPERS
 #=================================================
 
 #=================================================

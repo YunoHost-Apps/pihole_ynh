@@ -6,7 +6,7 @@
         "en": "Network-wide ad blocking via your own DNS server",
         "fr": "Filtrage publicitaire via votre propre serveur DNS"
     },
-    "version": "5.6~ynh1",
+    "version": "5.9~ynh1",
     "url": "https://pi-hole.net/",
     "upstream": {
         "license": "EUPL-1.2",
@@ -72,20 +72,6 @@
                     "fr": "Si vous voulez faire ça, <a href=https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md target=_blank>vous devez vraiment lire cela avant</a> !"
                 },
                 "default": false
-            },
-            {
-                "name": "pihole_version",
-                "type": "string",
-                "ask": {
-                    "en": "Which version of Pi-Hole do you want to install?",
-                    "fr": "Quelle version de Pi-Hole voulez-vous installer ?"
-                },
-                "help": {
-                    "en": "The last 3.X version is the last version available with the Debian version of dnsmasq. The last available version will replace the Debian version of dnsmasq by FTLDNS.<br>See the readme for more information.",
-                    "fr": "La dernière version 3.X est la dernière version disponible avec la version Debian de dnsmasq. La dernière version disponible remplacera la version Debian de dnsmasq par FTLDNS.<br>Voir le readme pour plus d'informations."
-                },
-                "choices": ["Last 3.X","Last available"],
-                "default": "Last 3.X"
             }
         ]
     }
