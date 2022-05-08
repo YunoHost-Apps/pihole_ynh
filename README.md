@@ -15,10 +15,9 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 ## Overview
 
-Network-wide ad blocking via your own DNS server
+The Pi-hole® is a DNS sinkhole that protects your devices from unwanted content without installing any client-side software.
 
-
-**Shipped version:** 5.6~ynh1
+**Shipped version:** 5.10~ynh1
 
 
 
@@ -35,8 +34,6 @@ Use the admin panel of your Pi-hole to configure this app. You may also need to 
 ## Limitations
 
 * Activate DHCP with Pi-hole needs manual configuration of your router.
-* Pi-Hole can't be updated beyond version 3.3.1, because higher versions use an integrated version of dnsmasq. This would require disabling the version of dnsmasq used by YunoHost.
-
 
 ## Using Pi-hole as your DHCP server
 

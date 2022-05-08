@@ -1,0 +1,5 @@
+SOURCE_URL=https://github.com/pi-hole/FTL/archive/v5.12.tar.gz
+SOURCE_SUM=cc0864cdf7c10b82f04049e97dafef2eacb2b8155e7cb11e0383482f5dc0f1d6
+SOURCE_SUM_PRG=sha256sum
+SOURCE_FORMAT=tar.gz
+SOURCE_IN_SUBDIR=true
