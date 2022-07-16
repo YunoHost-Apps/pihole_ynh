@@ -5,7 +5,7 @@ It shall NOT be edited by hand.
 
 # Pi-hole for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/pihole.svg)](https://dash.yunohost.org/appci/app/pihole) ![](https://ci-apps.yunohost.org/ci/badges/pihole.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/pihole.maintain.svg)  
+[![Integration level](https://dash.yunohost.org/integration/pihole.svg)](https://dash.yunohost.org/appci/app/pihole) ![Working status](https://ci-apps.yunohost.org/ci/badges/pihole.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/pihole.maintain.svg)  
 [![Install Pi-hole with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=pihole)
 
 *[Lire ce readme en français.](./README_fr.md)*
@@ -19,11 +19,9 @@ The Pi-hole® is a DNS sinkhole that protects your devices from unwanted content
 
 **Shipped version:** 5.10~ynh1
 
-
-
 ## Screenshots
 
-![](./doc/screenshots/dashboard.png)
+![Screenshot of Pi-hole](./doc/screenshots/dashboard.png)
 
 ## Disclaimers / important information
 
@@ -90,21 +88,22 @@ sudo ifconfig eth0 0.0.0.0 && sudo dhclient eth0
 > Don't forget to turn off the DHCP of your router if your server is working again.
 ## Documentation and resources
 
-* Official app website: https://pi-hole.net/
-* Official admin documentation: https://docs.pi-hole.net
-* Upstream app code repository: https://github.com/pi-hole/pi-hole/
-* YunoHost documentation for this app: https://yunohost.org/app_pihole
-* Report a bug: https://github.com/YunoHost-Apps/pihole_ynh/issues
+* Official app website: <https://pi-hole.net/>
+* Official admin documentation: <https://docs.pi-hole.net>
+* Upstream app code repository: <https://github.com/pi-hole/pi-hole/>
+* YunoHost documentation for this app: <https://yunohost.org/app_pihole>
+* Report a bug: <https://github.com/YunoHost-Apps/pihole_ynh/issues>
 
 ## Developer info
 
 Please send your pull request to the [testing branch](https://github.com/YunoHost-Apps/pihole_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.
-```
+
+``` bash
 sudo yunohost app install https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
 or
 sudo yunohost app upgrade pihole -u https://github.com/YunoHost-Apps/pihole_ynh/tree/testing --debug
 ```
 
-**More info regarding app packaging:** https://yunohost.org/packaging_apps
+**More info regarding app packaging:** <https://yunohost.org/packaging_apps>
