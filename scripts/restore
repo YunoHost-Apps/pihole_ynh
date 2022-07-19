@@ -6,7 +6,7 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-# Load common variables for all scripts.
+# Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
@@ -14,13 +14,16 @@ source /usr/share/yunohost/helpers
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	ynh_clean_check_starting
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading settings..." --weight=2
+ynh_script_progression --message="Loading installation settings..." --weight=2
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -41,7 +44,8 @@ fpm_service=$(ynh_app_setting_get --app=$app --key=fpm_service)
 #=================================================
 ynh_script_progression --message="Validating restoration parameters..."
 
-test ! -d $final_path || ynh_die --message="There is already a directory: $final_path "
+test ! -d $final_path \
+	|| ynh_die --message="There is already a directory: $final_path "
 
 #=================================================
 # ACTIVATE MAINTENANCE MODE
@@ -51,23 +55,17 @@ ynh_script_progression --message="Activating maintenance mode..." --weight=2
 ynh_maintenance_mode_ON
 
 #=================================================
-# STANDARD RESTORE STEPS
-#=================================================
-# RESTORE THE NGINX CONFIGURATION
-#=================================================
-
-ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
-
+# STANDARD RESTORATION STEPS
 #=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
 ynh_script_progression --message="Recreating the dedicated system user..." --weight=2
 
 # Create the dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir=$final_path
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
-# RESTORE THE MAIN DIRECTORIES OF THE APP
+# RESTORE THE APP MAIN DIR
 #=================================================
 ynh_script_progression --message="Restoring the app main directory..."
 
@@ -85,31 +83,28 @@ chown $app: -R "/etc/pihole"
 chown root: -R "/etc/pihole/logrotate"
 
 #=================================================
-# RESTORE THE PHP-FPM CONFIGURATION
-#=================================================
-ynh_script_progression --message="Reconfiguring PHP-FPM..." --weight=7
-
-# Restore the file first, so it can have a backup if different
-ynh_restore_file --origin_path="$fpm_config_dir/php-fpm-$app.conf"
-ynh_restore_file --origin_path="$fpm_config_dir/pool.d/$app.conf"
-
-# Recreate a dedicated php-fpm config
-ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_service
-
-#=================================================
-# SPECIFIC RESTORE
+# SPECIFIC RESTORATION
 #=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
 ynh_script_progression --message="Reinstalling dependencies..." --weight=12
 
+# Define and install dependencies
 ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
+# RESTORE THE PHP-FPM CONFIGURATION
 #=================================================
+ynh_script_progression --message="Reconfiguring PHP-FPM..." --weight=7
 
-yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log"
+ynh_restore_file --origin_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
+
+#=================================================
+# RESTORE THE NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Restoring the NGINX web server configuration..."
+
+ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # RESTORE THE CRON FILE
@@ -222,9 +217,16 @@ ynh_replace_string --match_string="^IPV4_ADDRESS=.*" --replace_string="IPV4_ADDR
 ynh_store_file_checksum --file="$setupVars"
 
 #=================================================
-# START PIHOLE-FTL
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
+ynh_script_progression --message="Integrating service in YunoHost..."
+
+yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log" --needs_exposed_ports 53
+
+#=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..." --weight=2
 
 ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 ynh_systemd_action --action=restart --service_name=pihole-FTL

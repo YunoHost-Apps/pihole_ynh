@@ -6,7 +6,6 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-# Load common variables for all scripts.
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -14,6 +13,9 @@ source /usr/share/yunohost/helpers
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	ynh_clean_check_starting
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -108,20 +110,20 @@ ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
 chown $app:www-data "$final_path"
 
 #=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Configuring NGINX web server..." --weight=2
-
-# Create a dedicated NGINX config
-ynh_add_nginx_config
-
-#=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
 ynh_script_progression --message="Configuring PHP-FPM..." --weight=2
 
 # Create a dedicated PHP-FPM config
 ynh_add_fpm_config --usage=low --footprint=low --dedicated_service
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Configuring NGINX web server..." --weight=2
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
 
 #=================================================
 # SPECIFIC SETUP
@@ -319,25 +321,25 @@ systemctl daemon-reload
 ynh_exec_warn_less yunohost tools regen-conf dnsmasq
 
 #=================================================
-# START PIHOLE-FTL
+# GENERIC FINALISATION
 #=================================================
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..."
 
-ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
+yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log" --needs_exposed_ports 53
+
+#=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..." --weight=2
 
 ynh_systemd_action --action=restart --service_name=pihole-FTL
 
 #=================================================
-# GENERIC FINALISATION
+# SETUP SSOWAT
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
-#=================================================
-
-yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log"
-
-#=================================================
-# RESTRAIN THE ACCESS TO THE ADMIN ONLY
-#=================================================
-ynh_script_progression --message="Restraining the access to the admin only..." --weight=2
+ynh_script_progression --message="Configuring permissions..." --weight=2
 
 ynh_permission_update --permission="main" --add="$admin" --remove="all_users"
 

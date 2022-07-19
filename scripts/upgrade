@@ -6,7 +6,6 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-# Load common variables for all scripts.
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -49,6 +48,7 @@ ynh_script_progression --message="Backing up the app before upgrading (may take 
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
+	ynh_clean_check_starting
 	# Restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
@@ -118,42 +118,12 @@ if [ -z "$pihole_version" ]; then
 fi
 
 #=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
-#=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=7
-
-# Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
-    # restore it if the upgrade fails
-    ynh_restore_upgradebackup
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# ACTIVATE MAINTENANCE MODE
-#=================================================
-ynh_script_progression --message="Activating maintenance mode..."
-
-ynh_maintenance_mode_ON
-
-#=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Upgrading dependencies..." --weight=6
-
-ynh_install_app_dependencies $pkg_dependencies
-
-#=================================================
 # CREATE DEDICATED USER
 #=================================================
 ynh_script_progression --message="Making sure dedicated system user exists..."
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -172,18 +142,6 @@ fi
 chown $app:www-data "$final_path"
 
 #=================================================
-# NGINX CONFIGURATION
-#=================================================
-
-# Overwrite the nginx configuration only if it's allowed
-if [ $overwrite_nginx -eq 1 ]
-then
-	ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
-	# Create a dedicated NGINX config
-	ynh_add_nginx_config
-fi
-
-#=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
 ynh_script_progression --message="Upgrading dependencies..." --weight=6
@@ -200,6 +158,18 @@ then
 	ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
 	# Create a dedicated php-fpm config
 	ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_service
+fi
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
+# Overwrite the nginx configuration only if it's allowed
+if [ $overwrite_nginx -eq 1 ]
+then
+	ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
+	# Create a dedicated NGINX config
+	ynh_add_nginx_config
 fi
 
 #=================================================
@@ -354,13 +324,6 @@ cp $pihole_local_repo/advanced/Templates/pihole.cron /etc/cron.d/pihole
 ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
 
 #=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..."
-
-yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log"
-
-#=================================================
 # UPDATE CONF_REGEN HOOK
 #=================================================
 ynh_script_progression --message="Updating conf_regen hook..."
@@ -372,9 +335,18 @@ systemctl daemon-reload
 ynh_exec_warn_less yunohost tools regen-conf dnsmasq
 
 #=================================================
-# START PIHOLE-FTL
+# GENERIC FINALIZATION
 #=================================================
-ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..."
+
+yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log" --needs_exposed_ports 53
+
+#=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..." --weight=2
 
 ynh_systemd_action --action=restart --service_name=pihole-FTL
 

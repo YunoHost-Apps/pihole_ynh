@@ -63,28 +63,6 @@ ynh_secure_remove --file="/var/run/pihole-FTL.pid"
 ynh_secure_remove --file="/var/run/pihole-FTL.port"
 
 #=================================================
-# REMOVE DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Removing dependencies..." --weight=7
-
-# Remove metapackage and its dependencies
-ynh_remove_app_dependencies
-
-#=================================================
-# REMOVE THE DIRECTORIES OF THE APP
-#=================================================
-ynh_script_progression --message="Removing app main directory..."
-
-# Remove storage directory
-ynh_secure_remove --file="/etc/pihole"
-# Remove app directory
-ynh_secure_remove --file="/opt/pihole"
-# Remove admin panel directory
-ynh_secure_remove --file="/var/www/pihole"
-# Remove local clone of the repository
-ynh_secure_remove --file="/etc/.pihole"
-
-#=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
 ynh_script_progression --message="Removing NGINX web server configuration..."
@@ -99,6 +77,14 @@ ynh_script_progression --message="Removing PHP-FPM configuration..." --weight=2
 
 # Remove the dedicated PHP-FPM config
 ynh_remove_fpm_config
+
+#=================================================
+# REMOVE DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Removing dependencies..." --weight=7
+
+# Remove metapackage and its dependencies
+ynh_remove_app_dependencies
 
 #=================================================
 # CLOSE PORTS
@@ -123,6 +109,15 @@ fi
 # REMOVE VARIOUS FILES
 #=================================================
 ynh_script_progression --message="Removing various files..."
+
+# Remove storage directory
+ynh_secure_remove --file="/etc/pihole"
+# Remove app directory
+ynh_secure_remove --file="/opt/pihole"
+# Remove admin panel directory
+ynh_secure_remove --file="/var/www/pihole"
+# Remove local clone of the repository
+ynh_secure_remove --file="/etc/.pihole"
 
 ynh_secure_remove --file="/etc/cron.d/pihole"
 
@@ -182,6 +177,7 @@ ynh_script_progression --message="Removing the dedicated system user..." --weigh
 # Dirty hack to remove correctly the user
 killall -u $app
 
+# Delete a system user
 ynh_system_user_delete --username=$app
 
 #=================================================

@@ -6,7 +6,7 @@
 
 YNH_PHP_VERSION="7.3"
 
-# Dependencies
+# dependencies used by the app
 pkg_dependencies="sqlite3 idn2 php${YNH_PHP_VERSION}-sqlite3 nettle-dev libcap2-bin build-essential libgmp-dev m4 cmake libidn11-dev libreadline-dev xxd"
 
 pihole_core_version=5.9
@@ -14,7 +14,7 @@ dashboard_version=5.11
 FTL_version=5.14
 
 #=================================================
-# FUTUR OFFICIAL HELPERS
+# PERSONAL HELPERS
 #=================================================
 
 #=================================================
