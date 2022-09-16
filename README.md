@@ -91,7 +91,7 @@ sudo ifconfig eth0 0.0.0.0 && sudo dhclient eth0
 
 * Official app website: <https://pi-hole.net/>
 * Official admin documentation: <https://docs.pi-hole.net>
-* Upstream app code repository: <https://github.com/pi-hole/pi-hole/>
+* Upstream app code repository: <https://github.com/pi-hole/pi-hole>
 * YunoHost documentation for this app: <https://yunohost.org/app_pihole>
 * Report a bug: <https://github.com/YunoHost-Apps/pihole_ynh/issues>
 
