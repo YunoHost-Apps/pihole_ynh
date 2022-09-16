@@ -6,7 +6,6 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-# Load common variables for all scripts.
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -37,7 +36,7 @@ fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
 #=================================================
 # CHECK VERSION
 #=================================================
-ynh_script_progression --message="Checking version..."
+ynh_script_progression --message="Checking version..." --weight=1
 
 upgrade_type=$(ynh_check_app_version_changed)
 
@@ -49,6 +48,7 @@ ynh_script_progression --message="Backing up the app before upgrading (may take 
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
+	read -p "999"
 	# Restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
@@ -118,42 +118,12 @@ if [ -z "$pihole_version" ]; then
 fi
 
 #=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
-#=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=7
-
-# Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
-    # restore it if the upgrade fails
-    ynh_restore_upgradebackup
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# ACTIVATE MAINTENANCE MODE
-#=================================================
-ynh_script_progression --message="Activating maintenance mode..."
-
-ynh_maintenance_mode_ON
-
-#=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Upgrading dependencies..." --weight=6
-
-ynh_install_app_dependencies $pkg_dependencies
-
-#=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..."
+ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -162,26 +132,14 @@ ynh_system_user_create --username=$app
 pihole_local_repo="/etc/.pihole"
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-    ynh_script_progression --message="Upgrading source files..." --weight=4
-    # Update the last version available
-    ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app
-    # Update admin dashboard
-    ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
+	ynh_script_progression --message="Upgrading source files..." --weight=4
+	# Update the last version available
+	ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app
+	# Update admin dashboard
+	ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
 fi
 
 chown $app:www-data "$final_path"
-
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-
-# Overwrite the nginx configuration only if it's allowed
-if [ $overwrite_nginx -eq 1 ]
-then
-	ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
-	# Create a dedicated NGINX config
-	ynh_add_nginx_config
-fi
 
 #=================================================
 # UPGRADE DEPENDENCIES
@@ -200,6 +158,18 @@ then
 	ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
 	# Create a dedicated php-fpm config
 	ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_service
+fi
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
+# Overwrite the nginx configuration only if it's allowed
+if [ $overwrite_nginx -eq 1 ]
+then
+	ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
+	# Create a dedicated NGINX config
+	ynh_add_nginx_config
 fi
 
 #=================================================
@@ -249,19 +219,19 @@ ynh_systemd_action --action=stop --service_name=pihole-FTL
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-    # Get the source of Pi-Hole-FTL
-    FTL_temp_path=$(mktemp -d)
-    # Install the last version available
-    ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL
+	# Get the source of Pi-Hole-FTL
+	FTL_temp_path=$(mktemp -d)
+	# Install the last version available
+	ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL
 
-    # Instead of downloading a binary file, we're going to compile it
-    ( 
-        cd "$FTL_temp_path"
-        ynh_exec_warn_less cmake .
-        ynh_exec_warn_less make
-        ynh_exec_warn_less make install
-    )
-    ynh_secure_remove --file="$FTL_temp_path"
+	# Instead of downloading a binary file, we're going to compile it
+	( 
+		cd "$FTL_temp_path"
+		ynh_exec_warn_less cmake .
+		ynh_exec_warn_less make
+		ynh_exec_warn_less make install
+	)
+	ynh_secure_remove --file="$FTL_temp_path"
 fi
 
 # Overwrite pihole-FTL config file only if it's allowed
@@ -279,15 +249,15 @@ ynh_systemd_action --action=stop --service_name=dnsmasq
 
 # And move the files that make the service available in systemd to really disable it
 #if [ ! -e "/lib/systemd/system/.dnsmasq.service.backup_by_pihole" ]; then
-#    mv /lib/systemd/system/dnsmasq.service /lib/systemd/system/.dnsmasq.service.backup_by_pihole
+#	mv /lib/systemd/system/dnsmasq.service /lib/systemd/system/.dnsmasq.service.backup_by_pihole
 #fi
 #if [ ! -e "/etc/init.d/.dnsmasq.backup_by_pihole" ]; then
-#    mv /etc/init.d/dnsmasq /etc/init.d/.dnsmasq.backup_by_pihole
+#	mv /etc/init.d/dnsmasq /etc/init.d/.dnsmasq.backup_by_pihole
 #fi
 
 # Move dnsmasq to preserve the current binary
 #if [ ! -e "/usr/sbin/dnsmasq.backup_by_pihole" ]; then
-#    mv /usr/sbin/dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
+#	mv /usr/sbin/dnsmasq /usr/sbin/dnsmasq.backup_by_pihole
 #fi
 # Replace dnsmasq by pihole-FTL
 # NOTE: pihole-FTL is actually a modified version of dnsmasq
@@ -356,14 +326,14 @@ ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --ta
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Integrating service in YunoHost..."
+ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
 
 yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log"
 
 #=================================================
 # UPDATE CONF_REGEN HOOK
 #=================================================
-ynh_script_progression --message="Updating conf_regen hook..."
+ynh_script_progression --message="Updating conf_regen hook..." --weight=1
 
 cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
 ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
@@ -381,7 +351,7 @@ ynh_systemd_action --action=restart --service_name=pihole-FTL
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..."
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 

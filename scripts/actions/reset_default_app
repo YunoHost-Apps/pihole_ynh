@@ -16,7 +16,7 @@ source /usr/share/yunohost/helpers
 
 ynh_clean_setup () {
 # Clean installation remaining that are not handle by the remove script.
-    ynh_clean_check_starting
+	ynh_clean_check_starting
 }
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
@@ -56,13 +56,13 @@ ynh_script_progression --message="Resetting source files..." --weight=1
 # Download, check integrity, uncompress and patch the source from app.src
 pihole_local_repo="/etc/.pihole"
 (
-    cd scripts
-    # Overwrite the last version available
-    YNH_CWD=$PWD ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app
-    # Overwrite admin dashboard
-    YNH_CWD=$PWD ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
+	cd scripts
+	# Overwrite the last version available
+	YNH_CWD=$PWD ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app
+	# Overwrite admin dashboard
+	YNH_CWD=$PWD ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
 
-    chown $app:www-data "$final_path"
+	chown $app:www-data "$final_path"
 
 )
 
@@ -147,9 +147,9 @@ ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL
 
 # Instead of downloading a binary file, we're going to compile it
 ( 
-    cd "$FTL_temp_path"
-    ynh_exec_warn_less make
-    ynh_exec_warn_less make install
+	cd "$FTL_temp_path"
+	ynh_exec_warn_less make
+	ynh_exec_warn_less make install
 )
 ynh_secure_remove --file="$FTL_temp_path"
 
@@ -193,9 +193,9 @@ ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --ta
 #=================================================
 
 (
-    cd scripts
-    cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
-    ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+	cd scripts
+	cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+	ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 )
 
 #=================================================

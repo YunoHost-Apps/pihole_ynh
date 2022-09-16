@@ -14,6 +14,9 @@ source /usr/share/yunohost/helpers
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	true
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -25,7 +28,6 @@ ynh_print_info --message="Loading installation settings..."
 app=$YNH_APP_INSTANCE_NAME
 
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-path_url=$(ynh_app_setting_get --app=$app --key=path)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 
 # Get variable from ynh_add_fpm_config
@@ -37,14 +39,10 @@ fpm_config_dir=$(ynh_app_setting_get --app=$app --key=fpm_config_dir)
 ynh_print_info --message="Declaring files to be backed up..."
 
 #=================================================
-# BACKUP THE APP MAIN DIRECTORIES
+# BACKUP THE APP MAIN DIR
 #=================================================
 
 ynh_backup --src_path="$final_path"
-ynh_backup --src_path="/etc/.pihole"
-ynh_backup --src_path="/etc/pihole"
-ynh_backup --src_path="/opt/pihole"
-
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
@@ -63,6 +61,10 @@ ynh_backup --src_path="$fpm_config_dir/pool.d/$app.conf"
 #=================================================
 # BACKUP VARIOUS FILES
 #=================================================
+
+ynh_backup --src_path="/etc/.pihole"
+ynh_backup --src_path="/etc/pihole"
+ynh_backup --src_path="/opt/pihole"
 
 ynh_backup --src_path="/etc/cron.d/pihole"
 

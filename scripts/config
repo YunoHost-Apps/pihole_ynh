@@ -59,11 +59,11 @@ fpm_footprint="${YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FOOTPRINT:-$old_fpm_footprint}"
 # Check if fpm_footprint is an integer
 if [ "$fpm_footprint" -eq "$fpm_footprint" ] 2> /dev/null
 then
-    # If fpm_footprint is an integer, that's a numeric value for the footprint
-    old_free_footprint=$fpm_footprint
-    fpm_footprint=specific
+	# If fpm_footprint is an integer, that's a numeric value for the footprint
+	old_free_footprint=$fpm_footprint
+	fpm_footprint=specific
 else
-    old_free_footprint=0
+	old_free_footprint=0
 fi
 free_footprint="${YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FREE_FOOTPRINT:-$old_free_footprint}"
 
@@ -75,7 +75,7 @@ fpm_usage="${YNH_CONFIG_MAIN_PHP_FPM_CONFIG_USAGE:-$old_fpm_usage}"
 old_php_forced_max_children="$(ynh_app_setting_get --app=$app --key=php_forced_max_children)"
 # If php_forced_max_children isn't into settings.yml, get the current value from the fpm config
 if [ -z "$old_php_forced_max_children" ]; then
-    old_php_forced_max_children="$(grep "^pm.max_children" "$fpm_config_dir/pool.d/$app.conf" | awk '{print $3}')"
+	old_php_forced_max_children="$(grep "^pm.max_children" "$fpm_config_dir/pool.d/$app.conf" | awk '{print $3}')"
 fi
 php_forced_max_children="${YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FORCE_MAX_CHILDREN:-$old_php_forced_max_children}"
 
@@ -84,20 +84,20 @@ php_forced_max_children="${YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FORCE_MAX_CHILDREN:-$o
 #=================================================
 
 show_config() {
-    # here you are supposed to read some config file/database/other then print the values
-    # ynh_return "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
+	# here you are supposed to read some config file/database/other then print the values
+	# ynh_return "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
 
-    ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_SETUPVARS=$overwrite_setupvars"
-    ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_FTL=$overwrite_ftl"
-    ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX=$overwrite_nginx"
-    ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_PHPFPM=$overwrite_phpfpm"
+	ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_SETUPVARS=$overwrite_setupvars"
+	ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_FTL=$overwrite_ftl"
+	ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX=$overwrite_nginx"
+	ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_PHPFPM=$overwrite_phpfpm"
 
-    ynh_return "YNH_CONFIG_MAIN_GLOBAL_CONFIG_EMAIL_TYPE=$admin_mail_html"
+	ynh_return "YNH_CONFIG_MAIN_GLOBAL_CONFIG_EMAIL_TYPE=$admin_mail_html"
 
-    ynh_return "YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FOOTPRINT=$fpm_footprint"
-    ynh_return "YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FREE_FOOTPRINT=$free_footprint"
-    ynh_return "YNH_CONFIG_MAIN_PHP_FPM_CONFIG_USAGE=$fpm_usage"
-    ynh_return "YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FORCE_MAX_CHILDREN=$php_forced_max_children"
+	ynh_return "YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FOOTPRINT=$fpm_footprint"
+	ynh_return "YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FREE_FOOTPRINT=$free_footprint"
+	ynh_return "YNH_CONFIG_MAIN_PHP_FPM_CONFIG_USAGE=$fpm_usage"
+	ynh_return "YNH_CONFIG_MAIN_PHP_FPM_CONFIG_FORCE_MAX_CHILDREN=$php_forced_max_children"
 }
 
 #=================================================
@@ -106,60 +106,60 @@ show_config() {
 
 apply_config() {
 
-    #=================================================
-    # MODIFY OVERWRITTING SETTINGS
-    #=================================================
+	#=================================================
+	# MODIFY OVERWRITTING SETTINGS
+	#=================================================
 
-    # Set overwrite_setupvars
-    ynh_app_setting_set --app=$app --key=overwrite_setupvars --value="$overwrite_setupvars"
-    # Set overwrite_ftl
-    ynh_app_setting_set --app=$app --key=overwrite_ftl --value="$overwrite_ftl"
-    # Set overwrite_nginx
-    ynh_app_setting_set --app=$app --key=overwrite_nginx --value="$overwrite_nginx"
-    # Set overwrite_phpfpm
-    ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value="$overwrite_phpfpm"
+	# Set overwrite_setupvars
+	ynh_app_setting_set --app=$app --key=overwrite_setupvars --value="$overwrite_setupvars"
+	# Set overwrite_ftl
+	ynh_app_setting_set --app=$app --key=overwrite_ftl --value="$overwrite_ftl"
+	# Set overwrite_nginx
+	ynh_app_setting_set --app=$app --key=overwrite_nginx --value="$overwrite_nginx"
+	# Set overwrite_phpfpm
+	ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value="$overwrite_phpfpm"
 
-    #=================================================
-    # MODIFY EMAIL SETTING
-    #=================================================
+	#=================================================
+	# MODIFY EMAIL SETTING
+	#=================================================
 
-    # Set admin_mail_html
-    ynh_app_setting_set --app=$app --key=admin_mail_html --value="$admin_mail_html"
+	# Set admin_mail_html
+	ynh_app_setting_set --app=$app --key=admin_mail_html --value="$admin_mail_html"
 
-    #=================================================
-    # RECONFIGURE PHP-FPM
-    #=================================================
+	#=================================================
+	# RECONFIGURE PHP-FPM
+	#=================================================
 
-    if [ "$fpm_usage" != "$old_fpm_usage" ] || \
-        [ "$fpm_footprint" != "$old_fpm_footprint" ] || \
-        [ "$free_footprint" != "$old_free_footprint" ] || \
-        [ "$php_forced_max_children" != "$old_php_forced_max_children" ]
-    then
-        # If fpm_footprint is set to 'specific', use $free_footprint value.
-        if [ "$fpm_footprint" = "specific" ]
-        then
-            fpm_footprint=$free_footprint
-        fi
+	if [ "$fpm_usage" != "$old_fpm_usage" ] || \
+		[ "$fpm_footprint" != "$old_fpm_footprint" ] || \
+		[ "$free_footprint" != "$old_free_footprint" ] || \
+		[ "$php_forced_max_children" != "$old_php_forced_max_children" ]
+	then
+		# If fpm_footprint is set to 'specific', use $free_footprint value.
+		if [ "$fpm_footprint" = "specific" ]
+		then
+			fpm_footprint=$free_footprint
+		fi
 
-        if [ "$php_forced_max_children" != "$old_php_forced_max_children" ]
-        then
-            # Set php_forced_max_children
-            if [ $php_forced_max_children -ne 0 ]
-            then
-                ynh_app_setting_set --app=$app --key=php_forced_max_children --value="$php_forced_max_children"
-            else
-                # If the value is set to 0, remove the setting
-                ynh_app_setting_delete --app=$app --key=php_forced_max_children
-            fi
-        fi
+		if [ "$php_forced_max_children" != "$old_php_forced_max_children" ]
+		then
+			# Set php_forced_max_children
+			if [ $php_forced_max_children -ne 0 ]
+			then
+				ynh_app_setting_set --app=$app --key=php_forced_max_children --value="$php_forced_max_children"
+			else
+				# If the value is set to 0, remove the setting
+				ynh_app_setting_delete --app=$app --key=php_forced_max_children
+			fi
+		fi
 
-        if [ "$fpm_footprint" != "0" ]
-        then
-            ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_service
-        else
-            ynh_print_err --message="When selecting 'specific', you have to set a footprint value into the field below."
-        fi
-    fi
+		if [ "$fpm_footprint" != "0" ]
+		then
+			ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_service
+		else
+			ynh_print_err --message="When selecting 'specific', you have to set a footprint value into the field below."
+		fi
+	fi
 }
 
 #=================================================
@@ -169,6 +169,6 @@ apply_config() {
 #=================================================
 
 case $1 in
-    show) show_config;;
-    apply) apply_config;;
+	show) show_config;;
+	apply) apply_config;;
 esac

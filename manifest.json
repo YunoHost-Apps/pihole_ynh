@@ -12,17 +12,19 @@
         "license": "EUPL-1.2",
         "website": "https://pi-hole.net/",
         "admindoc": "https://docs.pi-hole.net",
-        "code": "https://github.com/pi-hole/pi-hole/"
+        "code": "https://github.com/pi-hole/pi-hole"
     },
     "license": "EUPL-1.2",
     "maintainer": {
         "name": "",
         "email": ""
     },
-    "previous_maintainers": [{
-        "name": "Maniack Crudelis",
-        "email": "maniackc_dev@crudelis.fr"
-    }],
+    "previous_maintainers": [
+        {
+            "name": "Maniack Crudelis",
+            "email": "maniackc_dev@crudelis.fr"
+        }
+    ],
     "requirements": {
         "yunohost": ">= 4.3.0"
     },

@@ -27,9 +27,9 @@ ynh_replace_string --match_string="@INT@" --replace_string="$main_iface" --targe
 ynh_replace_string --match_string="@CACHE_SIZE@" --replace_string="1000" --target_file="$dnsmasq_dir/01-pihole.conf"
 query_logging=$(ynh_app_setting_get --app=$app --key=query_logging)
 if [ "$query_logging" = "true" ]; then
-    ynh_replace_string --match_string="^#log-queries" --replace_string="log-queries" --target_file="$dnsmasq_dir/01-pihole.conf"
+	ynh_replace_string --match_string="^#log-queries" --replace_string="log-queries" --target_file="$dnsmasq_dir/01-pihole.conf"
 else
-    ynh_replace_string --match_string="^log-queries" --replace_string="#log-queries" --target_file="$dnsmasq_dir/01-pihole.conf"
+	ynh_replace_string --match_string="^log-queries" --replace_string="#log-queries" --target_file="$dnsmasq_dir/01-pihole.conf"
 fi
 
 #
@@ -50,36 +50,36 @@ enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
 if [ $enable_dhcp -eq 1 ]
 then
 
-    # Get the default network interface
-    # Find the IP associated to the network interface
-    localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
+	# Get the default network interface
+	# Find the IP associated to the network interface
+	localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
 
-    max_dhcp_range=250
-    dhcp_range=100
+	max_dhcp_range=250
+	dhcp_range=100
 
-    # Define the dhcp range from the current ip
-    ip_beginning_part=$(echo "$localipv4" | cut -d. -f1-3)
-    ip_fourth_part=$(echo "$localipv4" | cut -d. -f4)
-    b_range=$(( $ip_fourth_part + $dhcp_range ))
-    if [ $b_range -gt $max_dhcp_range ]; then
-        b_range=$max_dhcp_range
-    fi
-    a_range=$(( $b_range - $dhcp_range ))
+	# Define the dhcp range from the current ip
+	ip_beginning_part=$(echo "$localipv4" | cut -d. -f1-3)
+	ip_fourth_part=$(echo "$localipv4" | cut -d. -f4)
+	b_range=$(( $ip_fourth_part + $dhcp_range ))
+	if [ $b_range -gt $max_dhcp_range ]; then
+		b_range=$max_dhcp_range
+	fi
+	a_range=$(( $b_range - $dhcp_range ))
 
-    # Get the gateway
-    gateway=$(ip route | grep default | awk '{print $3;}')
-    # And the mac adress
-    hw_adress=$(ip link | grep -A1 "$main_iface" | tail -n1 | awk '{print $2;}')
+	# Get the gateway
+	gateway=$(ip route | grep default | awk '{print $3;}')
+	# And the mac adress
+	hw_adress=$(ip link | grep -A1 "$main_iface" | tail -n1 | awk '{print $2;}')
 
-    # Copy the config file
-    cp -a "/etc/yunohost/apps/$app/conf/02-pihole-dhcp.conf" "$dnsmasq_dir/"
+	# Copy the config file
+	cp -a "/etc/yunohost/apps/$app/conf/02-pihole-dhcp.conf" "$dnsmasq_dir/"
 
-    # And set the config
-    ynh_replace_string --match_string="__A_RANGE__" --replace_string="$ip_beginning_part.$a_range" --target_file="${pending_conf}/etc/dnsmasq.d/02-pihole-dhcp.conf"
-    ynh_replace_string --match_string="__B_RANGE__" --replace_string="$ip_beginning_part.$b_range" --target_file="${pending_conf}/etc/dnsmasq.d/02-pihole-dhcp.conf"
-    ynh_replace_string --match_string="__GATEWAY__" --replace_string="$gateway" --target_file="${pending_conf}/etc/dnsmasq.d/02-pihole-dhcp.conf"
+	# And set the config
+	ynh_replace_string --match_string="__A_RANGE__" --replace_string="$ip_beginning_part.$a_range" --target_file="${pending_conf}/etc/dnsmasq.d/02-pihole-dhcp.conf"
+	ynh_replace_string --match_string="__B_RANGE__" --replace_string="$ip_beginning_part.$b_range" --target_file="${pending_conf}/etc/dnsmasq.d/02-pihole-dhcp.conf"
+	ynh_replace_string --match_string="__GATEWAY__" --replace_string="$gateway" --target_file="${pending_conf}/etc/dnsmasq.d/02-pihole-dhcp.conf"
 
-    # Set a static ip for the server.
-    echo "dhcp-host=$hw_adress,$localipv4" > "${dnsmasq_dir}/04-pihole-static-dhcp.conf"
+	# Set a static ip for the server.
+	echo "dhcp-host=$hw_adress,$localipv4" > "${dnsmasq_dir}/04-pihole-static-dhcp.conf"
 fi
 exit 0
