@@ -191,8 +191,7 @@ ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --ta
 
 (
 	cd scripts
-	cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
-	ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+	ynh_add_config --template="../conf/dnsmasq_regenconf_hook" --destination="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 )
 
 #=================================================
@@ -201,7 +200,7 @@ ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --ta
 
 ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
 
-ynh_systemd_action --action=restart --service_name=pihole-FTL
+ynh_systemd_action --service_name=pihole-FTL --action=restart --log_path="/var/log/pihole-FTL.log"
 
 #=================================================
 # RELOAD NGINX

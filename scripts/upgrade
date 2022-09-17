@@ -64,6 +64,13 @@ ynh_maintenance_mode_ON
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
+# STOP SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Stopping a systemd service..." --weight=1
+
+ynh_systemd_action --service_name=pihole-FTL --action="stop" --log_path="/var/log/pihole-FTL.log"
+
+#=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
@@ -240,10 +247,10 @@ ynh_script_progression --message="Updating a cron job..." --weight=1
 install -D -m 644 -T -o root -g root ${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole.cron /etc/cron.d/pihole
 
 # Randomize gravity update time
-sed -i "s/59 1 /$((1 + RANDOM % 58)) $((3 + RANDOM % 2))/" /etc/cron.d/pihole
+ynh_replace_string --match_string="59 1 " --replace_string="$((1 + RANDOM % 58)) $((3 + RANDOM % 2)) " --target_file="/etc/cron.d/pihole"
 
 # Randomize update checker time
-sed -i "s/59 17/$((1 + RANDOM % 58)) $((12 + RANDOM % 8))/" /etc/cron.d/pihole
+ynh_replace_string --match_string="59 17" --replace_string="$((1 + RANDOM % 58)) $((12 + RANDOM % 8))" --target_file="/etc/cron.d/pihole"
 
 # Remove git usage for version. Which fails because we use here a release instead of master.
 ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
@@ -264,7 +271,7 @@ ynh_script_progression --message="Disabling DNSMASQ..." --weight=1
 
 # Last version available
 # Stopped dnsmasq to replace it by pihole-FTL
-ynh_systemd_action --action=stop --service_name=dnsmasq
+ynh_systemd_action --service_name=dnsmasq --action=stop
 
 # Disable the real dnsmasq service
 #ynh_exec_warn_less systemctl disable dnsmasq --quiet
@@ -297,6 +304,7 @@ then
 	fi
 	echo "QUERY_LOGGING=$query_logging" >> $setupVars
 	echo "INSTALL_WEB=true" >> $setupVars
+	echo "BLOCKING_ENABLED=true" >> $setupVars
 
 	# Recalculate and store the checksum of the file for the next upgrade.
 	ynh_store_file_checksum --file="$setupVars"
@@ -375,8 +383,7 @@ echo "$(ynh_app_upstream_version) $pihole_adminlte_version $pihole_flt_version" 
 #=================================================
 ynh_script_progression --message="Updating conf_regen hook..." --weight=1
 
-cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
-ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+ynh_add_config --template="../conf/dnsmasq_regenconf_hook" --destination="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 
 systemctl daemon-reload
 ynh_exec_warn_less yunohost tools regen-conf dnsmasq
@@ -395,14 +402,14 @@ yunohost service add pihole-FTL --description="PiHole backend service" --log="/v
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --weight=2
 
-ynh_systemd_action --action=restart --service_name=pihole-FTL
+ynh_systemd_action --service_name=pihole-FTL --action=restart --log_path="/var/log/pihole-FTL.log"
 
 #=================================================
 # RELOAD NGINX
 #=================================================
 ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
-ynh_systemd_action --action=reload --service_name=nginx
+ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # DEACTIVE MAINTENANCE MODE

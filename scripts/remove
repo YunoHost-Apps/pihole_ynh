@@ -38,7 +38,7 @@ fi
 #=================================================
 ynh_script_progression --message="Stopping and removing the systemd service..." --weight=1
 
-ynh_systemd_action --action=stop --service_name=pihole-FTL
+ynh_systemd_action --service_name=pihole-FTL --action=stop
 
 # Restore dnsmasq as main DNS resolver
 # Move dnsmasq back to its original place
@@ -161,7 +161,7 @@ sed -i "/#Added by pihole#/d" /etc/hosts
 #=================================================
 ynh_script_progression --message="Removing conf_regen hook..." --weight=1
 
-ynh_systemd_action --action=stop --service_name=dnsmasq
+ynh_systemd_action --service_name=dnsmasq --action=stop
 
 ynh_secure_remove --file=/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
 
@@ -172,7 +172,7 @@ ynh_exec_warn_less yunohost tools regen-conf dnsmasq
 #=================================================
 ynh_script_progression --message="Restarting Dnsmasq..." --weight=1
 
-ynh_systemd_action --action=restart --service_name=dnsmasq
+ynh_systemd_action --service_name=dnsmasq --action=restart
 
 #=================================================
 # GENERIC FINALIZATION
