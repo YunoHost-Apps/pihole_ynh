@@ -62,13 +62,13 @@ ynh_backup --src_path="$fpm_config_dir/pool.d/$app.conf"
 # BACKUP VARIOUS FILES
 #=================================================
 
-ynh_backup --src_path="/etc/.pihole"
-ynh_backup --src_path="/etc/pihole"
-ynh_backup --src_path="/opt/pihole"
+ynh_backup --src_path="$PI_HOLE_LOCAL_REPO"
+ynh_backup --src_path="$PI_HOLE_CONFIG_DIR"
+ynh_backup --src_path="$PI_HOLE_INSTALL_DIR"
 
 ynh_backup --src_path="/etc/cron.d/pihole"
 
-ynh_backup --src_path="/usr/local/bin/pihole"
+ynh_backup --src_path="$PI_HOLE_BIN_DIR/pihole"
 ynh_backup --src_path="/etc/bash_completion.d/pihole"
 
 ynh_backup --src_path="/etc/sudoers.d/pihole"

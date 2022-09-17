@@ -31,9 +31,9 @@ query_logging=$(ynh_app_setting_get --app=$app --key=query_logging)
 file="$1"
 
 if [ "$file" = "setupVars.conf" ]; then
-	config_file="/etc/pihole/setupVars.conf"
+	config_file="$PI_HOLE_CONFIG_DIR/setupVars.conf"
 elif [ "$file" = "pihole-FTL.conf" ]; then
-	config_file="/etc/pihole/pihole-FTL.conf"
+	config_file="$PI_HOLE_CONFIG_DIR/pihole-FTL.conf"
 fi
 
 #=================================================

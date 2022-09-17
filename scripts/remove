@@ -64,6 +64,14 @@ ynh_secure_remove --file="/var/run/pihole-FTL.pid"
 ynh_secure_remove --file="/var/run/pihole-FTL.port"
 
 #=================================================
+# REMOVE APP MAIN DIR
+#=================================================
+ynh_script_progression --message="Removing app main directory..." --weight=1
+
+# Remove the app directory securely
+ynh_secure_remove --file="$final_path"
+
+#=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
 ynh_script_progression --message="Removing NGINX web server configuration..." --weight=1
@@ -108,29 +116,27 @@ fi
 #=================================================
 # REMOVE VARIOUS FILES
 #=================================================
-ynh_script_progression --message="Removing various files..."
+ynh_script_progression --message="Removing various files..." --weight=1
 
-ynh_secure_remove --file="/etc/cron.d/pihole"
+# Remove a cron file
+ynh_secure_remove --file="/etc/cron.d/$app"
 
-# Remove logs
-ynh_secure_remove --file="/var/log/pihole.log"
-ynh_secure_remove --file="/var/log/pihole-FTL.log"
+# Remove the log files
+ynh_secure_remove --file="/var/log/$app"
 
 # Remove main script
-ynh_secure_remove --file="/usr/local/bin/pihole"
+ynh_secure_remove --file="$PI_HOLE_BIN_DIR/pihole"
 ynh_secure_remove --file="/etc/bash_completion.d/pihole"
 
 # Remove sudoer file
 ynh_secure_remove --file="/etc/sudoers.d/pihole"
 
 # Remove storage directory
-ynh_secure_remove --file="/etc/pihole"
+ynh_secure_remove --file="$PI_HOLE_CONFIG_DIR"
 # Remove app directory
-ynh_secure_remove --file="/opt/pihole"
-# Remove admin panel directory
-ynh_secure_remove --file="$final_path"
+ynh_secure_remove --file="$PI_HOLE_INSTALL_DIR"
 # Remove local clone of the repository
-ynh_secure_remove --file="/etc/.pihole"
+ynh_secure_remove --file="$PI_HOLE_LOCAL_REPO"
 
 #=================================================
 # REMOVE DNSMASQ CONFIG
@@ -142,7 +148,7 @@ ynh_secure_remove --file="/etc/dnsmasq.d/03-pihole-wildcard.conf"
 #=================================================
 # CLEAN /etc/hosts
 #=================================================
-ynh_script_progression --message="Clean /etc/hosts"
+ynh_script_progression --message="Clean /etc/hosts" --weight=1
 
 # Uncomment lines in /etc/hosts
 ynh_replace_string --match_string="#Commented by pihole# " --replace_string="" --target_file=/etc/hosts
@@ -153,6 +159,7 @@ sed -i "/#Added by pihole#/d" /etc/hosts
 #=================================================
 # REMOVE CONF_REGEN HOOK
 #=================================================
+ynh_script_progression --message="Removing conf_regen hook..." --weight=1
 
 ynh_systemd_action --action=stop --service_name=dnsmasq
 
@@ -163,7 +170,7 @@ ynh_exec_warn_less yunohost tools regen-conf dnsmasq
 #=================================================
 # RESTART DNSMASQ
 #=================================================
-ynh_script_progression --message="Restarting Dnsmasq..."
+ynh_script_progression --message="Restarting Dnsmasq..." --weight=1
 
 ynh_systemd_action --action=restart --service_name=dnsmasq
 

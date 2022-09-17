@@ -4,14 +4,18 @@
 # COMMON VARIABLES
 #=================================================
 
-php_dependencies="php$YNH_DEFAULT_PHP_VERSION-sqlite3"
+php_dependencies="php$YNH_DEFAULT_PHP_VERSION-common php$YNH_DEFAULT_PHP_VERSION-cgi php$YNH_DEFAULT_PHP_VERSION-sqlite3 php$YNH_DEFAULT_PHP_VERSION-xml php$YNH_DEFAULT_PHP_VERSION-intl"
 
 # dependencies used by the app (must be on a single line)
-pkg_dependencies="sqlite3 idn2 nettle-dev libcap2-bin build-essential libgmp-dev m4 cmake libidn11-dev libreadline-dev xxd $php_dependencies"
+pkg_dependencies="cmake build-essential libgmp-dev libidn11-dev nettle-dev libreadline-dev sqlite3 cron curl iputils-ping psmisc sudo unzip idn2 libcap2-bin dns-root-data libcap2 netcat-openbsd procps jq $php_dependencies"
 
-pihole_core_version=5.11.4
-dashboard_version=5.13
-FTL_version=5.16.1
+pihole_adminlte_version=5.13
+pihole_flt_version=5.16.1
+
+PI_HOLE_LOCAL_REPO="/etc/.pihole"
+PI_HOLE_INSTALL_DIR="/opt/pihole"
+PI_HOLE_CONFIG_DIR="/etc/pihole"
+PI_HOLE_BIN_DIR="/usr/local/bin"
 
 #=================================================
 # PERSONAL HELPERS

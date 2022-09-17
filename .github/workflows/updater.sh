@@ -67,10 +67,10 @@ for asset_url in ${assets[@]}; do
 	# Leave $src empty to ignore the asset
 	case $asset_url in
 		*"AdminLTE"*)
-			src="admin_dashboard"
+			src="pi-hole_AdminLTE"
 			;;
 		*"pi-hole"*)
-			src="app"
+			src="pi-hole_Core"
 			;;
 		*)
 			src=""
