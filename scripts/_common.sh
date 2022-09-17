@@ -7,7 +7,7 @@
 php_dependencies="php$YNH_DEFAULT_PHP_VERSION-common php$YNH_DEFAULT_PHP_VERSION-cgi php$YNH_DEFAULT_PHP_VERSION-sqlite3 php$YNH_DEFAULT_PHP_VERSION-xml php$YNH_DEFAULT_PHP_VERSION-intl"
 
 # dependencies used by the app (must be on a single line)
-pkg_dependencies="cmake build-essential libgmp-dev libidn11-dev nettle-dev libreadline-dev sqlite3 cron curl iputils-ping psmisc sudo unzip idn2 libcap2-bin dns-root-data libcap2 netcat-openbsd procps jq $php_dependencies"
+pkg_dependencies="cmake build-essential libgmp-dev libidn11-dev nettle-dev libreadline-dev sqlite3 cron curl iputils-ping psmisc unzip idn2 libcap2-bin dns-root-data libcap2 netcat-openbsd procps jq $php_dependencies"
 
 pihole_adminlte_version=5.13
 pihole_flt_version=5.16.1
