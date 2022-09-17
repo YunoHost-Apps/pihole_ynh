@@ -48,6 +48,26 @@ test ! -d $final_path \
 	|| ynh_die --message="There is already a directory: $final_path "
 
 #=================================================
+# FIND AND OPEN A PORT
+#=================================================
+ynh_script_progression --message="Finding an available port..." --weight=12
+
+# Find an available port
+port=$(ynh_find_port --port=4711)
+if [ $port -gt 4720 ]
+then
+	ynh_die --message="The ports 4711 to 4720 are already in use. Pi-hole can't work on another port. Please try to free one of these ports."
+fi
+ynh_app_setting_set --app=$app --key=port --value=$port
+
+# Disable the port 53 for upnp
+ynh_exec_fully_quiet yunohost firewall disallow Both 53 --no-reload
+ynh_exec_fully_quiet yunohost firewall allow Both 53 --no-upnp
+
+# Open the UDP port 67 for dhcp
+ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
+
+#=================================================
 # ACTIVATE MAINTENANCE MODE
 #=================================================
 ynh_script_progression --message="Activating maintenance mode..." --weight=2

@@ -78,6 +78,9 @@ ynh_app_setting_set --app=$app --key=port --value=$port
 ynh_exec_fully_quiet yunohost firewall disallow Both 53 --no-reload
 ynh_exec_fully_quiet yunohost firewall allow Both 53 --no-upnp
 
+# Open the UDP port 67 for dhcp
+ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
+
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
@@ -291,14 +294,6 @@ do
 	grep -q "^$localipv4.*$perdomain" /etc/hosts || \
 		echo "$localipv4	$perdomain #Added by pihole#" >> /etc/hosts
 done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
-
-#=================================================
-# ENABLE DHCP SERVER
-#=================================================
-ynh_script_progression --message="Enabling DHCP server..." --weight=1
-
-# Open the UDP port 67 for dhcp
-ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 
 #=================================================
 # SET VERSIONS FOR THE FOOTER OF THE WEB INTERFACE

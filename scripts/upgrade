@@ -363,14 +363,6 @@ do
 done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
 
 #=================================================
-# ENABLE DHCP SERVER
-#=================================================
-ynh_script_progression --message="Enabling DHCP server..." --weight=1
-
-# Open the UDP port 67 for dhcp
-ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
-
-#=================================================
 # SET VERSIONS FOR THE FOOTER OF THE WEB INTERFACE
 #=================================================
 ynh_script_progression --message="Setting versions for the footer of the web interface..." --weight=1
