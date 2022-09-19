@@ -64,13 +64,6 @@ ynh_maintenance_mode_ON
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
-# STOP SYSTEMD SERVICE
-#=================================================
-ynh_script_progression --message="Stopping a systemd service..." --weight=1
-
-ynh_systemd_action --service_name=pihole-FTL --action="stop" --log_path="/var/log/pihole-FTL.log"
-
-#=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
@@ -181,6 +174,13 @@ fi
 
 #=================================================
 # SPECIFIC UPGRADE
+#=================================================
+# STOP SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Stopping a systemd service..." --weight=1
+
+ynh_systemd_action --service_name=pihole-FTL --action="stop" --log_path="/var/log/pihole-FTL.log"
+
 #=================================================
 # UPDATE PIHOLE-FTL
 #=================================================
