@@ -18,6 +18,7 @@ app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 port=$(ynh_app_setting_get --app=$app --key=port)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 
 #=================================================
 # STANDARD REMOVE
@@ -25,26 +26,26 @@ port=$(ynh_app_setting_get --app=$app --key=port)
 # REMOVE SERVICE INTEGRATION IN YUNOHOST
 #=================================================
 
-# Check if the service is declared in YunoHost
-if ynh_exec_fully_quiet yunohost service status pihole-FTL
+# Remove the service from the list of services known by YunoHost (added from `yunohost service add`)
+if ynh_exec_warn_less yunohost service status pihole-FTL >/dev/null
 then
-	ynh_script_progression --message="Removing pihole-FTL service..." --weight=2
+	ynh_script_progression --message="Removing $app service integration..." --weight=2
 	yunohost service remove pihole-FTL
 fi
 
 #=================================================
-# STOP PIHOLE-FTL SERVICE
+# STOP AND REMOVE SERVICE
 #=================================================
-ynh_script_progression --message="Stop and remove the service"
+ynh_script_progression --message="Stopping and removing the systemd service..." --weight=1
 
-ynh_systemd_action --action=stop --service_name=pihole-FTL
+ynh_systemd_action --service_name=pihole-FTL --action=stop
 
 # Restore dnsmasq as main DNS resolver
 # Move dnsmasq back to its original place
 #if [ -e "/usr/sbin/dnsmasq.backup_by_pihole" ]
-#then    # Remove dnsmasq only if we have its backup
-#    ynh_secure_remove --file="/usr/sbin/dnsmasq"
-#    mv /usr/sbin/dnsmasq.backup_by_pihole /usr/sbin/dnsmasq
+#then	# Remove dnsmasq only if we have its backup
+#	ynh_secure_remove --file="/usr/sbin/dnsmasq"
+#	mv /usr/sbin/dnsmasq.backup_by_pihole /usr/sbin/dnsmasq
 #fi
 
 # Move back the service configuration for dnsmasq
@@ -63,31 +64,17 @@ ynh_secure_remove --file="/var/run/pihole-FTL.pid"
 ynh_secure_remove --file="/var/run/pihole-FTL.port"
 
 #=================================================
-# REMOVE DEPENDENCIES
+# REMOVE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Removing dependencies..." --weight=7
+ynh_script_progression --message="Removing app main directory..." --weight=1
 
-# Remove metapackage and its dependencies
-ynh_remove_app_dependencies
-
-#=================================================
-# REMOVE THE DIRECTORIES OF THE APP
-#=================================================
-ynh_script_progression --message="Removing app main directory..."
-
-# Remove storage directory
-ynh_secure_remove --file="/etc/pihole"
-# Remove app directory
-ynh_secure_remove --file="/opt/pihole"
-# Remove admin panel directory
-ynh_secure_remove --file="/var/www/pihole"
-# Remove local clone of the repository
-ynh_secure_remove --file="/etc/.pihole"
+# Remove the app directory securely
+ynh_secure_remove --file="$final_path"
 
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Removing NGINX web server configuration..."
+ynh_script_progression --message="Removing NGINX web server configuration..." --weight=1
 
 # Remove the dedicated NGINX config
 ynh_remove_nginx_config
@@ -101,20 +88,27 @@ ynh_script_progression --message="Removing PHP-FPM configuration..." --weight=2
 ynh_remove_fpm_config
 
 #=================================================
-# CLOSE PORTS
+# REMOVE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Closing ports $port and 67..." --weight=13
+ynh_script_progression --message="Removing dependencies..." --weight=7
+
+# Remove metapackage and its dependencies
+ynh_remove_app_dependencies
+
+#=================================================
+# CLOSE A PORT
+#=================================================
 
 if yunohost firewall list | grep -q "\- $port$"
 then
-	ynh_print_info "Close port $port"
-	ynh_exec_quiet yunohost firewall disallow TCP $port
+	ynh_script_progression --message="Closing port $port..." --weight=1
+	ynh_exec_warn_less yunohost firewall disallow TCP $port
 fi
 
 if yunohost firewall list | grep -q "\- 67$"
 then
-	ynh_print_info "Close port 67"
-	ynh_exec_quiet yunohost firewall disallow UDP 67
+	ynh_script_progression --message="Closing port 67..." --weight=1
+	ynh_exec_warn_less yunohost firewall disallow UDP 67
 fi
 
 #=================================================
@@ -122,20 +116,27 @@ fi
 #=================================================
 # REMOVE VARIOUS FILES
 #=================================================
-ynh_script_progression --message="Removing various files..."
+ynh_script_progression --message="Removing various files..." --weight=1
 
-ynh_secure_remove --file="/etc/cron.d/pihole"
+# Remove a cron file
+ynh_secure_remove --file="/etc/cron.d/$app"
 
-# Remove logs
-ynh_secure_remove --file="/var/log/pihole.log"
-ynh_secure_remove --file="/var/log/pihole-FTL.log"
+# Remove the log files
+ynh_secure_remove --file="/var/log/$app"
 
 # Remove main script
-ynh_secure_remove --file="/usr/local/bin/pihole"
+ynh_secure_remove --file="$PI_HOLE_BIN_DIR/pihole"
 ynh_secure_remove --file="/etc/bash_completion.d/pihole"
 
 # Remove sudoer file
 ynh_secure_remove --file="/etc/sudoers.d/pihole"
+
+# Remove storage directory
+ynh_secure_remove --file="$PI_HOLE_CONFIG_DIR"
+# Remove app directory
+ynh_secure_remove --file="$PI_HOLE_INSTALL_DIR"
+# Remove local clone of the repository
+ynh_secure_remove --file="$PI_HOLE_LOCAL_REPO"
 
 #=================================================
 # REMOVE DNSMASQ CONFIG
@@ -147,7 +148,7 @@ ynh_secure_remove --file="/etc/dnsmasq.d/03-pihole-wildcard.conf"
 #=================================================
 # CLEAN /etc/hosts
 #=================================================
-ynh_script_progression --message="Clean /etc/hosts"
+ynh_script_progression --message="Clean /etc/hosts" --weight=1
 
 # Uncomment lines in /etc/hosts
 ynh_replace_string --match_string="#Commented by pihole# " --replace_string="" --target_file=/etc/hosts
@@ -158,8 +159,9 @@ sed -i "/#Added by pihole#/d" /etc/hosts
 #=================================================
 # REMOVE CONF_REGEN HOOK
 #=================================================
+ynh_script_progression --message="Removing conf_regen hook..." --weight=1
 
-ynh_systemd_action --action=stop --service_name=dnsmasq
+ynh_systemd_action --service_name=dnsmasq --action=stop
 
 ynh_secure_remove --file=/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
 
@@ -168,9 +170,9 @@ ynh_exec_warn_less yunohost tools regen-conf dnsmasq
 #=================================================
 # RESTART DNSMASQ
 #=================================================
-ynh_script_progression --message="Restarting Dnsmasq..."
+ynh_script_progression --message="Restarting Dnsmasq..." --weight=1
 
-ynh_systemd_action --action=restart --service_name=dnsmasq
+ynh_systemd_action --service_name=dnsmasq --action=restart
 
 #=================================================
 # GENERIC FINALIZATION
@@ -182,6 +184,7 @@ ynh_script_progression --message="Removing the dedicated system user..." --weigh
 # Dirty hack to remove correctly the user
 killall -u $app
 
+# Delete a system user
 ynh_system_user_delete --username=$app
 
 #=================================================

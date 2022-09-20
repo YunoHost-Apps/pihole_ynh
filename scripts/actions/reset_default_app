@@ -16,7 +16,7 @@ source /usr/share/yunohost/helpers
 
 ynh_clean_setup () {
 # Clean installation remaining that are not handle by the remove script.
-    ynh_clean_check_starting
+	ynh_clean_check_starting
 }
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
@@ -54,15 +54,14 @@ ynh_system_user_create --username=$app
 ynh_script_progression --message="Resetting source files..." --weight=1
 
 # Download, check integrity, uncompress and patch the source from app.src
-pihole_local_repo="/etc/.pihole"
 (
-    cd scripts
-    # Overwrite the last version available
-    YNH_CWD=$PWD ynh_setup_source --dest_dir="$pihole_local_repo" --source_id=app
-    # Overwrite admin dashboard
-    YNH_CWD=$PWD ynh_setup_source --dest_dir="$final_path" --source_id=admin_dashboard
+	cd scripts
+	# Overwrite the last version available
+	YNH_CWD=$PWD ynh_setup_source --dest_dir="$PI_HOLE_LOCAL_REPO" --source_id="pi-hole_Core"
+	# Overwrite admin dashboard
+	YNH_CWD=$PWD ynh_setup_source --dest_dir="$final_path" --source_id=pi-hole_AdminLTE
 
-    chown $app:www-data "$final_path"
+	chown $app:www-data "$final_path"
 
 )
 
@@ -87,27 +86,25 @@ yunohost app action run $app reset_default_phpfpm
 #=================================================
 ynh_script_progression --message="Recreating and populating directories..." --weight=1
 
-pihole_storage="/etc/pihole"
-mkdir -p "$pihole_storage"
-chown $app: -R "$pihole_storage"
+mkdir -p "$PI_HOLE_CONFIG_DIR"
+chown $app: -R "$PI_HOLE_CONFIG_DIR"
 
-pihole_dir="/opt/pihole"
-mkdir -p "$pihole_dir"
+mkdir -p "$PI_HOLE_INSTALL_DIR"
 
 # Make a copy of Pi-Hole scripts
-cp -a "$pihole_local_repo/gravity.sh" "$pihole_dir/"
-cp -a $pihole_local_repo/advanced/Scripts/*.sh "$pihole_dir/"
+cp -a "$PI_HOLE_LOCAL_REPO/gravity.sh" "$PI_HOLE_INSTALL_DIR/"
+cp -a $PI_HOLE_LOCAL_REPO/advanced/Scripts/*.sh "$PI_HOLE_INSTALL_DIR/"
 
 # And copy this fucking COL_TABLE file...
-cp -a "$pihole_local_repo/advanced/Scripts/COL_TABLE" "$pihole_dir/"
+cp -a "$PI_HOLE_LOCAL_REPO/advanced/Scripts/COL_TABLE" "$PI_HOLE_INSTALL_DIR/"
 
 #=================================================
 # COPY PI-HOLE MAIN SCRIPT
 #=================================================
 ynh_script_progression --message="Copying Pi-Hole main script..."
 
-cp -a "$pihole_local_repo/pihole" /usr/local/bin/
-cp -a "$pihole_local_repo/advanced/bash-completion/pihole" /etc/bash_completion.d/pihole
+cp -a "$PI_HOLE_LOCAL_REPO/pihole" $PI_HOLE_BIN_DIR/
+cp -a "$PI_HOLE_LOCAL_REPO/advanced/bash-completion/pihole" /etc/bash_completion.d/pihole
 
 #=================================================
 # RECREATE LOG FILES
@@ -122,18 +119,18 @@ chown $dnsmasq_user:root /var/log/{pihole,pihole-FTL}.log
 # RECREATE SUDOER FILE
 #=================================================
 
-# This sudoers config allow pihole to execute /usr/local/bin/pihole as root without password. Nothing more.
-cp "$pihole_local_repo/advanced/Templates/pihole.sudo" /etc/sudoers.d/pihole
-echo "$app ALL=NOPASSWD: /usr/local/bin/pihole" >> /etc/sudoers.d/pihole
-# echo "Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin" >> /etc/sudoers.d/pihole
+# This sudoers config allow pihole to execute $PI_HOLE_BIN_DIR/pihole as root without password. Nothing more.
+cp "$PI_HOLE_LOCAL_REPO/advanced/Templates/pihole.sudo" /etc/sudoers.d/pihole
+echo "$app ALL=NOPASSWD: $PI_HOLE_BIN_DIR/pihole" >> /etc/sudoers.d/pihole
+# echo "Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin:$PI_HOLE_BIN_DIR" >> /etc/sudoers.d/pihole
 chmod 0440 /etc/sudoers.d/pihole
 
 #=================================================
 # REINSTALL LOGROTATE SCRIPT FOR PI-HOLE
 #=================================================
 
-cp "$pihole_local_repo/advanced/Templates/logrotate" "$pihole_storage/logrotate"
-sed -i "/# su #/d;" "$pihole_storage/logrotate"
+cp "$PI_HOLE_LOCAL_REPO/advanced/Templates/logrotate" "$PI_HOLE_CONFIG_DIR/logrotate"
+sed -i "/# su #/d;" "$PI_HOLE_CONFIG_DIR/logrotate"
 
 #=================================================
 # REINSTALLATION OF PIHOLE-FTL
@@ -143,22 +140,22 @@ ynh_script_progression --message="Reinstalling PiHole-FTL..." --weight=30
 # Get the source of Pi-Hole-FTL
 FTL_temp_path=$(mktemp -d)
 # Install the last version available
-ynh_setup_source --dest_dir="$FTL_temp_path" --source_id=FTL
+ynh_setup_source --dest_dir="$FTL_temp_path" --source_id="pi-hole_FTL"
 
 # Instead of downloading a binary file, we're going to compile it
 ( 
-    cd "$FTL_temp_path"
-    ynh_exec_warn_less make
-    ynh_exec_warn_less make install
+	cd "$FTL_temp_path"
+	ynh_exec_warn_less make
+	ynh_exec_warn_less make install
 )
 ynh_secure_remove --file="$FTL_temp_path"
 
-cp "../conf/dns-servers.conf" "$pihole_storage"
+cp "../conf/dns-servers.conf" "$PI_HOLE_CONFIG_DIR"
 
 # Restore the default pihole-FTL.conf
 yunohost app action run $app reset_default_ftl
 
-cp -a $pihole_local_repo/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
+cp -a $PI_HOLE_LOCAL_REPO/advanced/Templates/pihole-FTL.service /etc/init.d/pihole-FTL
 chmod +x /etc/init.d/pihole-FTL
 ynh_exec_warn_less systemctl enable pihole-FTL
 
@@ -183,7 +180,7 @@ yunohost app action run $app reset_default_dnsmasq
 # REINSTALL CRON JOB
 #=================================================
 
-cp $pihole_local_repo/advanced/Templates/pihole.cron /etc/cron.d/pihole
+cp $PI_HOLE_LOCAL_REPO/advanced/Templates/pihole.cron /etc/cron.d/pihole
 
 # Remove git usage for version. Which fails because we use here a release instead of master.
 ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
@@ -193,9 +190,9 @@ ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --ta
 #=================================================
 
 (
-    cd scripts
-    cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
-    ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+	cd scripts
+	cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
+	ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 )
 
 #=================================================
@@ -204,7 +201,7 @@ ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --ta
 
 ynh_script_progression --message="Restarting PiHole-FTL..." --weight=2
 
-ynh_systemd_action --action=restart --service_name=pihole-FTL
+ynh_systemd_action --service_name=pihole-FTL --action=restart --log_path="/var/log/pihole-FTL.log"
 
 #=================================================
 # RELOAD NGINX
