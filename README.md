@@ -17,8 +17,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 The Pi-hole® is a DNS sinkhole that protects your devices from unwanted content without installing any client-side software.
 
-**Shipped version:** 5.11.4~ynh1
-
+**Shipped version:** 5.13~ynh1
 
 ## Screenshots
 
