@@ -31,9 +31,9 @@ query_logging=$(ynh_app_setting_get --app=$app --key=query_logging)
 file="$1"
 
 if [ "$file" = "setupVars.conf" ]; then
-    config_file="/etc/pihole/setupVars.conf"
+	config_file="$PI_HOLE_CONFIG_DIR/setupVars.conf"
 elif [ "$file" = "pihole-FTL.conf" ]; then
-    config_file="/etc/pihole/pihole-FTL.conf"
+	config_file="$PI_HOLE_CONFIG_DIR/pihole-FTL.conf"
 fi
 
 #=================================================
@@ -50,31 +50,31 @@ main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
 
 if [ "$file" = "setupVars.conf" ]
 then
-    # Recreate the default config
-    # Trouve l'interface réseau par défaut
-    echo "PIHOLE_INTERFACE=$main_iface" > "$config_file"
-    echo "IPV4_ADDRESS=127.0.0.1" >> "$config_file"
-    echo "IPV6_ADDRESS=::1" >> "$config_file"
-    echo "PIHOLE_DNS_1=" >> "$config_file"
-    echo "PIHOLE_DNS_2=" >> "$config_file"
-    if [ $query_logging -eq 1 ]; then
-        query_logging=true
-    else
-        query_logging=false
-    fi
-    echo "QUERY_LOGGING=$query_logging" >> "$config_file"
-    echo "INSTALL_WEB=true" >> "$config_file"
+	# Recreate the default config
+	# Trouve l'interface réseau par défaut
+	echo "PIHOLE_INTERFACE=$main_iface" > "$config_file"
+	echo "IPV4_ADDRESS=127.0.0.1" >> "$config_file"
+	echo "IPV6_ADDRESS=::1" >> "$config_file"
+	echo "PIHOLE_DNS_1=" >> "$config_file"
+	echo "PIHOLE_DNS_2=" >> "$config_file"
+	if [ $query_logging -eq 1 ]; then
+		query_logging=true
+	else
+		query_logging=false
+	fi
+	echo "QUERY_LOGGING=$query_logging" >> "$config_file"
+	echo "INSTALL_WEB=true" >> "$config_file"
 
 elif [ "$file" = "pihole-FTL.conf" ]
 then
-    # Get the default file and overwrite the current config
-    port=$(ynh_app_setting_get --app=$app --key=port)
-    ynh_add_config --template="/etc/yunohost/apps/$app/conf/pihole-FTL.conf" --destination="$config_file"
+	# Get the default file and overwrite the current config
+	port=$(ynh_app_setting_get --app=$app --key=port)
+	ynh_add_config --template="/etc/yunohost/apps/$app/conf/pihole-FTL.conf" --destination="$config_file"
 
-    ynh_script_progression --message="Restarting Pi-Hole..." --weight=2
+	ynh_script_progression --message="Restarting Pi-Hole..." --weight=2
 
-    # Restart pihole-FTL
-    ynh_systemd_action --action=restart --service_name=pihole-FTL
+	# Restart pihole-FTL
+	ynh_systemd_action --service_name=pihole-FTL --action=restart --log_path="/var/log/pihole-FTL.log"
 fi
 
 # Calculate and store the config file checksum into the app settings

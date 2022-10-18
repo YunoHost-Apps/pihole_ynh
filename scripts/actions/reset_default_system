@@ -15,7 +15,7 @@ source /usr/share/yunohost/helpers
 
 ynh_clean_setup () {
 # Clean installation remaining that are not handle by the remove script.
-    ynh_clean_check_starting
+	ynh_clean_check_starting
 }
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
@@ -39,22 +39,22 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 #=================================================
 
 if [ $type == nginx ]; then
-    name=Nginx
+	name=Nginx
 elif [ $type == phpfpm ]; then
-    name=PHP-FPM
+	name=PHP-FPM
 else
-    ynh_die --message="The type $type is not recognized"
+	ynh_die --message="The type $type is not recognized"
 fi
 
 ynh_script_progression --message="Resetting the specific configuration of $name for the app $app..." --weight=3
 
 if [ $type == nginx ]
 then
-    (cd scripts; ynh_add_nginx_config)
+	(cd scripts; ynh_add_nginx_config)
 
 elif [ $type == phpfpm ]
 then
-    (cd scripts; ynh_add_fpm_config --usage=low --footprint=low --dedicated_service)
+	(cd scripts; ynh_add_fpm_config --usage=low --footprint=low --dedicated_service)
 fi
 
 #=================================================
