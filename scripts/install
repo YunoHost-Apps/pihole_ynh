@@ -353,7 +353,7 @@ admin_panel="https://$(grep portal_domain /etc/ssowat/conf.json | cut -d'"' -f4)
 
 if [ $enable_dhcp -eq 1 ]
 then
-	dhcp_alert="You asked to use the internal DHCP server of dnsmasq with PiHole.
+	dhcp_alert="You asked to use the internal DHCP server of dnsmasq with Pi-hole.
 You should really read the __URL_TAG1__documentation about that__URL_TAG2__https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md__URL_TAG3__
 
 "
