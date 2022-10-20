@@ -6,7 +6,7 @@
         "en": "Network-wide ad blocking via your own DNS server",
         "fr": "Filtrage publicitaire via votre propre serveur DNS"
     },
-    "version": "5.11.4~ynh1",
+    "version": "5.13~ynh1",
     "url": "https://pi-hole.net/",
     "upstream": {
         "license": "EUPL-1.2",
@@ -26,12 +26,12 @@
         }
     ],
     "requirements": {
-        "yunohost": ">= 4.3.0"
+        "yunohost": ">= 11.0.9"
     },
     "multi_instance": false,
     "services": [
         "nginx",
-        "php7.3-fpm"
+        "php7.4-fpm"
     ],
     "arguments": {
         "install": [
