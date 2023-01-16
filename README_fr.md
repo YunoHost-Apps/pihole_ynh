@@ -18,7 +18,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 Pi-hole® est un puits DNS qui protège vos appareils des contenus indésirables sans installer de logiciel côté client.
 
 
-**Version incluse :** 5.14.2~ynh1
+**Version incluse :** 5.15~ynh1
 
 ## Captures d'écran
 
