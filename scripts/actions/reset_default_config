@@ -57,6 +57,7 @@ then
 	echo "IPV6_ADDRESS=::1" >> "$config_file"
 	echo "PIHOLE_DNS_1=" >> "$config_file"
 	echo "PIHOLE_DNS_2=" >> "$config_file"
+	echo "DNSMASQ_LISTENING=single" >> "$config_file"
 	if [ $query_logging -eq 1 ]; then
 		query_logging=true
 	else
