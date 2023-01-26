@@ -9,8 +9,8 @@ php_dependencies="php$YNH_DEFAULT_PHP_VERSION-common php$YNH_DEFAULT_PHP_VERSION
 # dependencies used by the app (must be on a single line)
 pkg_dependencies="cmake build-essential libgmp-dev libidn11-dev nettle-dev libreadline-dev sqlite3 cron curl iputils-ping psmisc unzip idn2 libcap2-bin dns-root-data libcap2 netcat-openbsd procps jq $php_dependencies"
 
-pihole_adminlte_version=5.18
-pihole_flt_version=5.20
+pihole_adminlte_version=5.18.3
+pihole_flt_version=5.20.1
 
 PI_HOLE_LOCAL_REPO="/etc/.pihole"
 PI_HOLE_INSTALL_DIR="/opt/pihole"
