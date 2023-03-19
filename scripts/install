@@ -13,43 +13,43 @@ source /usr/share/yunohost/helpers
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-ynh_clean_setup () {
+#REMOVEME? ynh_clean_setup () {
 	true
 }
 # Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
+#REMOVEME? ynh_abort_if_errors
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-domain=$YNH_APP_ARG_DOMAIN
-path_url=$YNH_APP_ARG_PATH
-admin=$YNH_APP_ARG_ADMIN
-query_logging=$YNH_APP_ARG_QUERY_LOGGING
-enable_dhcp=$YNH_APP_ARG_ENABLE_DHCP
+#REMOVEME? domain=$YNH_APP_ARG_DOMAIN
+#REMOVEME? path=$YNH_APP_ARG_PATH
+#REMOVEME? admin=$YNH_APP_ARG_ADMIN
+#REMOVEME? query_logging=$YNH_APP_ARG_QUERY_LOGGING
+#REMOVEME? enable_dhcp=$YNH_APP_ARG_ENABLE_DHCP
 
-app=$YNH_APP_INSTANCE_NAME
+#REMOVEME? app=$YNH_APP_INSTANCE_NAME
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
-ynh_script_progression --message="Validating installation parameters..." --weight=2
+#REMOVEME? ynh_script_progression --message="Validating installation parameters..." --weight=2
 
-final_path=/var/www/$app
-test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
+#REMOVEME? install_dir=/var/www/$app
+#REMOVEME? test ! -e "$install_dir" || ynh_die --message="This path already contains a folder"
 
 # Register (book) web path
-ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
+#REMOVEME? ynh_webpath_register --app=$app --domain=$domain --path=$path
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-ynh_script_progression --message="Storing installation settings..." --weight=3
+#REMOVEME? ynh_script_progression --message="Storing installation settings..." --weight=3
 
-ynh_app_setting_set --app=$app --key=domain --value=$domain
-ynh_app_setting_set --app=$app --key=path --value=$path_url
-ynh_app_setting_set --app=$app --key=admin --value=$admin
+#REMOVEME? ynh_app_setting_set --app=$app --key=domain --value=$domain
+#REMOVEME? ynh_app_setting_set --app=$app --key=path --value=$path
+#REMOVEME? ynh_app_setting_set --app=$app --key=admin --value=$admin
 ynh_app_setting_set --app=$app --key=query_logging --value=$query_logging
 ynh_app_setting_set --app=$app --key=enable_dhcp --value=$enable_dhcp
 
@@ -57,22 +57,22 @@ ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=1
 ynh_app_setting_set --app=$app --key=overwrite_ftl --value=1
 ynh_app_setting_set --app=$app --key=overwrite_nginx --value=1
 ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value=1
-ynh_app_setting_set --app=$app --key=admin_mail_html --value=1
+#REMOVEME? ynh_app_setting_set --app=$app --key=admin_mail_html --value=1
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
-ynh_script_progression --message="Finding an available port..." --weight=12
+#REMOVEME? ynh_script_progression --message="Finding an available port..." --weight=12
 
 # Find an available port
-port=$(ynh_find_port --port=4711)
+#REMOVEME? port=$(ynh_find_port --port=4711)
 if [ $port -gt 4720 ]
 then
 	ynh_die --message="The ports 4711 to 4720 are already in use. Pi-hole can't work on another port. Please try to free one of these ports."
 fi
-ynh_app_setting_set --app=$app --key=port --value=$port
+#REMOVEME? ynh_app_setting_set --app=$app --key=port --value=$port
 
 # Disable the port 53 for upnp
 ynh_exec_fully_quiet yunohost firewall disallow Both 53 --no-reload
@@ -84,33 +84,33 @@ ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Installing dependencies..." --weight=12
+#REMOVEME? ynh_script_progression --message="Installing dependencies..." --weight=12
 
-ynh_install_app_dependencies $pkg_dependencies
+#REMOVEME? ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Configuring system user..." --weight=2
+#REMOVEME? ynh_script_progression --message="Configuring system user..." --weight=2
 
 # Create a system user
-ynh_system_user_create --username=$app --home_dir="$final_path"
+#REMOVEME? ynh_system_user_create --username=$app --home_dir="$install_dir"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression --message="Setting up source files..." --weight=4
 
-ynh_app_setting_set --app=$app --key=final_path --value=$final_path
+#REMOVEME? ynh_app_setting_set --app=$app --key=install_dir --value=$install_dir
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$PI_HOLE_LOCAL_REPO" --source_id="pi-hole_Core"
-ynh_setup_source --dest_dir="$final_path" --source_id=pi-hole_AdminLTE
+ynh_setup_source --dest_dir="$install_dir" --source_id=pi-hole_AdminLTE
 FTL_temp_path=$(mktemp -d)
 ynh_setup_source --dest_dir="$FTL_temp_path" --source_id="pi-hole_FTL"
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -333,16 +333,16 @@ ynh_systemd_action --service_name=pihole-FTL --action=restart --log_path="/var/l
 #=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_script_progression --message="Configuring permissions..." --weight=2
+#REMOVEME? ynh_script_progression --message="Configuring permissions..." --weight=2
 
-ynh_permission_update --permission="main" --add="$admin" --remove="all_users"
+#REMOVEME? ynh_permission_update --permission="main" --add="$admin" --remove="all_users"
 
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=3
+#REMOVEME? ynh_script_progression --message="Reloading NGINX web server..." --weight=3
 
-ynh_systemd_action --service_name=nginx --action=reload
+#REMOVEME? ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # SEND A README FOR THE ADMIN

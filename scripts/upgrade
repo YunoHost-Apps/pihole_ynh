@@ -12,26 +12,26 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --weight=3
+#REMOVEME? ynh_script_progression --message="Loading installation settings..." --weight=3
 
-app=$YNH_APP_INSTANCE_NAME
+#REMOVEME? app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-path_url=$(ynh_app_setting_get --app=$app --key=path)
-admin=$(ynh_app_setting_get --app=$app --key=admin)
-query_logging=$(ynh_app_setting_get --app=$app --key=query_logging)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
-port=$(ynh_app_setting_get --app=$app --key=port)
-pihole_version="$(ynh_app_setting_get --app=$app --key=pihole_version)"
+#REMOVEME? domain=$(ynh_app_setting_get --app=$app --key=domain)
+#REMOVEME? path=$(ynh_app_setting_get --app=$app --key=path)
+#REMOVEME? admin=$(ynh_app_setting_get --app=$app --key=admin)
+#REMOVEME? query_logging=$(ynh_app_setting_get --app=$app --key=query_logging)
+#REMOVEME? #REMOVEME? install_dir=$(ynh_app_setting_get --app=$app --key=install_dir)
+#REMOVEME? enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
+#REMOVEME? port=$(ynh_app_setting_get --app=$app --key=port)
+#REMOVEME? pihole_version="$(ynh_app_setting_get --app=$app --key=pihole_version)"
 
-overwrite_setupvars=$(ynh_app_setting_get --app=$app --key=overwrite_setupvars)
-overwrite_ftl=$(ynh_app_setting_get --app=$app --key=overwrite_ftl)
-overwrite_nginx=$(ynh_app_setting_get --app=$app --key=overwrite_nginx)
-overwrite_phpfpm=$(ynh_app_setting_get --app=$app --key=overwrite_phpfpm)
-admin_mail_html=$(ynh_app_setting_get --app=$app --key=admin_mail_html)
-fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
-fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
+#REMOVEME? overwrite_setupvars=$(ynh_app_setting_get --app=$app --key=overwrite_setupvars)
+#REMOVEME? overwrite_ftl=$(ynh_app_setting_get --app=$app --key=overwrite_ftl)
+#REMOVEME? overwrite_nginx=$(ynh_app_setting_get --app=$app --key=overwrite_nginx)
+#REMOVEME? overwrite_phpfpm=$(ynh_app_setting_get --app=$app --key=overwrite_phpfpm)
+#REMOVEME? admin_mail_html=$(ynh_app_setting_get --app=$app --key=admin_mail_html)
+#REMOVEME? fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
+#REMOVEME? fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
 
 #=================================================
 # CHECK VERSION
@@ -43,16 +43,16 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=7
+#REMOVEME? ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=7
 
 # Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
+#REMOVEME? ynh_backup_before_upgrade
+#REMOVEME? ynh_clean_setup () {
 	# Restore it if the upgrade fails
-	ynh_restore_upgradebackup
+#REMOVEME? 	ynh_restore_upgradebackup
 }
 # Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
+#REMOVEME? ynh_abort_if_errors
 
 #=================================================
 # ACTIVATE MAINTENANCE MODE
@@ -95,7 +95,7 @@ fi
 # If admin_mail_html doesn't exist, create it
 if [ -z "$admin_mail_html" ]; then
 	admin_mail_html=1
-	ynh_app_setting_set --app=$app --key=admin_mail_html --value=$admin_mail_html
+#REMOVEME? 	ynh_app_setting_set --app=$app --key=admin_mail_html --value=$admin_mail_html
 fi
 
 # If fpm_footprint doesn't exist, create it
@@ -119,10 +119,10 @@ fi
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
+#REMOVEME? ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir="$final_path"
+#REMOVEME? ynh_system_user_create --username=$app --home_dir="$install_dir"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -132,21 +132,21 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Upgrading source files..." --weight=4
 	ynh_setup_source --dest_dir="$PI_HOLE_LOCAL_REPO" --source_id="pi-hole_Core"
-	ynh_setup_source --dest_dir="$final_path" --source_id=pi-hole_AdminLTE
+	ynh_setup_source --dest_dir="$install_dir" --source_id=pi-hole_AdminLTE
 	FTL_temp_path=$(mktemp -d)
 	ynh_setup_source --dest_dir="$FTL_temp_path" --source_id="pi-hole_FTL"
 fi
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 
 #=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Upgrading dependencies..." --weight=6
+#REMOVEME? ynh_script_progression --message="Upgrading dependencies..." --weight=6
 
-ynh_install_app_dependencies $pkg_dependencies
+#REMOVEME? ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -400,9 +400,9 @@ ynh_systemd_action --service_name=pihole-FTL --action=restart --log_path="/var/l
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
+#REMOVEME? ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
-ynh_systemd_action --service_name=nginx --action=reload
+#REMOVEME? ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # DEACTIVE MAINTENANCE MODE
