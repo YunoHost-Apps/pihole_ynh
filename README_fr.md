@@ -6,6 +6,7 @@ It shall NOT be edited by hand.
 # Pi-hole pour YunoHost
 
 [![Niveau d’intégration](https://dash.yunohost.org/integration/pihole.svg)](https://dash.yunohost.org/appci/app/pihole) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/pihole.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/pihole.maintain.svg)
+
 [![Installer Pi-hole avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=pihole)
 
 *[Read this readme in english.](./README.md)*
