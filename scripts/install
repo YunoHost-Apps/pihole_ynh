@@ -10,18 +10,6 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# RETRIEVE ARGUMENTS FROM THE MANIFEST
-#=================================================
-
-#REMOVEME? domain=$YNH_APP_ARG_DOMAIN
-#REMOVEME? path=$YNH_APP_ARG_PATH
-#REMOVEME? admin=$YNH_APP_ARG_ADMIN
-#REMOVEME? query_logging=$YNH_APP_ARG_QUERY_LOGGING
-#REMOVEME? enable_dhcp=$YNH_APP_ARG_ENABLE_DHCP
-
-#REMOVEME? app=$YNH_APP_INSTANCE_NAME
-
-#=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
 ynh_script_progression --message="Storing installation settings..." --weight=3
@@ -33,7 +21,7 @@ ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=1
 ynh_app_setting_set --app=$app --key=overwrite_ftl --value=1
 ynh_app_setting_set --app=$app --key=overwrite_nginx --value=1
 ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value=1
-#REMOVEME? ynh_app_setting_set --app=$app --key=admin_mail_html --value=1
+ynh_app_setting_set --app=$app --key=admin_mail_html --value=1
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -65,7 +53,6 @@ ynh_setup_source --dest_dir="$install_dir" --source_id=pi-hole_AdminLTE
 FTL_temp_path=$(mktemp -d)
 ynh_setup_source --dest_dir="$FTL_temp_path" --source_id="pi-hole_FTL"
 
-chmod 750 "$install_dir"
 chmod -R o-rwx "$install_dir"
 chown -R $app:www-data "$install_dir"
 
