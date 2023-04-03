@@ -28,15 +28,6 @@ ynh_script_progression --message="Updating NGINX web server configuration..." --
 ynh_change_url_nginx_config
 
 #=================================================
-# GENERIC FINALISATION
-#=================================================
-# RELOAD NGINX
-#=================================================
-#REMOVEME? ynh_script_progression --message="Reloading NGINX web server..." --weight=1
-
-#REMOVEME? #REMOVEME? ynh_systemd_action --service_name=nginx --action=reload
-
-#=================================================
 # DEACTIVE MAINTENANCE MODE
 #=================================================
 ynh_script_progression --message="Disabling maintenance mode..." --weight=5

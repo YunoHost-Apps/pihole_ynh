@@ -16,7 +16,7 @@ admindoc = "https://docs.pi-hole.net"
 code = "https://github.com/pi-hole/pi-hole"
 
 [integration]
-yunohost = ">= 11.1.15"
+yunohost = ">= 11.1.16"
 architectures = "all"
 multi_instance = false
 ldap = false
@@ -56,14 +56,17 @@ ram.runtime = "50M"
         [resources.sources.pi-hole_AdminLTE]
         url = "https://github.com/pi-hole/AdminLTE/archive/v5.18.4.tar.gz"
         sha256 = "25095ead3132aecad193537d8856e291b923cb70db0da1b7d00600caca9b8a97"
+        autoupdate.strategy = "latest_github_tag"
 
         [resources.sources.pi-hole_Core]
         url = "https://github.com/pi-hole/pi-hole/archive/v5.15.5.tar.gz"
         sha256 = "fa723c7573b0441b5f28300313eb99508853df1752720208f6cf6008da63abc2"
+        autoupdate.strategy = "latest_github_tag"
 
         [resources.sources.pi-hole_FTL]
         url = "https://github.com/pi-hole/FTL/archive/v5.21.tar.gz"
         sha256 = "66bbec5a4cb8aa64035ccb275b0c849a062b319dfc64b8c26a32529972b1f998"
+        autoupdate.strategy = "latest_github_tag"
 
     [resources.ports]
     main.default = 4711

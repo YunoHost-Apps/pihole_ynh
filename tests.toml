@@ -1,0 +1,23 @@
+test_format = 1.0
+
+[default]
+
+    # ------------
+    # Tests to run
+    # ------------
+
+    exclude = ["install.subdir"]
+
+    # -------------------------------
+    # Default args to use for install
+    # -------------------------------
+
+    args.query_logging = 1
+    args.enable_dhcp = 0
+
+    # -------------------------------
+    # Commits to test upgrade from
+    # -------------------------------
+
+    test_upgrade_from.3d2f68c4.name = "Upgrade from 5.11.4"
+    
