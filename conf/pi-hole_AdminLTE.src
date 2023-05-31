@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/pi-hole/AdminLTE/archive/v5.18.tar.gz
-SOURCE_SUM=7d29b443b233a19fd2a8c2e345e4a0ed7c0dc05492a35c75a5627264423dd1f3
+SOURCE_URL=https://github.com/pi-hole/AdminLTE/archive/v5.20.1.tar.gz
+SOURCE_SUM=fe302a23f9bef6fdd979010cb212c2dde9a4af442afd8c87aba929aad2c8d118
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
