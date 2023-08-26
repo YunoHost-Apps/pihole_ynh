@@ -53,11 +53,11 @@ ynh_app_setting_set --app=$app --key=admin --value=$admin
 ynh_app_setting_set --app=$app --key=query_logging --value=$query_logging
 ynh_app_setting_set --app=$app --key=enable_dhcp --value=$enable_dhcp
 
-ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=1
-ynh_app_setting_set --app=$app --key=overwrite_ftl --value=1
-ynh_app_setting_set --app=$app --key=overwrite_nginx --value=1
-ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value=1
-ynh_app_setting_set --app=$app --key=admin_mail_html --value=1
+#ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=1
+#ynh_app_setting_set --app=$app --key=overwrite_ftl --value=1
+#ynh_app_setting_set --app=$app --key=overwrite_nginx --value=1
+#ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value=1
+#ynh_app_setting_set --app=$app --key=admin_mail_html --value=1
 
 #=================================================
 # STANDARD MODIFICATIONS

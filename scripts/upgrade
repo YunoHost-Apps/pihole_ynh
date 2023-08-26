@@ -30,8 +30,6 @@ overwrite_ftl=$(ynh_app_setting_get --app=$app --key=overwrite_ftl)
 overwrite_nginx=$(ynh_app_setting_get --app=$app --key=overwrite_nginx)
 overwrite_phpfpm=$(ynh_app_setting_get --app=$app --key=overwrite_phpfpm)
 admin_mail_html=$(ynh_app_setting_get --app=$app --key=admin_mail_html)
-fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
-fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
 
 #=================================================
 # CHECK VERSION
@@ -151,14 +149,10 @@ ynh_install_app_dependencies $pkg_dependencies
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-
-# Overwrite the PHP-FPM configuration only if it's allowed
-if [ $overwrite_phpfpm -eq 1 ]
-then
-	ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
-	# Create a dedicated PHP-FPM config
-	ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint
-fi
+ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
+	
+# Create a dedicated PHP-FPM config
+ynh_add_fpm_config --usage=low --footprint=low
 
 #=================================================
 # NGINX CONFIGURATION

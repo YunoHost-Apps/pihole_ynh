@@ -4,7 +4,7 @@
 # COMMON VARIABLES
 #=================================================
 
-YNH_PHP_VERSION="7.4"
+YNH_PHP_VERSION="8.2"
 
 php_dependencies="php$YNH_PHP_VERSION-common php$YNH_PHP_VERSION-cgi php$YNH_PHP_VERSION-sqlite3 php$YNH_PHP_VERSION-xml php$YNH_PHP_VERSION-intl"
 
