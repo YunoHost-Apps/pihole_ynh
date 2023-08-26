@@ -115,7 +115,7 @@ ynh_restore_file --origin_path="$fpm_config_dir/php-fpm-$app.conf"
 ynh_restore_file --origin_path="$fpm_config_dir/pool.d/$app.conf"
 
 # Recreate a dedicated php-fpm config
-ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_service
+ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint
 
 #=================================================
 # RESTORE THE NGINX CONFIGURATION
