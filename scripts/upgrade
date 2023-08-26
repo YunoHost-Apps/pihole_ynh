@@ -157,7 +157,7 @@ if [ $overwrite_phpfpm -eq 1 ]
 then
 	ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
 	# Create a dedicated PHP-FPM config
-	ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_service
+	ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint
 fi
 
 #=================================================
