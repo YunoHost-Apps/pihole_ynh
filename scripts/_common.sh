@@ -4,7 +4,9 @@
 # COMMON VARIABLES
 #=================================================
 
-php_dependencies="php$YNH_DEFAULT_PHP_VERSION-common php$YNH_DEFAULT_PHP_VERSION-cgi php$YNH_DEFAULT_PHP_VERSION-sqlite3 php$YNH_DEFAULT_PHP_VERSION-xml php$YNH_DEFAULT_PHP_VERSION-intl"
+YNH_PHP_VERSION="7.4"
+
+php_dependencies="php$YNH_PHP_VERSION-common php$YNH_PHP_VERSION-cgi php$YNH_PHP_VERSION-sqlite3 php$YNH_PHP_VERSION-xml php$YNH_PHP_VERSION-intl"
 
 # dependencies used by the app (must be on a single line)
 pkg_dependencies="cmake build-essential libgmp-dev libidn11-dev nettle-dev libreadline-dev sqlite3 cron curl iputils-ping psmisc unzip idn2 libcap2-bin dns-root-data libcap2 netcat-openbsd procps jq $php_dependencies"
