@@ -25,11 +25,11 @@ enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
 port=$(ynh_app_setting_get --app=$app --key=port)
 pihole_version="$(ynh_app_setting_get --app=$app --key=pihole_version)"
 
-overwrite_setupvars=$(ynh_app_setting_get --app=$app --key=overwrite_setupvars)
-overwrite_ftl=$(ynh_app_setting_get --app=$app --key=overwrite_ftl)
-overwrite_nginx=$(ynh_app_setting_get --app=$app --key=overwrite_nginx)
-overwrite_phpfpm=$(ynh_app_setting_get --app=$app --key=overwrite_phpfpm)
-admin_mail_html=$(ynh_app_setting_get --app=$app --key=admin_mail_html)
+#overwrite_setupvars=$(ynh_app_setting_get --app=$app --key=overwrite_setupvars)
+#overwrite_ftl=$(ynh_app_setting_get --app=$app --key=overwrite_ftl)
+#overwrite_nginx=$(ynh_app_setting_get --app=$app --key=overwrite_nginx)
+#overwrite_phpfpm=$(ynh_app_setting_get --app=$app --key=overwrite_phpfpm)
+#admin_mail_html=$(ynh_app_setting_get --app=$app --key=admin_mail_html)
 
 #=================================================
 # CHECK VERSION
