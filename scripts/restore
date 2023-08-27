@@ -37,7 +37,7 @@ admin=$(ynh_app_setting_get --app=$app --key=admin)
 #fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
 #fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
 #fpm_config_dir=$(ynh_app_setting_get --app=$app --key=fpm_config_dir)
-#fpm_service=$(ynh_app_setting_get --app=$app --key=fpm_service)
+fpm_service=$(ynh_app_setting_get --app=$app --key=fpm_service)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
