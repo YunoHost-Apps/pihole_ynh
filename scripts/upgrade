@@ -67,34 +67,34 @@ ynh_maintenance_mode_ON
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
 
 # If overwrite_setupvars doesn't exist, create it
-if [ -z "$overwrite_setupvars" ]; then
-	overwrite_setupvars=1
-	ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=$overwrite_setupvars
-fi
+#if [ -z "$overwrite_setupvars" ]; then
+#	overwrite_setupvars=1
+#	ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=$overwrite_setupvars
+#fi
 
 # If overwrite_ftl doesn't exist, create it
-if [ -z "$overwrite_ftl" ]; then
-	overwrite_ftl=1
-	ynh_app_setting_set --app=$app --key=overwrite_ftl --value=$overwrite_ftl
-fi
+#if [ -z "$overwrite_ftl" ]; then
+#	overwrite_ftl=1
+#	ynh_app_setting_set --app=$app --key=overwrite_ftl --value=$overwrite_ftl
+#fi
 
 # If overwrite_nginx doesn't exist, create it
-if [ -z "$overwrite_nginx" ]; then
-	overwrite_nginx=1
-	ynh_app_setting_set --app=$app --key=overwrite_nginx --value=$overwrite_nginx
-fi
+#if [ -z "$overwrite_nginx" ]; then
+#	overwrite_nginx=1
+#	ynh_app_setting_set --app=$app --key=overwrite_nginx --value=$overwrite_nginx
+#fi
 
 # If overwrite_phpfpm doesn't exist, create it
-if [ -z "$overwrite_phpfpm" ]; then
-	overwrite_phpfpm=1
-	ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value=$overwrite_phpfpm
-fi
+#if [ -z "$overwrite_phpfpm" ]; then
+#	overwrite_phpfpm=1
+#	ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value=$overwrite_phpfpm
+#fi
 
 # If admin_mail_html doesn't exist, create it
-if [ -z "$admin_mail_html" ]; then
-	admin_mail_html=1
-	ynh_app_setting_set --app=$app --key=admin_mail_html --value=$admin_mail_html
-fi
+#if [ -z "$admin_mail_html" ]; then
+#	admin_mail_html=1
+#	ynh_app_setting_set --app=$app --key=admin_mail_html --value=$admin_mail_html
+#fi
 
 # If fpm_footprint doesn't exist, create it
 if [ -z "$fpm_footprint" ]; then
