@@ -297,6 +297,7 @@ then
 	echo "IPV6_ADDRESS=::1" >> $setupVars
 	echo "PIHOLE_DNS_1=" >> $setupVars
 	echo "PIHOLE_DNS_2=" >> $setupVars
+	echo "DNSMASQ_LISTENING=single" >> $setupVars
 	if [ $query_logging -eq 1 ]; then
 		query_logging=true
 	else
