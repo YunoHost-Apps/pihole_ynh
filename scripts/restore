@@ -37,7 +37,6 @@ admin=$(ynh_app_setting_get --app=$app --key=admin)
 fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
 fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
 fpm_config_dir=$(ynh_app_setting_get --app=$app --key=fpm_config_dir)
-fpm_service=$(ynh_app_setting_get --app=$app --key=fpm_service)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
@@ -260,7 +259,7 @@ ynh_systemd_action --service_name=pihole-FTL --action=restart --log_path="/var/l
 #=================================================
 ynh_script_progression --message="Reloading NGINX web server and PHP-FPM..." --weight=1
 
-ynh_systemd_action --service_name=$fpm_service --action=reload
+ynh_systemd_action --service_name=php$phpversion-fpm --action=reload
 ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
