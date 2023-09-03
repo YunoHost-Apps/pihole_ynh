@@ -75,12 +75,6 @@ if [ -z "$overwrite_ftl" ]; then
 	ynh_app_setting_set --app=$app --key=overwrite_ftl --value=$overwrite_ftl
 fi
 
-# If admin_mail_html doesn't exist, create it
-if [ -z "$admin_mail_html" ]; then
-	admin_mail_html=1
-	ynh_app_setting_set --app=$app --key=admin_mail_html --value=$admin_mail_html
-fi
-
 # If pihole_version doesn't exist, create it
 if [ -z "$pihole_version" ]; then
 	pihole_version="Last 3.X"
