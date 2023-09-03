@@ -27,11 +27,6 @@ pihole_version="$(ynh_app_setting_get --app=$app --key=pihole_version)"
 
 overwrite_setupvars=$(ynh_app_setting_get --app=$app --key=overwrite_setupvars)
 overwrite_ftl=$(ynh_app_setting_get --app=$app --key=overwrite_ftl)
-overwrite_nginx=$(ynh_app_setting_get --app=$app --key=overwrite_nginx)
-overwrite_phpfpm=$(ynh_app_setting_get --app=$app --key=overwrite_phpfpm)
-admin_mail_html=$(ynh_app_setting_get --app=$app --key=admin_mail_html)
-fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
-fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
 
 #=================================================
 # CHECK VERSION
@@ -80,36 +75,6 @@ if [ -z "$overwrite_ftl" ]; then
 	ynh_app_setting_set --app=$app --key=overwrite_ftl --value=$overwrite_ftl
 fi
 
-# If overwrite_nginx doesn't exist, create it
-if [ -z "$overwrite_nginx" ]; then
-	overwrite_nginx=1
-	ynh_app_setting_set --app=$app --key=overwrite_nginx --value=$overwrite_nginx
-fi
-
-# If overwrite_phpfpm doesn't exist, create it
-if [ -z "$overwrite_phpfpm" ]; then
-	overwrite_phpfpm=1
-	ynh_app_setting_set --app=$app --key=overwrite_phpfpm --value=$overwrite_phpfpm
-fi
-
-# If admin_mail_html doesn't exist, create it
-if [ -z "$admin_mail_html" ]; then
-	admin_mail_html=1
-	ynh_app_setting_set --app=$app --key=admin_mail_html --value=$admin_mail_html
-fi
-
-# If fpm_footprint doesn't exist, create it
-if [ -z "$fpm_footprint" ]; then
-	fpm_footprint=low
-	ynh_app_setting_set --app=$app --key=fpm_footprint --value=$fpm_footprint
-fi
-
-# If fpm_usage doesn't exist, create it
-if [ -z "$fpm_usage" ]; then
-	fpm_usage=low
-	ynh_app_setting_set --app=$app --key=fpm_usage --value=$fpm_usage
-fi
-
 # If pihole_version doesn't exist, create it
 if [ -z "$pihole_version" ]; then
 	pihole_version="Last 3.X"
@@ -152,25 +117,17 @@ ynh_install_app_dependencies $pkg_dependencies
 # PHP-FPM CONFIGURATION
 #=================================================
 
-# Overwrite the PHP-FPM configuration only if it's allowed
-if [ $overwrite_phpfpm -eq 1 ]
-then
-	ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
-	# Create a dedicated PHP-FPM config
-	ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint --dedicated_service
-fi
+ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=3
+# Create a dedicated PHP-FPM config
+ynh_add_fpm_config
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 
-# Overwrite the NGINX configuration only if it's allowed
-if [ $overwrite_nginx -eq 1 ]
-then
-	ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
-	# Create a dedicated NGINX config
-	ynh_add_nginx_config
-fi
+ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=2
+# Create a dedicated NGINX config
+ynh_add_nginx_config
 
 #=================================================
 # SPECIFIC UPGRADE
@@ -417,14 +374,6 @@ ynh_maintenance_mode_OFF
 
 # Get main domain and buid the url of the admin panel of the app.
 admin_panel="https://$(grep portal_domain /etc/ssowat/conf.json | cut -d'"' -f4)/yunohost/admin/#/apps/$app"
-
-# If a HTML email is required. Apply HTML to the changelog.
-if [ "$admin_mail_html" -eq 1 ]; then
-	format=html
-else
-	format=plain
-fi
-ynh_app_changelog --format=$format
 
 if [ $enable_dhcp -eq 1 ]
 then
