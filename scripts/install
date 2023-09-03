@@ -236,6 +236,7 @@ else
 fi
 echo "QUERY_LOGGING=$query_logging" >> $setupVars
 echo "INSTALL_WEB=true" >> $setupVars
+echo "BLOCKING_ENABLED=true" >> $setupVars
 
 # Calculate and store the config file checksum into the app settings
 ynh_store_file_checksum --file="$setupVars"
