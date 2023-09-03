@@ -33,11 +33,6 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
 
-# Get variables from ynh_add_fpm_config
-fpm_footprint=$(ynh_app_setting_get --app=$app --key=fpm_footprint)
-fpm_usage=$(ynh_app_setting_get --app=$app --key=fpm_usage)
-fpm_config_dir=$(ynh_app_setting_get --app=$app --key=fpm_config_dir)
-
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
@@ -110,11 +105,7 @@ ynh_install_app_dependencies $pkg_dependencies
 ynh_script_progression --message="Restoring the PHP-FPM configuration..." --weight=7
 
 # Restore the file first, so it can have a backup if different
-ynh_restore_file --origin_path="$fpm_config_dir/php-fpm-$app.conf"
-ynh_restore_file --origin_path="$fpm_config_dir/pool.d/$app.conf"
-
-# Recreate a dedicated php-fpm config
-#ynh_add_fpm_config --usage=$fpm_usage --footprint=$fpm_footprint
+ynh_add_fpm_config
 
 #=================================================
 # RESTORE THE NGINX CONFIGURATION
