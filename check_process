@@ -23,14 +23,12 @@
         setup_private=1
         setup_public=0
         upgrade=1
-        # 5.4~ynh1
-        upgrade=1   from_commit=cfa9c5a3dbcfb765dcca3b2e7d179756afe26def
         # 5.11.4~ynh1
         upgrade=1   from_commit=3d2f68c4e19f335e63f8ffa259708b38a58c8f67
         upgrade=1   from_commit=4999654987af8b1427a6c72f8af482b235bb46db
         backup_restore=1
         multi_instance=0
-        port_already_use=1
+        port_already_use=0
         change_url=1
         actions=0
         config_panel=0
