@@ -19,7 +19,7 @@ Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) po
 Pi-hole® est un puits DNS qui protège vos appareils des contenus indésirables sans installer de logiciel côté client.
 
 
-**Version incluse :** 5.14.2~ynh3
+**Version incluse :** 5.14.2~ynh4
 
 ## Captures d’écran
 
@@ -94,7 +94,7 @@ sudo ifconfig eth0 0.0.0.0 && sudo dhclient eth0
 * Site officiel de l’app : <https://pi-hole.net/>
 * Documentation officielle de l’admin : <https://docs.pi-hole.net>
 * Dépôt de code officiel de l’app : <https://github.com/pi-hole/pi-hole>
-* Documentation YunoHost pour cette app : <https://yunohost.org/app_pihole>
+* YunoHost Store: <https://apps.yunohost.org/app/pihole>
 * Signaler un bug : <https://github.com/YunoHost-Apps/pihole_ynh/issues>
 
 ## Informations pour les développeurs
