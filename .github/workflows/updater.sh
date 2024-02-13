@@ -77,7 +77,7 @@ for asset_url in ${assets[@]}; do
 		*"FTL"*)
 			src="pi-hole_FTL"
 			;;
-		*"AdminLTE"*)
+		*"web"*)
 			src="pi-hole_AdminLTE"
 			;;
 		*"pi-hole"*)
