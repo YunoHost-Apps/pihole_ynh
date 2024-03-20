@@ -20,6 +20,9 @@ main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
 # Get the dnsmasq user to set log files permissions
 dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
 
+# Find the IP associated to the network interface
+localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
+
 if [ "$query_logging" -eq 1 ]; then
     query_logging_str=true
 else
@@ -83,20 +86,9 @@ ynh_script_progression --message="Installing $app's configuration files..." --we
 install -d -m 0755 "$PI_HOLE_CONFIG_DIR"
 ynh_add_config --template="dns-servers.conf" --destination="$PI_HOLE_CONFIG_DIR/dns-servers.conf"
 ynh_add_config --template="pihole-FTL.conf" --destination="$PI_HOLE_CONFIG_DIR/pihole-FTL.conf"
+ynh_add_config --template="setupVars.conf" --destination="$PI_HOLE_CONFIG_DIR/setupVars.conf"
 
 chmod 644 "${PI_HOLE_CONFIG_DIR}/dns-servers.conf"
-
-{
-    echo "PIHOLE_INTERFACE=$main_iface"
-    echo "IPV4_ADDRESS=127.0.0.1"
-    echo "IPV6_ADDRESS=::1"
-    echo "PIHOLE_DNS_1="
-    echo "PIHOLE_DNS_2="
-    echo "QUERY_LOGGING=$query_logging_str"
-    echo "INSTALL_WEB=true"
-    echo "BLOCKING_ENABLED=true"
-} > "$PI_HOLE_CONFIG_DIR/setupVars.conf"
-ynh_store_file_checksum --file="$PI_HOLE_CONFIG_DIR/setupVars.conf"
 
 #=================================================
 # SET VERSIONS FOR THE FOOTER OF THE WEB INTERFACE
@@ -119,9 +111,6 @@ ynh_exec_warn_less "$PI_HOLE_INSTALL_DIR/gravity.sh" --force
 # CONFIGURE DNS FOR THE LOCAL DOMAINS
 #=================================================
 ynh_script_progression --message="Configuring DNS for the local domains..." --weight=7
-
-# Find the IP associated to the network interface
-localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
 
 # List all YunoHost domains
 while read -r perdomain; do
