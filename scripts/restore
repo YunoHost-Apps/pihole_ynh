@@ -1,8 +1,6 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
@@ -11,55 +9,16 @@ source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# MANAGE SCRIPT FAILURE
+# INITIALIZE AND STORE SETTINGS
 #=================================================
 
-#REMOVEME? ynh_clean_setup () {
-	true
-}
-# Exit if an error occurs during the execution of the script
-#REMOVEME? ynh_abort_if_errors
+dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
 
 #=================================================
-# LOAD SETTINGS
+# CHECK AVAILABLE PORT
 #=================================================
-#REMOVEME? ynh_script_progression --message="Loading installation settings..." --weight=2
 
-#REMOVEME? app=$YNH_APP_INSTANCE_NAME
-
-#REMOVEME? domain=$(ynh_app_setting_get --app=$app --key=domain)
-#REMOVEME? path=$(ynh_app_setting_get --app=$app --key=path)
-#REMOVEME? #REMOVEME? install_dir=$(ynh_app_setting_get --app=$app --key=install_dir)
-#REMOVEME? enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
-#REMOVEME? admin=$(ynh_app_setting_get --app=$app --key=admin)
-
-#=================================================
-# CHECK IF THE APP CAN BE RESTORED
-#=================================================
-#REMOVEME? ynh_script_progression --message="Validating restoration parameters..." --weight=1
-
-#REMOVEME? test ! -d $install_dir \
-	|| ynh_die --message="There is already a directory: $install_dir "
-
-#=================================================
-# FIND AND OPEN A PORT
-#=================================================
-#REMOVEME? ynh_script_progression --message="Finding an available port..." --weight=12
-
-# Find an available port
-#REMOVEME? port=$(ynh_find_port --port=4711)
-if [ $port -gt 4720 ]
-then
-	ynh_die --message="The ports 4711 to 4720 are already in use. Pi-hole can't work on another port. Please try to free one of these ports."
-fi
-#REMOVEME? ynh_app_setting_set --app=$app --key=port --value=$port
-
-# Disable the port 53 for upnp
-ynh_exec_fully_quiet yunohost firewall disallow Both 53 --no-reload
-ynh_exec_fully_quiet yunohost firewall allow Both 53 --no-upnp
-
-# Open the UDP port 67 for dhcp
-ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
+_configure_ports
 
 #=================================================
 # ACTIVATE MAINTENANCE MODE
@@ -69,50 +28,18 @@ ynh_script_progression --message="Activating maintenance mode..." --weight=2
 ynh_maintenance_mode_ON
 
 #=================================================
-# STANDARD RESTORATION STEPS
-#=================================================
-# RECREATE THE DEDICATED USER
-#=================================================
-#REMOVEME? ynh_script_progression --message="Recreating the dedicated system user..." --weight=2
-
-# Create the dedicated user (if not existing)
-#REMOVEME? ynh_system_user_create --username=$app --home_dir="$install_dir"
-
-#=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
 ynh_script_progression --message="Restoring the app main directory..." --weight=1
 
 ynh_restore_file --origin_path="$install_dir"
 
-chmod 750 "$install_dir"
 chmod -R o-rwx "$install_dir"
-chown -R $app:www-data "$install_dir"
+chown -R "$app:www-data" "$install_dir"
 
-#=================================================
-# SPECIFIC RESTORATION
-#=================================================
-# REINSTALL DEPENDENCIES
-#=================================================
-#REMOVEME? ynh_script_progression --message="Reinstalling dependencies..." --weight=12
-
-# Define and install dependencies
-#REMOVEME? ynh_install_app_dependencies $pkg_dependencies
-
-#=================================================
-# RESTORE THE PHP-FPM CONFIGURATION
-#=================================================
-ynh_script_progression --message="Restoring the PHP-FPM configuration..." --weight=7
-
-# Restore the file first, so it can have a backup if different
-ynh_add_fpm_config
-
-#=================================================
-# RESTORE THE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Restoring the NGINX web server configuration..." --weight=1
-
-ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
+touch /var/log/{pihole,pihole-FTL}.log
+chmod 644 /var/log/{pihole,pihole-FTL}.log
+chown "$dnsmasq_user:root" /var/log/{pihole,pihole-FTL}.log
 
 #=================================================
 # RESTORE SPECIFIC FILES
@@ -122,40 +49,18 @@ ynh_script_progression --message="Restoring specific files..." --weight=1
 ynh_restore_file --origin_path="$PI_HOLE_LOCAL_REPO"
 
 ynh_restore_file --origin_path="$PI_HOLE_CONFIG_DIR"
-# Restore permissions on app files
-chown $app: -R "$PI_HOLE_CONFIG_DIR"
+chown "$app:" -R "$PI_HOLE_CONFIG_DIR"
+
 # $PI_HOLE_CONFIG_DIR/logrotate have to belong to root, otherwise logrotate will failed silently...
 chown root: -R "$PI_HOLE_CONFIG_DIR/logrotate"
 
 ynh_restore_file --origin_path="$PI_HOLE_INSTALL_DIR"
 
 ynh_restore_file --origin_path="$PI_HOLE_BIN_DIR/pihole"
+
 ynh_restore_file --origin_path="/etc/bash_completion.d/pihole"
 
-ynh_restore_file --origin_path="/etc/init.d/pihole-FTL"
 ynh_restore_file --origin_path="/usr/bin/pihole-FTL"
-install -T -m 0755 "${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole-FTL.service" "/etc/init.d/pihole-FTL"
-
-ynh_restore_file --origin_path="/etc/sudoers.d/pihole"
-
-#=================================================
-# RESTORE THE CRON FILE
-#=================================================
-ynh_script_progression --message="Restoring the cron file..." --weight=1
-
-ynh_restore_file --origin_path="/etc/cron.d/pihole"
-
-#=================================================
-# DISABLING DNSMASQ
-#=================================================
-ynh_script_progression --message="Disabling DNSMASQ..." --weight=1
-
-# Last version available
-# Stopped dnsmasq to replace it by pihole-FTL
-ynh_systemd_action --service_name=dnsmasq --action=stop
-
-# Disable the real dnsmasq service
-#ynh_exec_warn_less systemctl disable dnsmasq --quiet
 
 #=================================================
 # FINAL EXPORTS
@@ -174,6 +79,18 @@ ynh_replace_string --match_string="^IPV4_ADDRESS=.*" --replace_string="IPV4_ADDR
 ynh_store_file_checksum --file="$setupVars"
 
 #=================================================
+# DISABLING DNSMASQ
+#=================================================
+ynh_script_progression --message="Disabling DNSMASQ..." --weight=1
+
+# Last version available
+# Stopped dnsmasq to replace it by pihole-FTL
+ynh_systemd_action --service_name=dnsmasq --action=stop
+
+# Disable the real dnsmasq service
+#ynh_exec_warn_less systemctl disable dnsmasq --quiet
+
+#=================================================
 # ENABLING FTL
 #=================================================
 ynh_script_progression --message="Enable FTL..." --weight=1
@@ -187,16 +104,6 @@ systemctl mask dnsmasq.service
 
 # Reload systemd config
 systemctl daemon-reload
-
-#=================================================
-# RECREATE LOG FILES
-#=================================================
-ynh_script_progression --message="Recreate log files..." --weight=1
-
-touch /var/log/{pihole,pihole-FTL}.log
-chmod 644 /var/log/{pihole,pihole-FTL}.log
-dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
-chown $dnsmasq_user:root /var/log/{pihole,pihole-FTL}.log
 
 #=================================================
 # CONFIGURE DNS FOR THE LOCAL DOMAINS
@@ -230,28 +137,34 @@ systemctl daemon-reload
 ynh_exec_warn_less yunohost tools regen-conf dnsmasq
 
 #=================================================
-# INTEGRATE SERVICE IN YUNOHOST
+# RESTORE SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
+ynh_script_progression --message="Restoring system configurations related to $app..." --weight=1
 
+ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
+
+# Restore the file first, so it can have a backup if different
+ynh_restore_file --origin_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
+ynh_add_fpm_config
+
+ynh_restore_file --origin_path="/etc/cron.d/pihole"
+
+ynh_restore_file --origin_path="/etc/sudoers.d/pihole"
+
+ynh_restore_file --origin_path="/etc/init.d/pihole-FTL"
+# install -T -m 0755 "${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole-FTL.service" "/etc/init.d/pihole-FTL"
 yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log" --needs_exposed_ports 53 67
 
 #=================================================
-# START SYSTEMD SERVICE
+# RELOAD NGINX AND PHP-FPM OR THE APP SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=2
+ynh_script_progression --message="Reloading NGINX web server and $app's service..." --weight=1
 
-ynh_systemd_action --service_name=pihole-FTL --action=restart --log_path="/var/log/pihole-FTL.log"
+ynh_systemd_action --service_name="pihole-FTL" --action="restart" --log_path="/var/log/pihole-FTL.log"
 
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# RELOAD NGINX AND PHP-FPM
-#=================================================
-ynh_script_progression --message="Reloading NGINX web server and PHP-FPM..." --weight=1
+ynh_systemd_action --service_name="php$phpversion-fpm" --action=reload
 
-ynh_systemd_action --service_name=php$YNH_PHP_VERSION-fpm --action=reload
-ynh_systemd_action --service_name=nginx --action=reload
+ynh_systemd_action --service_name="nginx" --action=reload
 
 #=================================================
 # DEACTIVE MAINTENANCE MODE
