@@ -1,0 +1,115 @@
+#:schema https://raw.githubusercontent.com/YunoHost/apps/master/schemas/manifest.v2.schema.json
+
+packaging_format = 2
+
+id = "pihole"
+name = "Pi-hole"
+description.en = "Network-wide ad blocking via your own DNS server"
+description.fr = "Filtrage publicitaire via votre propre serveur DNS"
+
+version = "5.14.2~ynh4"
+
+maintainers = []
+
+[upstream]
+license = "EUPL-1.2"
+website = "https://pi-hole.net/"
+admindoc = "https://docs.pi-hole.net"
+code = "https://github.com/pi-hole/pi-hole"
+fund = "https://pi-hole.net/donate/#donate"
+
+[integration]
+yunohost = ">= 11.2.4"
+architectures = "all"
+multi_instance = false
+ldap = "not_relevant"
+sso = "not_relevant"
+disk = "50M" # FIXME: replace with an **estimate** minimum disk requirement. e.g. 20M, 400M, 1G, ...
+ram.build = "50M" # FIXME: replace with an **estimate** minimum ram requirement. e.g. 50M, 400M, 1G, ...
+ram.runtime = "50M" # FIXME: replace with an **estimate** minimum ram requirement. e.g. 50M, 400M, 1G, ...
+
+[install]
+    [install.domain]
+    type = "domain"
+
+    [install.path]
+    type = "path"
+    default = "/pihole"
+
+    [install.query_logging]
+    ask.en = "Do you want to log DNS queries?"
+    ask.fr = "Voulez-vous enregistrer les requêtes DNS ?"
+    help.en = "Keeping this option deactivate will render graphs on the admin page useless. But will respect the privacy of the other users."
+    help.fr = "Garder cette option désactivée rendra les graphiques sur la page d'administration inutiles. Mais respectera la vie privée des autres utilisateurs."
+    type = "boolean"
+    default = false
+
+    [install.enable_dhcp]
+    ask.en = "Do you want to set Pi-Hole as your DHCP server?"
+    ask.fr = "Voulez-vous utiliser Pi-Hole an tant que serveur DHCP ?"
+    help.en = "If you want to do that, <a href=https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md target=_blank>you really have to read this before</a>!"
+    help.fr = "Si vous voulez faire ça, <a href=https://github.com/YunoHost-Apps/pihole_ynh/blob/master/dhcp.md target=_blank>vous devez vraiment lire cela avant</a> !"
+    type = "boolean"
+    default = false
+
+[resources]
+    [resources.sources]
+    [resources.sources.pi-hole_core]
+    url = "https://github.com/pi-hole/pi-hole/archive/v5.14.2.tar.gz"
+    sha256 = "fb2bf933eb7dc54de7b5ab220458e0298fb48fa84d5cba1bcb3c72c47bee1051"
+
+    autoupdate.upstream = "https://github.com/pi-hole/pi-hole"
+    autoupdate.strategy = "latest_github_release"
+
+    [resources.sources.pi-hole_web]
+    url = "https://github.com/pi-hole/web/archive/v5.18.tar.gz"
+    sha256 = "563d3568f9b4c8bf09c6a7a21995c1827f3438edd17e5e2b55ead873599580c0"
+
+    autoupdate.upstream = "https://github.com/pi-hole/web"
+    autoupdate.strategy = "latest_github_release"
+
+    [resources.sources.pi-hole_ftl]
+    url = "https://github.com/pi-hole/FTL/archive/v5.20.tar.gz"
+    sha256 = "c098d65ed7e59865b814d64a0a5fac65914ce93277e69ef97ab87e8479731fc9"
+
+    autoupdate.upstream = "https://github.com/pi-hole/FTL"
+    autoupdate.strategy = "latest_github_release"
+
+    [resources.system_user]
+
+    [resources.install_dir]
+
+    [resources.permissions]
+    main.url = "/"
+    mani.allowed = "admins"
+
+    [resources.ports]
+    main.default = 4711
+
+    [resources.apt]
+    packages = [
+        "php7.4-common",
+        "php7.4-cgi",
+        "php7.4-sqlite3",
+        "php7.4-xml",
+        "php7.4-intl",
+        "cmake",
+        "build-essential",
+        "libgmp-dev",
+        "libidn11-dev",
+        "nettle-dev",
+        "libreadline-dev",
+        "sqlite3",
+        "cron",
+        "curl",
+        "iputils-ping",
+        "psmisc",
+        "unzip",
+        "idn2",
+        "libcap2-bin",
+        "dns-root-data",
+        "libcap2",
+        "netcat-openbsd",
+        "procps",
+        "jq",
+    ]
