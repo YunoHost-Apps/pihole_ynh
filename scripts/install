@@ -149,6 +149,10 @@ systemctl mask dnsmasq.service
 # Reload systemd config
 systemctl daemon-reload
 
+# Workaround for strings to not be replaced
+a_range="__A_RANGE__"
+b_range="__B_RANGE__"
+gateway="__GATEWAY__"
 ynh_add_config --template="dnsmasq_regenconf_hook" --destination="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 ynh_exec_warn_less yunohost tools regen-conf dnsmasq
 
