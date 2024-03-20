@@ -1,37 +1,12 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
 # Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
-
-#=================================================
-# MANAGE SCRIPT FAILURE
-#=================================================
-
-ynh_clean_setup () {
-	true
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# LOAD SETTINGS
-#=================================================
-ynh_print_info --message="Loading installation settings..."
-
-app=$YNH_APP_INSTANCE_NAME
-
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-
-# Get variable from ynh_add_fpm_config
-fpm_config_dir=$(ynh_app_setting_get --app=$app --key=fpm_config_dir)
 
 #=================================================
 # DECLARE DATA AND CONF FILES TO BACKUP
@@ -42,21 +17,28 @@ ynh_print_info --message="Declaring files to be backed up..."
 # BACKUP THE APP MAIN DIR
 #=================================================
 
-ynh_backup --src_path="$final_path"
+ynh_backup --src_path="$install_dir"
+
 #=================================================
-# BACKUP THE NGINX CONFIGURATION
+# BACKUP THE SYSTEM CONFIGURATION
 #=================================================
 
 ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
-#=================================================
-# BACKUP THE PHP-FPM CONFIGURATION
-#=================================================
+ynh_backup --src_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
 
-ynh_backup --src_path="$fpm_config_dir/pool.d/$app.conf"
+ynh_backup --src_path="/etc/cron.d/pihole"
 
-#=================================================
-# SPECIFIC BACKUP
+ynh_backup --src_path="/etc/sudoers.d/pihole"
+
+ynh_backup --src_path="/etc/init.d/pihole-FTL"
+
+ynh_backup --src_path="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
+
+if test -e "/etc/dnsmasq.d/03-pihole-wildcard.conf"; then
+    ynh_backup --src_path="/etc/dnsmasq.d/03-pihole-wildcard.conf"
+fi
+
 #=================================================
 # BACKUP VARIOUS FILES
 #=================================================
@@ -65,21 +47,10 @@ ynh_backup --src_path="$PI_HOLE_LOCAL_REPO"
 ynh_backup --src_path="$PI_HOLE_CONFIG_DIR"
 ynh_backup --src_path="$PI_HOLE_INSTALL_DIR"
 
-ynh_backup --src_path="/etc/cron.d/pihole"
-
 ynh_backup --src_path="$PI_HOLE_BIN_DIR/pihole"
 ynh_backup --src_path="/etc/bash_completion.d/pihole"
 
-ynh_backup --src_path="/etc/sudoers.d/pihole"
-
-ynh_backup --src_path="/etc/init.d/pihole-FTL"
 ynh_backup --src_path="/usr/bin/pihole-FTL"
-
-if test -e "/etc/dnsmasq.d/03-pihole-wildcard.conf"; then
-	ynh_backup --src_path="/etc/dnsmasq.d/03-pihole-wildcard.conf"
-fi
-
-ynh_backup --src_path="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 
 #=================================================
 # END OF SCRIPT
