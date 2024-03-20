@@ -15,6 +15,7 @@ test_format = 1.0
     name = "Last packagingv1 version"
     args.admin = "package_checker"
     args.domain = "domain.tld"
+    args.path = "/"
 
     # ; Config_panel
     #     main.overwrite_files.overwrite_setupvars=0|1
