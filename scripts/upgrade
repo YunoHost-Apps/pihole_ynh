@@ -83,7 +83,7 @@ install -o "$app" -Dm755 -d "$PI_HOLE_INSTALL_DIR"
 install -o "$app" -Dm755 -t "$PI_HOLE_INSTALL_DIR" "$PI_HOLE_LOCAL_REPO/gravity.sh"
 install -o "$app" -Dm755 -t "$PI_HOLE_INSTALL_DIR" "$PI_HOLE_LOCAL_REPO/advanced/Scripts"/*.sh
 install -o "$app" -Dm755 -t "$PI_HOLE_INSTALL_DIR" "$PI_HOLE_LOCAL_REPO/advanced/Scripts/COL_TABLE"
-install -Dm644 -t /etc/bash_completion.d/pihole    "$PI_HOLE_LOCAL_REPO/advanced/bash-completion/pihole"
+install -Dm644 -t /etc/bash_completion.d/          "$PI_HOLE_LOCAL_REPO/advanced/bash-completion/pihole"
 
 install -o "$app" -Dm755 -t "$PI_HOLE_BIN_DIR" "$PI_HOLE_LOCAL_REPO/pihole"
 
