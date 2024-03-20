@@ -133,7 +133,7 @@ test -e "${YNH_APP_BACKUP_DIR}/etc/dnsmasq.d/03-pihole-wildcard.conf" && ynh_res
 
 ynh_restore_file --origin_path="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 
-systemctl daemon-reload
+
 ynh_exec_warn_less yunohost tools regen-conf dnsmasq
 
 #=================================================
@@ -152,6 +152,7 @@ ynh_restore_file --origin_path="/etc/cron.d/pihole"
 ynh_restore_file --origin_path="/etc/sudoers.d/pihole"
 
 ynh_restore_file --origin_path="/etc/init.d/pihole-FTL"
+systemctl daemon-reload
 # install -T -m 0755 "${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole-FTL.service" "/etc/init.d/pihole-FTL"
 yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log" --needs_exposed_ports 53 67
 
