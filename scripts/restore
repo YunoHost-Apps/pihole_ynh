@@ -14,45 +14,45 @@ source /usr/share/yunohost/helpers
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-ynh_clean_setup () {
+#REMOVEME? ynh_clean_setup () {
 	true
 }
 # Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
+#REMOVEME? ynh_abort_if_errors
 
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --weight=2
+#REMOVEME? ynh_script_progression --message="Loading installation settings..." --weight=2
 
-app=$YNH_APP_INSTANCE_NAME
+#REMOVEME? app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-path_url=$(ynh_app_setting_get --app=$app --key=path)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
-admin=$(ynh_app_setting_get --app=$app --key=admin)
+#REMOVEME? domain=$(ynh_app_setting_get --app=$app --key=domain)
+#REMOVEME? path=$(ynh_app_setting_get --app=$app --key=path)
+#REMOVEME? #REMOVEME? install_dir=$(ynh_app_setting_get --app=$app --key=install_dir)
+#REMOVEME? enable_dhcp=$(ynh_app_setting_get --app=$app --key=enable_dhcp)
+#REMOVEME? admin=$(ynh_app_setting_get --app=$app --key=admin)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
-ynh_script_progression --message="Validating restoration parameters..." --weight=1
+#REMOVEME? ynh_script_progression --message="Validating restoration parameters..." --weight=1
 
-test ! -d $final_path \
-	|| ynh_die --message="There is already a directory: $final_path "
+#REMOVEME? test ! -d $install_dir \
+	|| ynh_die --message="There is already a directory: $install_dir "
 
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
-ynh_script_progression --message="Finding an available port..." --weight=12
+#REMOVEME? ynh_script_progression --message="Finding an available port..." --weight=12
 
 # Find an available port
-port=$(ynh_find_port --port=4711)
+#REMOVEME? port=$(ynh_find_port --port=4711)
 if [ $port -gt 4720 ]
 then
 	ynh_die --message="The ports 4711 to 4720 are already in use. Pi-hole can't work on another port. Please try to free one of these ports."
 fi
-ynh_app_setting_set --app=$app --key=port --value=$port
+#REMOVEME? ynh_app_setting_set --app=$app --key=port --value=$port
 
 # Disable the port 53 for upnp
 ynh_exec_fully_quiet yunohost firewall disallow Both 53 --no-reload
@@ -73,31 +73,31 @@ ynh_maintenance_mode_ON
 #=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Recreating the dedicated system user..." --weight=2
+#REMOVEME? ynh_script_progression --message="Recreating the dedicated system user..." --weight=2
 
 # Create the dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir="$final_path"
+#REMOVEME? ynh_system_user_create --username=$app --home_dir="$install_dir"
 
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
 ynh_script_progression --message="Restoring the app main directory..." --weight=1
 
-ynh_restore_file --origin_path="$final_path"
+ynh_restore_file --origin_path="$install_dir"
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 
 #=================================================
 # SPECIFIC RESTORATION
 #=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Reinstalling dependencies..." --weight=12
+#REMOVEME? ynh_script_progression --message="Reinstalling dependencies..." --weight=12
 
 # Define and install dependencies
-ynh_install_app_dependencies $pkg_dependencies
+#REMOVEME? ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # RESTORE THE PHP-FPM CONFIGURATION

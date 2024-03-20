@@ -1,8 +1,6 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
@@ -10,269 +8,112 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# MANAGE SCRIPT FAILURE
+# INITIALIZE AND STORE SETTINGS
 #=================================================
 
-ynh_clean_setup () {
-	true
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
+ynh_app_setting_set --app="$app" --key="overwrite_setupvars" --value=1
+ynh_app_setting_set --app="$app" --key="overwrite_ftl" --value=1
 
-#=================================================
-# RETRIEVE ARGUMENTS FROM THE MANIFEST
-#=================================================
+# Get the default network interface
+main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
 
-domain=$YNH_APP_ARG_DOMAIN
-path_url=$YNH_APP_ARG_PATH
-admin=$YNH_APP_ARG_ADMIN
-query_logging=$YNH_APP_ARG_QUERY_LOGGING
-enable_dhcp=$YNH_APP_ARG_ENABLE_DHCP
+# Get the dnsmasq user to set log files permissions
+dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
 
-app=$YNH_APP_INSTANCE_NAME
-
-#=================================================
-# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
-#=================================================
-ynh_script_progression --message="Validating installation parameters..." --weight=2
-
-final_path=/var/www/$app
-test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
-
-# Register (book) web path
-ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
-
-#=================================================
-# STORE SETTINGS FROM MANIFEST
-#=================================================
-ynh_script_progression --message="Storing installation settings..." --weight=3
-
-ynh_app_setting_set --app=$app --key=domain --value=$domain
-ynh_app_setting_set --app=$app --key=path --value=$path_url
-ynh_app_setting_set --app=$app --key=admin --value=$admin
-ynh_app_setting_set --app=$app --key=query_logging --value=$query_logging
-ynh_app_setting_set --app=$app --key=enable_dhcp --value=$enable_dhcp
-
-ynh_app_setting_set --app=$app --key=overwrite_setupvars --value=1
-ynh_app_setting_set --app=$app --key=overwrite_ftl --value=1
-
-#=================================================
-# STANDARD MODIFICATIONS
-#=================================================
-# FIND AND OPEN A PORT
-#=================================================
-ynh_script_progression --message="Finding an available port..." --weight=12
-
-# Find an available port
-port=$(ynh_find_port --port=4711)
-if [ $port -gt 4720 ]
-then
-	ynh_die --message="The ports 4711 to 4720 are already in use. Pi-hole can't work on another port. Please try to free one of these ports."
+if [ "$query_logging" -eq 1 ]; then
+    query_logging_str=true
+else
+    query_logging_str=false
 fi
-ynh_app_setting_set --app=$app --key=port --value=$port
-
-# Disable the port 53 for upnp
-ynh_exec_fully_quiet yunohost firewall disallow Both 53 --no-reload
-ynh_exec_fully_quiet yunohost firewall allow Both 53 --no-upnp
-
-# Open the UDP port 67 for dhcp
-ynh_exec_fully_quiet yunohost firewall allow UDP 67 --no-upnp
 
 #=================================================
-# INSTALL DEPENDENCIES
+# CHECK AVAILABLE PORT
 #=================================================
-ynh_script_progression --message="Installing dependencies..." --weight=12
 
-ynh_install_app_dependencies $pkg_dependencies
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Configuring system user..." --weight=2
-
-# Create a system user
-ynh_system_user_create --username=$app --home_dir="$final_path"
+_configure_ports
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression --message="Setting up source files..." --weight=4
 
-ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$PI_HOLE_LOCAL_REPO" --source_id="pi-hole_Core"
-ynh_setup_source --dest_dir="$final_path" --source_id=pi-hole_AdminLTE
-FTL_temp_path=$(mktemp -d)
-ynh_setup_source --dest_dir="$FTL_temp_path" --source_id="pi-hole_FTL"
+ynh_setup_source --source_id="pi-hole_core" --dest_dir="$PI_HOLE_LOCAL_REPO"
+ynh_setup_source --source_id="pi-hole_web" --dest_dir="$install_dir/web"
+ynh_setup_source --source_id="pi-hole_ftl" --dest_dir="$install_dir/ftl"
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+chmod -R o-rwx "$install_dir"
+chown -R "$app:www-data" "$install_dir"
 
-#=================================================
-# PHP-FPM CONFIGURATION
-#=================================================
-ynh_script_progression --message="Configuring PHP-FPM..." --weight=2
+touch /var/log/{pihole,pihole-FTL}.log
+chmod 644 /var/log/{pihole,pihole-FTL}.log
+chown "$dnsmasq_user:root" /var/log/{pihole,pihole-FTL}.log
 
-# Create a dedicated PHP-FPM config
-ynh_add_fpm_config
-
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Configuring NGINX web server..." --weight=2
-
-# Create a dedicated NGINX config
-ynh_add_nginx_config
-
-#=================================================
-# SPECIFIC SETUP
 #=================================================
 # INSTALLATION OF PIHOLE-FTL
 #=================================================
-ynh_script_progression --message="Installing PiHole-FTL..." --weight=30
+ynh_script_progression --message="Building PiHole-FTL..." --weight=30
 
 # Instead of downloading a binary file, we're going to compile it
-( 
-	cd "$FTL_temp_path"
-	ynh_exec_warn_less cmake .
-	ynh_exec_warn_less make
-	ynh_exec_warn_less make install
-)
-
-ynh_secure_remove --file="$FTL_temp_path"
+pushd "$install_dir/ftl"
+    ynh_exec_warn_less cmake .
+    ynh_exec_warn_less make
+    ynh_exec_warn_less make install
+popd
+ynh_secure_remove --file="$install_dir/ftl"
 
 #=================================================
 # INSTALL THE SCRIPTS
 #=================================================
-ynh_script_progression --message="Installing the scripts..." --weight=1
+ynh_script_progression --message="Installing Pihole..." --weight=1
 
-pushd "${PI_HOLE_LOCAL_REPO}"
-	install -o "${app}" -Dm755 -d "${PI_HOLE_INSTALL_DIR}"
-	install -o "${app}" -Dm755 -t "${PI_HOLE_INSTALL_DIR}" gravity.sh
-	install -o "${app}" -Dm755 -t "${PI_HOLE_INSTALL_DIR}" ./advanced/Scripts/*.sh
-	install -o "${app}" -Dm755 -t "${PI_HOLE_INSTALL_DIR}" ./advanced/Scripts/COL_TABLE
-	install -o "${app}" -Dm755 -t "${PI_HOLE_BIN_DIR}" pihole
-	install -Dm644 ./advanced/bash-completion/pihole /etc/bash_completion.d/pihole
-popd
+install -o "$app" -Dm755 -d "$PI_HOLE_INSTALL_DIR"
+install -o "$app" -Dm755 -t "$PI_HOLE_INSTALL_DIR" "$PI_HOLE_LOCAL_REPO/gravity.sh"
+install -o "$app" -Dm755 -t "$PI_HOLE_INSTALL_DIR" "$PI_HOLE_LOCAL_REPO/advanced/Scripts"/*.sh
+install -o "$app" -Dm755 -t "$PI_HOLE_INSTALL_DIR" "$PI_HOLE_LOCAL_REPO/advanced/Scripts/COL_TABLE"
+install -Dm644 -t /etc/bash_completion.d/pihole    "$PI_HOLE_LOCAL_REPO/advanced/bash-completion/pihole"
+
+install -o "$app" -Dm755 -t "$PI_HOLE_BIN_DIR" "$PI_HOLE_LOCAL_REPO/pihole"
 
 #=================================================
 # INSTALL THE CONFIGS
 #=================================================
-ynh_script_progression --message="Installing the configs..." --weight=1
+ynh_script_progression --message="Installing $app's configuration files..." --weight=1
 
-install -d -m 0755 ${PI_HOLE_CONFIG_DIR}
+install -d -m 0755 "$PI_HOLE_CONFIG_DIR"
+ynh_add_config --template="dns-servers.conf" --destination="$PI_HOLE_CONFIG_DIR/dns-servers.conf"
+ynh_add_config --template="pihole-FTL.conf" --destination="$PI_HOLE_CONFIG_DIR/pihole-FTL.conf"
 
-cp "../conf/dns-servers.conf" "$PI_HOLE_CONFIG_DIR/dns-servers.conf"
 chmod 644 "${PI_HOLE_CONFIG_DIR}/dns-servers.conf"
 
-ynh_add_config --template="../conf/pihole-FTL.conf" --destination="$PI_HOLE_CONFIG_DIR/pihole-FTL.conf"
-
-install -T -m 0755 "${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole-FTL.service" "/etc/init.d/pihole-FTL"
-
-#=================================================
-# INSTALL SUDOER FILE
-#=================================================
-ynh_script_progression --message="Installing sudoer file..." --weight=1
-
-install -m 0640 ${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole.sudo /etc/sudoers.d/pihole
-echo "$app ALL=NOPASSWD: ${PI_HOLE_BIN_DIR}/pihole" >> /etc/sudoers.d/pihole
-
-#=================================================
-# INSTALL A CRON JOB
-#=================================================
-ynh_script_progression --message="Installing a cron job..." --weight=1
-
-install -D -m 644 -T -o root -g root ${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole.cron /etc/cron.d/pihole
-
-# Randomize gravity update time
-ynh_replace_string --match_string="59 1 " --replace_string="$((1 + RANDOM % 58)) $((3 + RANDOM % 2)) " --target_file="/etc/cron.d/pihole"
-
-# Randomize update checker time
-ynh_replace_string --match_string="59 17" --replace_string="$((1 + RANDOM % 58)) $((12 + RANDOM % 8))" --target_file="/etc/cron.d/pihole"
-
-# Remove git usage for version. Which fails because we use here a release instead of master.
-ynh_replace_string --match_string=".*updatechecker.*" --replace_string="#&" --target_file=/etc/cron.d/pihole
+{
+    echo "PIHOLE_INTERFACE=$main_iface"
+    echo "IPV4_ADDRESS=127.0.0.1"
+    echo "IPV6_ADDRESS=::1"
+    echo "PIHOLE_DNS_1="
+    echo "PIHOLE_DNS_2="
+    echo "QUERY_LOGGING=$query_logging_str"
+    echo "INSTALL_WEB=true"
+    echo "BLOCKING_ENABLED=true"
+} > "$PI_HOLE_CONFIG_DIR/setupVars.conf"
+ynh_store_file_checksum --file="$PI_HOLE_CONFIG_DIR/setupVars.conf"
 
 #=================================================
-# INSTALL LOGROTATE SCRIPT FOR PI-HOLE
+# SET VERSIONS FOR THE FOOTER OF THE WEB INTERFACE
 #=================================================
-ynh_script_progression --message="Installing logrotate script for PI-HOLE..." --weight=1
+ynh_script_progression --message="Setting versions for the footer of the web interface..." --weight=1
 
-install -D -m 644 -T "${PI_HOLE_LOCAL_REPO}"/advanced/Templates/logrotate "$PI_HOLE_CONFIG_DIR/logrotate"
-
-sed -i "/# su #/d;" "$PI_HOLE_CONFIG_DIR/logrotate"
-
-#=================================================
-# DISABLING DNSMASQ
-#=================================================
-ynh_script_progression --message="Disabling DNSMASQ..." --weight=1
-
-# Last version available
-# Stopped dnsmasq to replace it by pihole-FTL
-ynh_systemd_action --service_name=dnsmasq --action=stop
-
-# Disable the real dnsmasq service
-#ynh_exec_warn_less systemctl disable dnsmasq --quiet
-
-#=================================================
-# FINAL EXPORTS
-#=================================================
-ynh_script_progression --message="Final exports..." --weight=1
-
-setupVars="$PI_HOLE_CONFIG_DIR/setupVars.conf"
-
-# Get the default network interface
-main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
-echo "PIHOLE_INTERFACE=$main_iface" > $setupVars
-echo "IPV4_ADDRESS=127.0.0.1" >> $setupVars
-echo "IPV6_ADDRESS=::1" >> $setupVars
-echo "PIHOLE_DNS_1=" >> $setupVars
-echo "PIHOLE_DNS_2=" >> $setupVars
-if [ $query_logging -eq 1 ]; then
-	query_logging=true
-else
-	query_logging=false
-fi
-echo "QUERY_LOGGING=$query_logging" >> $setupVars
-echo "INSTALL_WEB=true" >> $setupVars
-echo "BLOCKING_ENABLED=true" >> $setupVars
-
-# Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum --file="$setupVars"
-
-#=================================================
-# ENABLING FTL
-#=================================================
-ynh_script_progression --message="Enable FTL..." --weight=1
-
-ynh_exec_warn_less systemctl enable pihole-FTL --quiet
-
-# Replace the service dnsmasq by pihole-FTL
-# That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
-#ln -sf /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/dnsmasq.service
-systemctl mask dnsmasq.service
-
-# Reload systemd config
-systemctl daemon-reload
-
-#=================================================
-# CREATE LOG FILES
-#=================================================
-ynh_script_progression --message="Creating log files..." --weight=1
-
-touch /var/log/{pihole,pihole-FTL}.log
-chmod 644 /var/log/{pihole,pihole-FTL}.log
-dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
-chown $dnsmasq_user:root /var/log/{pihole,pihole-FTL}.log
+echo "master master master" > "$PI_HOLE_CONFIG_DIR/localbranches"
+echo "$(ynh_app_upstream_version) $pihole_adminlte_version $pihole_flt_version" \
+    | tee "$PI_HOLE_CONFIG_DIR/"{GitHubVersions,localversions} > /dev/null
 
 #=================================================
 # BUILD THE LISTS WITH GRAVITY
 #=================================================
 ynh_script_progression --message="Building the lists with Gravity..." --weight=7
 
-cp "../conf/adlists.default" "$PI_HOLE_CONFIG_DIR/adlists.list"
-ynh_exec_warn_less $PI_HOLE_INSTALL_DIR/gravity.sh --force
+ynh_add_config --template="adlists.default" --destination="$PI_HOLE_CONFIG_DIR/adlists.list"
+ynh_exec_warn_less "$PI_HOLE_INSTALL_DIR/gravity.sh" --force
 
 #=================================================
 # CONFIGURE DNS FOR THE LOCAL DOMAINS
@@ -283,64 +124,62 @@ ynh_script_progression --message="Configuring DNS for the local domains..." --we
 localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
 
 # List all YunoHost domains
-while read perdomain
-do
-	# Comment domain resolution in /etc/hosts on 127.0.0.1, because they can interfere with the local network resolution.
-	ynh_replace_string --match_string="^127.0.0.1.*$perdomain" --replace_string="#Commented by pihole# &" --target_file=/etc/hosts
+while read -r perdomain; do
+    # Comment domain resolution in /etc/hosts on 127.0.0.1, because they can interfere with the local network resolution.
+    ynh_replace_string --match_string="^127.0.0.1.*$perdomain" --replace_string="#Commented by pihole# &" --target_file=/etc/hosts
 
-	# And add a resolution on the local IP instead
-	grep -q "^$localipv4.*$perdomain" /etc/hosts || \
-		echo "$localipv4	$perdomain #Added by pihole#" >> /etc/hosts
+    # And add a resolution on the local IP instead
+    grep -q "^$localipv4.*$perdomain" /etc/hosts || \
+        echo "$localipv4	$perdomain #Added by pihole#" >> /etc/hosts
 done <<< "$(yunohost domain list | grep "\." | sed 's/.*: \|.*- //')"
 
 #=================================================
-# SET VERSIONS FOR THE FOOTER OF THE WEB INTERFACE
+# DISABLING DNSMASQ
 #=================================================
-ynh_script_progression --message="Setting versions for the footer of the web interface..." --weight=1
+ynh_script_progression --message="Disabling Dnsmasq in system and yunohost..." --weight=1
 
-echo "master master master" > $PI_HOLE_CONFIG_DIR/localbranches
-echo "$(ynh_app_upstream_version) $pihole_adminlte_version $pihole_flt_version" | tee $PI_HOLE_CONFIG_DIR/{GitHubVersions,localversions}  > /dev/null
+# Stop dnsmasq to replace it by pihole-FTL
+ynh_systemd_action --service_name=dnsmasq --action=stop
 
-#=================================================
-# SET UP CONF_REGEN HOOK
-#=================================================
-ynh_script_progression --message="Setting up conf_regen hook..." --weight=1
+# Replace the service dnsmasq by pihole-FTL
+# That way, YunoHost can continue to use dnsmasq by actually using pihole-FTL
+#ln -sf /run/systemd/generator.late/pihole-FTL.service /etc/systemd/system/dnsmasq.service
+systemctl mask dnsmasq.service
 
-cp ../conf/dnsmasq_regenconf_hook /usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app
-ynh_replace_string --match_string="__APP__" --replace_string="$app" --target_file="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
-
+# Reload systemd config
 systemctl daemon-reload
+
+ynh_add_config --template="dnsmasq_regenconf_hook" --destination="/usr/share/yunohost/hooks/conf_regen/50-dnsmasq_$app"
 ynh_exec_warn_less yunohost tools regen-conf dnsmasq
 
 #=================================================
-# GENERIC FINALISATION
+# SYSTEM CONFIGURATION
 #=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
+ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
 
+# Create a dedicated PHP-FPM config
+ynh_add_fpm_config
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
+
+# Create sudoers config
+_add_sudoers_config
+
+_add_cron_jobs
+
+_add_logrotate_config
+
+install -T -m 0755 "${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole-FTL.service" "/etc/init.d/pihole-FTL"
+ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log" --needs_exposed_ports 53 67
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=2
+ynh_script_progression --message="Starting $app's systemd service..." --weight=2
 
-ynh_systemd_action --service_name=pihole-FTL --action=restart --log_path="/var/log/pihole-FTL.log"
-
-#=================================================
-# SETUP SSOWAT
-#=================================================
-ynh_script_progression --message="Configuring permissions..." --weight=2
-
-ynh_permission_update --permission="main" --add="$admin" --remove="all_users"
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=3
-
-ynh_systemd_action --service_name=nginx --action=reload
+ynh_systemd_action --service_name="pihole-FTL" --action=restart --log_path="/var/log/pihole-FTL.log"
 
 #=================================================
 # END OF SCRIPT

@@ -1,8 +1,6 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
@@ -10,35 +8,16 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# LOAD SETTINGS
+# REMOVE SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --weight=2
-
-app=$YNH_APP_INSTANCE_NAME
-
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-port=$(ynh_app_setting_get --app=$app --key=port)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-
-#=================================================
-# STANDARD REMOVE
-#=================================================
-# REMOVE SERVICE INTEGRATION IN YUNOHOST
-#=================================================
+ynh_script_progression --message="Removing system configurations related to $app..." --weight=1
 
 # Remove the service from the list of services known by YunoHost (added from `yunohost service add`)
-if ynh_exec_warn_less yunohost service status pihole-FTL >/dev/null
-then
-	ynh_script_progression --message="Removing $app service integration..." --weight=2
-	yunohost service remove pihole-FTL
+if ynh_exec_warn_less yunohost service status "pihole-FTL" >/dev/null; then
+    yunohost service remove "pihole-FTL"
 fi
 
-#=================================================
-# STOP AND REMOVE SERVICE
-#=================================================
-ynh_script_progression --message="Stopping and removing the systemd service..." --weight=1
-
-ynh_systemd_action --service_name=pihole-FTL --action=stop
+ynh_systemd_action --service_name="pihole-FTL" --action="stop"
 
 # Restore dnsmasq as main DNS resolver
 # Move dnsmasq back to its original place
@@ -63,56 +42,26 @@ ynh_secure_remove --file="/usr/bin/pihole-FTL"
 ynh_secure_remove --file="/var/run/pihole-FTL.pid"
 ynh_secure_remove --file="/var/run/pihole-FTL.port"
 
-#=================================================
-# REMOVE APP MAIN DIR
-#=================================================
-ynh_script_progression --message="Removing app main directory..." --weight=1
-
-# Remove the app directory securely
-ynh_secure_remove --file="$final_path"
-
-#=================================================
-# REMOVE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Removing NGINX web server configuration..." --weight=1
-
 # Remove the dedicated NGINX config
 ynh_remove_nginx_config
-
-#=================================================
-# REMOVE PHP-FPM CONFIGURATION
-#=================================================
-ynh_script_progression --message="Removing PHP-FPM configuration..." --weight=2
 
 # Remove the dedicated PHP-FPM config
 ynh_remove_fpm_config
 
 #=================================================
-# REMOVE DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Removing dependencies..." --weight=7
-
-# Remove metapackage and its dependencies
-ynh_remove_app_dependencies
-
-#=================================================
 # CLOSE A PORT
 #=================================================
 
-if yunohost firewall list | grep -q "\- $port$"
-then
-	ynh_script_progression --message="Closing port $port..." --weight=1
-	ynh_exec_warn_less yunohost firewall disallow TCP $port
+if yunohost firewall list | grep -q "\- $port$"; then
+    ynh_script_progression --message="Closing port $port..." --weight=1
+    ynh_exec_warn_less yunohost firewall disallow TCP $port
 fi
 
-if yunohost firewall list | grep -q "\- 67$"
-then
-	ynh_script_progression --message="Closing port 67..." --weight=1
-	ynh_exec_warn_less yunohost firewall disallow UDP 67
+if yunohost firewall list | grep -q "\- 67$"; then
+    ynh_script_progression --message="Closing port 67..." --weight=1
+    ynh_exec_warn_less yunohost firewall disallow UDP 67
 fi
 
-#=================================================
-# SPECIFIC REMOVE
 #=================================================
 # REMOVE VARIOUS FILES
 #=================================================
@@ -175,17 +124,11 @@ ynh_script_progression --message="Restarting Dnsmasq..." --weight=1
 ynh_systemd_action --service_name=dnsmasq --action=restart
 
 #=================================================
-# GENERIC FINALIZATION
-#=================================================
 # REMOVE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Removing the dedicated system user..." --weight=2
 
 # Dirty hack to remove correctly the user
-killall -u $app
-
-# Delete a system user
-ynh_system_user_delete --username=$app
+killall -u "$app"
 
 #=================================================
 # END OF SCRIPT
