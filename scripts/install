@@ -14,21 +14,6 @@ source /usr/share/yunohost/helpers
 ynh_app_setting_set --app="$app" --key="overwrite_setupvars" --value=1
 ynh_app_setting_set --app="$app" --key="overwrite_ftl" --value=1
 
-# Get the default network interface
-main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
-
-# Get the dnsmasq user to set log files permissions
-dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
-
-# Find the IP associated to the network interface
-localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
-
-if [ "$query_logging" -eq 1 ]; then
-    query_logging_str=true
-else
-    query_logging_str=false
-fi
-
 #=================================================
 # CHECK AVAILABLE PORT
 #=================================================

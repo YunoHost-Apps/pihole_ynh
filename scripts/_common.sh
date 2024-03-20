@@ -13,6 +13,21 @@ PI_HOLE_INSTALL_DIR="/opt/pihole"
 PI_HOLE_CONFIG_DIR="/etc/pihole"
 PI_HOLE_BIN_DIR="/usr/local/bin"
 
+# Get the default network interface
+main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
+
+# Get the dnsmasq user to set log files permissions
+dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)
+
+# Find the IP associated to the network interface
+localipv4=$(ip address | grep "${main_iface}\$" | awk '{print $2;}' | cut -d/ -f1)
+
+if [ "$query_logging" -eq 1 ]; then
+    query_logging_str=true
+else
+    query_logging_str=false
+fi
+
 #=================================================
 # PERSONAL HELPERS
 #=================================================
