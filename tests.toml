@@ -11,8 +11,14 @@ test_format = 1.0
     # Tests to run
     # ------------
 
-    test_upgrade_from.3d2f68c4e19f335e63f8ffa259708b38a58c8f67.name = "5.11.4~ynh1"
-    test_upgrade_from.4999654987af8b1427a6c72f8af482b235bb46db.name = "Merge pull request #88"
+    [default.test_upgrade_from.3d2f68c4e19f335e63f8ffa259708b38a58c8f67]
+    name = "5.11.4~ynh1"
+    args.admin = "package_checker"
+
+    [default.test_upgrade_from.4999654987af8b1427a6c72f8af482b235bb46db]
+    name = "Merge pull request #88"
+    args.admin = "package_checker"
+
 
 
     # ; Config_panel
