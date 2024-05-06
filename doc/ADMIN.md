@@ -9,16 +9,18 @@ Use the admin panel of your Pi-hole to configure this app. You may also need to 
 ## Using Pi-hole as your DHCP server
 
 > **Be careful, you should considering that playing with your DHCP may break your network.  
-In case your server is down, you will lose your dns resolution and ip address.  
-So, you will lose any internet connection and even the connection to your router.**
-
+> In case your server is down, you will lose your dns resolution and ip address.  
+> So, you will lose any internet connection and even the connection to your router.**
+>
 > **If you encounter this kind of problem, please see "How to restore my network" at the end of this document.**
 
 ### How to configure Pi-hole
 
 There're two ways to configure Pi-hole to be used as your DHCP server.
+
 - Either you can choose to use it when you install the app.
 - Or you can activate the DHCP server afterwards in the "Settings" tab, "Pi-hole DHCP Server" part.  
+
 In this second case, it can be better to set the ip of the server to a static address
 
 ### How to configure my router
@@ -43,17 +45,20 @@ Don't panic, We'll get through it. \o/
 
 Use your favorite terminal on your desktop computer.  
 And first, get your main interface (usually `eth0`).
+
 ``` bash
 sudo ifconfig
 ```
 
 Then, set your ip as a static ip.
+
 ``` bash
 sudo ifconfig eth0 192.168.1.100
 ```
 
 Now, you can connect to your router and turn on its DHCP server to use it again.  
 You can now reset your ip and get a dynamic address.
+
 ``` bash
 sudo ifconfig eth0 0.0.0.0 && sudo dhclient eth0
 ```
