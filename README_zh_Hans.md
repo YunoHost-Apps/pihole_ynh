@@ -3,7 +3,7 @@
 请勿手动编辑。
 -->
 
-# YunoHost 的 Pi-hole
+# YunoHost 上的 Pi-hole
 
 [![集成程度](https://dash.yunohost.org/integration/pihole.svg)](https://dash.yunohost.org/appci/app/pihole) ![工作状态](https://ci-apps.yunohost.org/ci/badges/pihole.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/pihole.maintain.svg)
 
