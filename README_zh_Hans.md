@@ -24,6 +24,10 @@ The Pi-hole® is a DNS sinkhole that protects your devices from unwanted content
 
 ![Pi-hole 的截图](./doc/screenshots/dashboard.png)
 
+## :red_circle: 负面特征
+
+- **Package not maintained**: This YunoHost package is not actively maintained and needs adoption. This means that minimal maintenance is made by volunteers who don't use the app, so you should expect the app to lose reliability over time. You can [learn how to package](https://yunohost.org/packaging_apps_intro) if you'd like to adopt it.
+
 ## 文档与资源
 
 - 官方应用网站： <https://pi-hole.net/>
