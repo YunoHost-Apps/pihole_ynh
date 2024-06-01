@@ -25,6 +25,10 @@ Pi-hole® est un puits DNS qui protège vos appareils des contenus indésirables
 
 ![Capture d’écran de Pi-hole](./doc/screenshots/dashboard.png)
 
+## :red_circle: Anti-fonctionnalités
+
+- **Package non maintenu **: Ce package YunoHost n'est pas activement maintenu et a besoin d'être adopté. Cela veut dire que la maintenance minimale est réalisée par des bénévoles qui n'utilisent pas l'application, il faut donc s'attendre à ce que l'app perde en fiabilité avec le temps. Vous pouvez [apprendre comment packager](https://yunohost.org/packaging_apps_intro) si vous voulez l'adopter.
+
 ## Documentations et ressources
 
 - Site officiel de l’app : <https://pi-hole.net/>
