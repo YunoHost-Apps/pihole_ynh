@@ -3,7 +3,7 @@
 请勿手动编辑。
 -->
 
-# YunoHost 的 Pi-hole
+# YunoHost 上的 Pi-hole
 
 [![集成程度](https://dash.yunohost.org/integration/pihole.svg)](https://dash.yunohost.org/appci/app/pihole) ![工作状态](https://ci-apps.yunohost.org/ci/badges/pihole.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/pihole.maintain.svg)
 
@@ -18,11 +18,15 @@
 
 The Pi-hole® is a DNS sinkhole that protects your devices from unwanted content without installing any client-side software.
 
-**分发版本：** 5.14.2~ynh4
+**分发版本：** 5.18.2~ynh1
 
 ## 截图
 
 ![Pi-hole 的截图](./doc/screenshots/dashboard.png)
+
+## :red_circle: 负面特征
+
+- **Package not maintained**: This YunoHost package is not actively maintained and needs adoption. This means that minimal maintenance is made by volunteers who don't use the app, so you should expect the app to lose reliability over time. You can [learn how to package](https://yunohost.org/packaging_apps_intro) if you'd like to adopt it.
 
 ## 文档与资源
 
