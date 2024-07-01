@@ -5,7 +5,7 @@ EZ editatu eskuz.
 
 # Pi-hole YunoHost-erako
 
-[![Integrazio maila](https://dash.yunohost.org/integration/pihole.svg)](https://dash.yunohost.org/appci/app/pihole) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/pihole.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/pihole.maintain.svg)
+[![Integrazio maila](https://dash.yunohost.org/integration/pihole.svg)](https://ci-apps.yunohost.org/ci/apps/pihole/) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/pihole.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/pihole.maintain.svg)
 
 [![Instalatu Pi-hole YunoHost-ekin](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=pihole)
 
