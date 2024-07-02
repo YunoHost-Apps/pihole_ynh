@@ -5,7 +5,7 @@ No se debe editar a mano.
 
 # Pi-hole para Yunohost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/pihole.svg)](https://dash.yunohost.org/appci/app/pihole) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/pihole.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/pihole.maintain.svg)
+[![Nivel de integración](https://dash.yunohost.org/integration/pihole.svg)](https://ci-apps.yunohost.org/ci/apps/pihole/) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/pihole.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/pihole.maintain.svg)
 
 [![Instalar Pi-hole con Yunhost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=pihole)
 
@@ -24,7 +24,7 @@ The Pi-hole® is a DNS sinkhole that protects your devices from unwanted content
 
 ![Captura de Pi-hole](./doc/screenshots/dashboard.png)
 
-## :red_circle: funcionalidades no deseadas
+## :red_circle: Características no deseables
 
 - **Package not maintained**: This YunoHost package is not actively maintained and needs adoption. This means that minimal maintenance is made by volunteers who don't use the app, so you should expect the app to lose reliability over time. You can [learn how to package](https://yunohost.org/packaging_apps_intro) if you'd like to adopt it.
 
