@@ -92,6 +92,10 @@ ynh_secure_remove --file="$PI_HOLE_LOCAL_REPO"
 #=================================================
 ynh_script_progression --message="Removing Dnsmasq config..." --weight=2
 
+ynh_secure_remove --file="/etc/dnsmasq.d/01-pihole.conf"
+
+ynh_secure_remove --file="/etc/dnsmasq.d/02-pihole-dhcp.conf"
+
 ynh_secure_remove --file="/etc/dnsmasq.d/03-pihole-wildcard.conf"
 
 #=================================================
