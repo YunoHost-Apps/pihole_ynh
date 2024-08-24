@@ -88,11 +88,11 @@ ram.runtime = "200M"
 
     [resources.apt]
     packages = [
-        "php7.4-common",
-        "php7.4-cgi",
-        "php7.4-sqlite3",
-        "php7.4-xml",
-        "php7.4-intl",
+        "php8.2-common",
+        "php8.2-cgi",
+        "php8.2-sqlite3",
+        "php8.2-xml",
+        "php8.2-intl",
         "cmake",
         "build-essential",
         "libgmp-dev",
