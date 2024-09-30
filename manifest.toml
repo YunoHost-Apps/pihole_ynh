@@ -112,4 +112,5 @@ ram.runtime = "200M"
         "netcat-openbsd",
         "procps",
         "jq",
+        "xxd",
     ]
