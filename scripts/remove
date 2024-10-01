@@ -70,9 +70,6 @@ ynh_script_progression --message="Removing various files..." --weight=1
 # Remove a cron file
 ynh_secure_remove --file="/etc/cron.d/$app"
 
-# Remove the log files
-ynh_secure_remove --file="/var/log/$app"
-
 # Remove main script
 ynh_secure_remove --file="$PI_HOLE_BIN_DIR/pihole"
 ynh_secure_remove --file="/etc/bash_completion.d/pihole"
