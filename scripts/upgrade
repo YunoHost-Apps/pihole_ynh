@@ -50,7 +50,7 @@ fi
 ynh_script_progression --message="Upgrading source files..." --weight=4
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --source_id="pi-hole_core" --dest_dir="$PI_HOLE_LOCAL_REPO"
+ynh_setup_source --dest_dir="$PI_HOLE_LOCAL_REPO"
 ynh_setup_source --source_id="pi-hole_web" --dest_dir="$install_dir/web"
 ynh_setup_source --source_id="pi-hole_ftl" --dest_dir="$install_dir/ftl"
 
