@@ -7,7 +7,7 @@ name = "Pi-hole"
 description.en = "Network-wide ad blocking via your own DNS server"
 description.fr = "Filtrage publicitaire via votre propre serveur DNS"
 
-version = "5.14.2~ynh4"
+version = "5.18.3~ynh1"
 
 maintainers = []
 
@@ -54,23 +54,23 @@ ram.runtime = "200M"
 
 [resources]
     [resources.sources]
-    [resources.sources.pi-hole_core]
-    url = "https://github.com/pi-hole/pi-hole/archive/v5.14.2.tar.gz"
-    sha256 = "fb2bf933eb7dc54de7b5ab220458e0298fb48fa84d5cba1bcb3c72c47bee1051"
+    [resources.sources.main]
+    url = "https://github.com/pi-hole/pi-hole/archive/refs/tags/v5.18.3.tar.gz"
+    sha256 = "871b47b41813342484df8f10981801eba25f27c9cdbeafd6e71f0edbae6818e5"
 
     autoupdate.upstream = "https://github.com/pi-hole/pi-hole"
     autoupdate.strategy = "latest_github_release"
 
     [resources.sources.pi-hole_web]
-    url = "https://github.com/pi-hole/web/archive/v5.18.tar.gz"
-    sha256 = "563d3568f9b4c8bf09c6a7a21995c1827f3438edd17e5e2b55ead873599580c0"
+    url = "https://github.com/pi-hole/web/archive/refs/tags/v5.21.tar.gz"
+    sha256 = "d8b5f8dd3842dd8b0f3f02a4422182740fd26c3db5ceba1dde9fcd122a36c7f0"
 
     autoupdate.upstream = "https://github.com/pi-hole/web"
     autoupdate.strategy = "latest_github_release"
 
     [resources.sources.pi-hole_ftl]
-    url = "https://github.com/pi-hole/FTL/archive/v5.20.tar.gz"
-    sha256 = "c098d65ed7e59865b814d64a0a5fac65914ce93277e69ef97ab87e8479731fc9"
+    url = "https://github.com/pi-hole/FTL/archive/refs/tags/v5.25.2.tar.gz"
+    sha256 = "d14523c623a4a79afe48b64f3953f73eb454c688edeeded9d95b169b275d354d"
 
     autoupdate.upstream = "https://github.com/pi-hole/FTL"
     autoupdate.strategy = "latest_github_release"
@@ -88,11 +88,11 @@ ram.runtime = "200M"
 
     [resources.apt]
     packages = [
-        "php7.4-common",
-        "php7.4-cgi",
-        "php7.4-sqlite3",
-        "php7.4-xml",
-        "php7.4-intl",
+        "php8.2-common",
+        "php8.2-cgi",
+        "php8.2-sqlite3",
+        "php8.2-xml",
+        "php8.2-intl",
         "cmake",
         "build-essential",
         "libgmp-dev",
@@ -112,4 +112,5 @@ ram.runtime = "200M"
         "netcat-openbsd",
         "procps",
         "jq",
+        "xxd",
     ]

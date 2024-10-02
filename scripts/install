@@ -26,7 +26,7 @@ _configure_ports
 ynh_script_progression --message="Setting up source files..." --weight=4
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --source_id="pi-hole_core" --dest_dir="$PI_HOLE_LOCAL_REPO"
+ynh_setup_source --dest_dir="$PI_HOLE_LOCAL_REPO"
 ynh_setup_source --source_id="pi-hole_web" --dest_dir="$install_dir/web"
 ynh_setup_source --source_id="pi-hole_ftl" --dest_dir="$install_dir/ftl"
 
@@ -149,6 +149,9 @@ _add_cron_jobs
 _add_logrotate_config
 
 install -T -m 0755 "${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole-FTL.service" "/etc/init.d/pihole-FTL"
+install -T -m 0755 "${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole-FTL-prestart.sh" "${PI_HOLE_INSTALL_DIR}/pihole-FTL-prestart.sh"
+install -T -m 0755 "${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole-FTL-poststop.sh" "${PI_HOLE_INSTALL_DIR}/pihole-FTL-poststop.sh"
+
 ynh_exec_warn_less systemctl enable pihole-FTL --quiet
 yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log" --needs_exposed_ports 53 67
 

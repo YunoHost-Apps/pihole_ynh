@@ -18,7 +18,7 @@ EZ editatu eskuz.
 
 The Pi-hole® is a DNS sinkhole that protects your devices from unwanted content without installing any client-side software.
 
-**Paketatutako bertsioa:** 5.14.2~ynh4
+**Paketatutako bertsioa:** 5.18.3~ynh1
 
 ## Pantaila-argazkiak
 
