@@ -21,7 +21,7 @@ Il NE doit PAS être modifié à la main.
 Pi-hole® est un puits DNS qui protège vos appareils des contenus indésirables sans installer de logiciel côté client.
 
 
-**Version incluse :** 5.18.4~ynh1
+**Version incluse :** 6.0.3~ynh1
 
 ## Captures d’écran
 
