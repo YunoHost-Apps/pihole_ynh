@@ -14,7 +14,7 @@ PI_HOLE_CONFIG_DIR="/etc/pihole"
 PI_HOLE_BIN_DIR="/usr/local/bin"
 
 # Get the default network interface
-main_iface=$(ip route | grep --max-count=1 default | awk '{print $5;}')
+main_iface=$(ip --oneline link show up | grep -v "lo" | awk '{print $2}' | cut -d':' -f1 | cut -d'@' -f1)
 
 # Get the dnsmasq user to set log files permissions
 dnsmasq_user=$(grep DNSMASQ_USER= /etc/init.d/dnsmasq | cut -d'"' -f2)

@@ -45,9 +45,6 @@ ynh_secure_remove --file="/var/run/pihole-FTL.port"
 # Remove the dedicated NGINX config
 ynh_remove_nginx_config
 
-# Remove the dedicated PHP-FPM config
-ynh_remove_fpm_config
-
 #=================================================
 # CLOSE A PORT
 #=================================================
@@ -118,7 +115,7 @@ ynh_exec_warn_less yunohost tools regen-conf dnsmasq
 #=================================================
 ynh_script_progression --message="Restarting Dnsmasq..." --weight=1
 
-ynh_systemd_action --service_name=dnsmasq --action=restart
+ynh_systemd_action --service_name=dnsmasq --action="restart"
 
 #=================================================
 # REMOVE DEDICATED USER

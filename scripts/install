@@ -28,27 +28,13 @@ ynh_script_progression --message="Setting up source files..." --weight=4
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$PI_HOLE_LOCAL_REPO"
 ynh_setup_source --source_id="pi-hole_web" --dest_dir="$install_dir/web"
-ynh_setup_source --source_id="pi-hole_ftl" --dest_dir="$install_dir/ftl"
+ynh_setup_source --source_id="pi-hole_ftl" --dest_dir="/usr/bin"
+ynh_setup_source --source_id="macvendor" --dest_dir="$PI_HOLE_CONFIG_DIR"
+
+chmod +x "/usr/bin/pihole-FTL"
 
 chmod -R o-rwx "$install_dir"
 chown -R "$app:www-data" "$install_dir"
-
-touch /var/log/{pihole,pihole-FTL}.log
-chmod 644 /var/log/{pihole,pihole-FTL}.log
-chown "$dnsmasq_user:root" /var/log/{pihole,pihole-FTL}.log
-
-#=================================================
-# INSTALLATION OF PIHOLE-FTL
-#=================================================
-ynh_script_progression --message="Building PiHole-FTL..." --weight=30
-
-# Instead of downloading a binary file, we're going to compile it
-pushd "$install_dir/ftl"
-    ynh_exec_warn_less cmake .
-    ynh_exec_warn_less make
-    ynh_exec_warn_less make install
-popd
-ynh_secure_remove --file="$install_dir/ftl"
 
 #=================================================
 # INSTALL THE SCRIPTS
@@ -70,7 +56,7 @@ ynh_script_progression --message="Installing $app's configuration files..." --we
 
 install -d -m 0755 "$PI_HOLE_CONFIG_DIR"
 ynh_add_config --template="dns-servers.conf" --destination="$PI_HOLE_CONFIG_DIR/dns-servers.conf"
-ynh_add_config --template="pihole-FTL.conf" --destination="$PI_HOLE_CONFIG_DIR/pihole-FTL.conf"
+ynh_add_config --template="pihole.toml" --destination="$PI_HOLE_CONFIG_DIR/pihole.toml"
 ynh_add_config --template="setupVars.conf" --destination="$PI_HOLE_CONFIG_DIR/setupVars.conf"
 
 chmod 644 "${PI_HOLE_CONFIG_DIR}/dns-servers.conf"
@@ -135,14 +121,11 @@ ynh_exec_warn_less yunohost tools regen-conf dnsmasq
 #=================================================
 ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
 
-# Create a dedicated PHP-FPM config
-ynh_add_fpm_config
-
 # Create a dedicated NGINX config
 ynh_add_nginx_config
 
 # Create sudoers config
-_add_sudoers_config
+#_add_sudoers_config
 
 _add_cron_jobs
 
@@ -153,14 +136,14 @@ install -T -m 0755 "${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole-FTL-prestart
 install -T -m 0755 "${PI_HOLE_LOCAL_REPO}/advanced/Templates/pihole-FTL-poststop.sh" "${PI_HOLE_INSTALL_DIR}/pihole-FTL-poststop.sh"
 
 ynh_exec_warn_less systemctl enable pihole-FTL --quiet
-yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole-FTL.log" --needs_exposed_ports 53 67
+yunohost service add pihole-FTL --description="PiHole backend service" --log="/var/log/pihole/FTL.log" --needs_exposed_ports 53 67
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
 ynh_script_progression --message="Starting $app's systemd service..." --weight=2
 
-ynh_systemd_action --service_name="pihole-FTL" --action=restart --log_path="/var/log/pihole-FTL.log"
+ynh_systemd_action --service_name="pihole-FTL" --action="restart" --line_match="Web server ports" --log_path="/var/log/pihole/FTL.log"
 
 #=================================================
 # END OF SCRIPT

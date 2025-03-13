@@ -4,12 +4,20 @@ test_format = 1.0
 
 [default]
 
-    args.query_logging = 1
-    args.enable_dhcp = 0
-
     # ------------
     # Tests to run
     # ------------
+
+    # -------------------------------
+    # Default args to use for install
+    # -------------------------------
+
+    args.query_logging = 1
+    args.enable_dhcp = 0
+
+    # -------------------------------
+    # Commits to test upgrade from
+    # -------------------------------
 
     [default.test_upgrade_from.5cc0fe9d7586001602bbaf87084c0ddbbaa041a6]
     name = "Last packagingv1 version"
@@ -28,5 +36,5 @@ test_format = 1.0
     #     main.php_fpm_config.usage=low|medium|high
     #     main.php_fpm_config.force_max_children=20|0
 
-        # actions=0
-        # config_panel=0
+    # actions=0
+    # config_panel=0

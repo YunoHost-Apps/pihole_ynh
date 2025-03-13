@@ -22,8 +22,11 @@ fund = "https://pi-hole.net/donate/#donate"
 yunohost = ">= 11.2.4"
 architectures = "all"
 multi_instance = false
+
 ldap = "not_relevant"
+
 sso = "not_relevant"
+
 disk = "200M"
 ram.build = "600M"
 ram.runtime = "200M"
@@ -32,9 +35,9 @@ ram.runtime = "200M"
     [install.domain]
     type = "domain"
 
-    [install.path]
-    type = "path"
-    default = "/pihole"
+    #[install.path]
+    #type = "path"
+    #default = "/pihole"
 
     [install.query_logging]
     ask.en = "Do you want to log DNS queries?"
@@ -53,27 +56,45 @@ ram.runtime = "200M"
     default = false
 
 [resources]
+
     [resources.sources]
+
     [resources.sources.main]
     url = "https://github.com/pi-hole/pi-hole/archive/refs/tags/v6.0.5.tar.gz"
     sha256 = "912f5cf1641dc506eaf30813d2dd35722ea1fe7a1f91d5334b19c553c9fd43c6"
-
     autoupdate.upstream = "https://github.com/pi-hole/pi-hole"
     autoupdate.strategy = "latest_github_release"
 
     [resources.sources.pi-hole_web]
     url = "https://github.com/pi-hole/web/archive/refs/tags/v6.0.2.tar.gz"
     sha256 = "705772ea91e73c441efaa18b4512af58647dba5309b2784cb674116b972af4d6"
-
     autoupdate.upstream = "https://github.com/pi-hole/web"
     autoupdate.strategy = "latest_github_release"
 
     [resources.sources.pi-hole_ftl]
-    url = "https://github.com/pi-hole/FTL/archive/refs/tags/v6.0.4.tar.gz"
-    sha256 = "e3be79e1b802c15a94122e8a18b0f3c59224e34a8ff2649b03ca07e2ff0f8fd5"
+    amd64.url = "https://github.com/pi-hole/FTL/releases/download/v6.0.4/pihole-FTL-amd64"
+    amd64.sha256 = "4e765fef842a2609bdb7ec7aaf3bdf726c61af633b9bcbd9d127f00e3fd0eba6"
+    i386.url = "https://github.com/pi-hole/FTL/releases/download/v6.0.4/pihole-FTL-386"
+    i386.sha256 = "9d7f3514ae193ae502539eecb85fa640bf35ee2d087bf2d01ee073af39df2eab"
+    armhf.url = "https://github.com/pi-hole/FTL/releases/download/v6.0.4/pihole-FTL-armv6"
+    armhf.sha256 = "eb9901ecb554a6f9ecc00e11a3243641351da3ada5e8d431eb519416ab09c68b"
+    arm64.url = "https://github.com/pi-hole/FTL/releases/download/v6.0.4/pihole-FTL-arm64"
+    arm64.sha256 = "117c1f9a8594227b60c05c4c1be42d6ed64969c27201e7f27685dc2272b1521b"
 
     autoupdate.upstream = "https://github.com/pi-hole/FTL"
     autoupdate.strategy = "latest_github_release"
+    autoupdate.asset.amd64 = "pihole-FTL-amd64"
+    autoupdate.asset.i386 = ".ihole-FTL-386"
+    autoupdate.asset.armhf = "pihole-FTL-armv6"
+    autoupdate.asset.arm64 = "pihole-FTL-arm64"
+
+    rename = "pihole-FTL"
+    extract = "false"
+
+    [resources.sources.macvendor]
+    url = "https://ftl.pi-hole.net/macvendor.db"
+    sha256 = "ff08e7ddc4fc940c988628a2c4bd6d3b7857d873e5a807ec9448d7f7748a829a"
+    extract = "false"
 
     [resources.system_user]
 
@@ -85,32 +106,29 @@ ram.runtime = "200M"
 
     [resources.ports]
     main.default = 4711
+    web.default = 8080
 
     [resources.apt]
     packages = [
-        "php8.2-common",
-        "php8.2-cgi",
-        "php8.2-sqlite3",
-        "php8.2-xml",
-        "php8.2-intl",
-        "cmake",
-        "build-essential",
-        "libgmp-dev",
-        "libidn11-dev",
-        "nettle-dev",
-        "libreadline-dev",
-        "sqlite3",
+        "bash-completion",
+        "binutils",
+        "ca-certificates",
         "cron",
         "curl",
-        "iputils-ping",
-        "psmisc",
-        "unzip",
-        "idn2",
-        "libcap2-bin",
+        "dialog",
         "dns-root-data",
+        "dnsutils",
+        "git",
+        "grep",
+        "iproute2",
+        "iputils-ping",
+        "jq",
         "libcap2",
+        "libcap2-bin",
+        "lshw",
         "netcat-openbsd",
         "procps",
-        "jq",
-        "xxd",
+        "psmisc",
+        "sudo",
+        "unzip",
     ]
