@@ -907,7 +907,7 @@
   #
   # Possible values are:
   #     <any Pi-hole macvendor database>
-  macvendor = "/etc/pihole/macvendor.db"
+  # macvendor = "/etc/pihole/macvendor.db"
 
   # The old config file of Pi-hole used before v6.0
   #

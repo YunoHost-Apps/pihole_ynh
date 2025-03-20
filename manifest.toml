@@ -91,11 +91,6 @@ ram.runtime = "200M"
     rename = "pihole-FTL"
     extract = "false"
 
-    [resources.sources.macvendor]
-    url = "https://ftl.pi-hole.net/macvendor.db"
-    sha256 = "ff08e7ddc4fc940c988628a2c4bd6d3b7857d873e5a807ec9448d7f7748a829a"
-    extract = "false"
-
     [resources.system_user]
 
     [resources.install_dir]

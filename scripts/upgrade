@@ -26,6 +26,16 @@ ynh_systemd_action --service_name="pihole-FTL" --action="stop" --log_path="/var/
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
 
+# Before version 6.x pihole could be installed under a path,
+# this functionnality has been deprecated since version 6.0.0 and pihole
+# now need to be installed under its own domain.
+# If the app is currently installed under a path, we warn the admin
+# that he should move the app under its own domain
+if [ "$path" != "/" ]; then
+  ynh_die --message="Since version 6.0.0, $app need to be installed under its own domain. \
+  Before upgrading, change $app URL: delete the path and switch to a new domain if needed."
+fi
+
 # If overwrite_setupvars doesn't exist, create it
 if [ -z "${overwrite_setupvars:-}" ]; then
     overwrite_setupvars=1
@@ -55,7 +65,6 @@ ynh_script_progression --message="Upgrading source files..." --weight=4
 ynh_setup_source --dest_dir="$PI_HOLE_LOCAL_REPO"
 ynh_setup_source --source_id="pi-hole_web" --dest_dir="$install_dir/web"
 ynh_setup_source --source_id="pi-hole_ftl" --dest_dir="/usr/bin"
-ynh_setup_source --source_id="macvendor" --dest_dir="$PI_HOLE_CONFIG_DIR"
 
 chmod +x "/usr/bin/pihole-FTL"
 

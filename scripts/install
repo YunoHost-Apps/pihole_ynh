@@ -29,7 +29,6 @@ ynh_script_progression --message="Setting up source files..." --weight=4
 ynh_setup_source --dest_dir="$PI_HOLE_LOCAL_REPO"
 ynh_setup_source --source_id="pi-hole_web" --dest_dir="$install_dir/web"
 ynh_setup_source --source_id="pi-hole_ftl" --dest_dir="/usr/bin"
-ynh_setup_source --source_id="macvendor" --dest_dir="$PI_HOLE_CONFIG_DIR"
 
 chmod +x "/usr/bin/pihole-FTL"
 
