@@ -84,7 +84,7 @@ ram.runtime = "200M"
     autoupdate.upstream = "https://github.com/pi-hole/FTL"
     autoupdate.strategy = "latest_github_release"
     autoupdate.asset.amd64 = "pihole-FTL-amd64"
-    autoupdate.asset.i386 = ".ihole-FTL-386"
+    autoupdate.asset.i386 = "pihole-FTL-386"
     autoupdate.asset.armhf = "pihole-FTL-armv6"
     autoupdate.asset.arm64 = "pihole-FTL-arm64"
 
