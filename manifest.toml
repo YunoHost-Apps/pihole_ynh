@@ -7,7 +7,7 @@ name = "Pi-hole"
 description.en = "Network-wide ad blocking via your own DNS server"
 description.fr = "Filtrage publicitaire via votre propre serveur DNS"
 
-version = "6.0.5~ynh1"
+version = "6.0.6~ynh1"
 
 maintainers = []
 
@@ -56,30 +56,29 @@ ram.runtime = "200M"
     default = false
 
 [resources]
-
     [resources.sources]
-
     [resources.sources.main]
-    url = "https://github.com/pi-hole/pi-hole/archive/refs/tags/v6.0.5.tar.gz"
-    sha256 = "912f5cf1641dc506eaf30813d2dd35722ea1fe7a1f91d5334b19c553c9fd43c6"
+    url = "https://github.com/pi-hole/pi-hole/archive/refs/tags/v6.0.6.tar.gz"
+    sha256 = "e302722ed993b2380311953f519201a9993dff9cdb1c308f3320d63691035565"
     autoupdate.upstream = "https://github.com/pi-hole/pi-hole"
     autoupdate.strategy = "latest_github_release"
 
     [resources.sources.pi-hole_web]
-    url = "https://github.com/pi-hole/web/archive/refs/tags/v6.0.2.tar.gz"
-    sha256 = "705772ea91e73c441efaa18b4512af58647dba5309b2784cb674116b972af4d6"
+    url = "https://github.com/pi-hole/web/archive/refs/tags/v6.1.tar.gz"
+    sha256 = "23395dcf380c17139ca19bf69895ae6fa7b271a29a48159ea62c013724a2243e"
+
     autoupdate.upstream = "https://github.com/pi-hole/web"
     autoupdate.strategy = "latest_github_release"
 
     [resources.sources.pi-hole_ftl]
-    amd64.url = "https://github.com/pi-hole/FTL/releases/download/v6.0.4/pihole-FTL-amd64"
-    amd64.sha256 = "4e765fef842a2609bdb7ec7aaf3bdf726c61af633b9bcbd9d127f00e3fd0eba6"
-    i386.url = "https://github.com/pi-hole/FTL/releases/download/v6.0.4/pihole-FTL-386"
-    i386.sha256 = "9d7f3514ae193ae502539eecb85fa640bf35ee2d087bf2d01ee073af39df2eab"
-    armhf.url = "https://github.com/pi-hole/FTL/releases/download/v6.0.4/pihole-FTL-armv6"
-    armhf.sha256 = "eb9901ecb554a6f9ecc00e11a3243641351da3ada5e8d431eb519416ab09c68b"
-    arm64.url = "https://github.com/pi-hole/FTL/releases/download/v6.0.4/pihole-FTL-arm64"
-    arm64.sha256 = "117c1f9a8594227b60c05c4c1be42d6ed64969c27201e7f27685dc2272b1521b"
+    amd64.url = "https://github.com/pi-hole/FTL/releases/download/v6.1/pihole-FTL-amd64"
+    amd64.sha256 = "4032eb104f9797a25a41d21d02a3ae00b272a48a0a029bcb6522ab0df26a0ccf"
+    i386.url = "https://github.com/pi-hole/FTL/releases/download/v6.1/pihole-FTL-386"
+    i386.sha256 = "0def66dedc30a534c1229100805b20d59733a5fd23c66a29f2d1886999ece4f8"
+    armhf.url = "https://github.com/pi-hole/FTL/releases/download/v6.1/pihole-FTL-armv6"
+    armhf.sha256 = "a7871629bbed1d02da4e2f0d82f20c3e5599992fc32c7a0992f48cd5349e0e11"
+    arm64.url = "https://github.com/pi-hole/FTL/releases/download/v6.1/pihole-FTL-arm64"
+    arm64.sha256 = "5746ae113d74fc94363f506aeefcbf4e9b69587c6efaa501e48ae8d6ea79a3b8"
 
     autoupdate.upstream = "https://github.com/pi-hole/FTL"
     autoupdate.strategy = "latest_github_release"

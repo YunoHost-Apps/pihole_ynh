@@ -20,7 +20,7 @@ Hij mag NIET handmatig aangepast worden.
 
 The Pi-hole® is a DNS sinkhole that protects your devices from unwanted content without installing any client-side software.
 
-**Geleverde versie:** 6.0.5~ynh1
+**Geleverde versie:** 6.0.6~ynh1
 
 ## Schermafdrukken
 

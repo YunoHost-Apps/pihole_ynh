@@ -3,7 +3,7 @@ Este archivo README esta generado automaticamente<https://github.com/YunoHost/ap
 No se debe editar a mano.
 -->
 
-# Pi-hole para Yunohost
+# Pi-hole para YunoHost
 
 [![Nivel de integración](https://apps.yunohost.org/badge/integration/pihole)](https://ci-apps.yunohost.org/ci/apps/pihole/)
 ![Estado funcional](https://apps.yunohost.org/badge/state/pihole)
@@ -20,7 +20,7 @@ No se debe editar a mano.
 
 The Pi-hole® is a DNS sinkhole that protects your devices from unwanted content without installing any client-side software.
 
-**Versión actual:** 6.0.5~ynh1
+**Versión actual:** 6.0.6~ynh1
 
 ## Capturas
 
