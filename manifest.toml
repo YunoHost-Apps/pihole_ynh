@@ -7,7 +7,7 @@ name = "Pi-hole"
 description.en = "Network-wide ad blocking via your own DNS server"
 description.fr = "Filtrage publicitaire via votre propre serveur DNS"
 
-version = "5.18.4~ynh1"
+version = "6.1~ynh1"
 
 maintainers = []
 
@@ -55,22 +55,22 @@ ram.runtime = "200M"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/pi-hole/pi-hole/archive/refs/tags/v5.18.4.tar.gz"
-    sha256 = "723ed042ae3703eaef8bc0e52ab6ab8d2062684af96c4e4ca09ddc513505df1f"
+    url = "https://github.com/pi-hole/pi-hole/archive/refs/tags/v6.1.tar.gz"
+    sha256 = "781f2ec4337826b4fa35a0079a16156d966b79a5f86d1cf0e011830365309b14"
 
     autoupdate.upstream = "https://github.com/pi-hole/pi-hole"
     autoupdate.strategy = "latest_github_release"
 
     [resources.sources.pi-hole_web]
-    url = "https://github.com/pi-hole/web/archive/refs/tags/v5.21.tar.gz"
-    sha256 = "d8b5f8dd3842dd8b0f3f02a4422182740fd26c3db5ceba1dde9fcd122a36c7f0"
+    url = "https://github.com/pi-hole/web/archive/refs/tags/v6.2.tar.gz"
+    sha256 = "bc7414db34203e47d8098016b7b16fc219ed0c7d9d903a2054fe4dfac5a0b539"
 
     autoupdate.upstream = "https://github.com/pi-hole/web"
     autoupdate.strategy = "latest_github_release"
 
     [resources.sources.pi-hole_ftl]
-    url = "https://github.com/pi-hole/FTL/archive/refs/tags/v5.25.2.tar.gz"
-    sha256 = "d14523c623a4a79afe48b64f3953f73eb454c688edeeded9d95b169b275d354d"
+    url = "https://github.com/pi-hole/FTL/archive/refs/tags/v6.2.tar.gz"
+    sha256 = "af31e187832fd94eca5ceb8ff1e86e4ee607e32afab3cff4e3f191bf43059be7"
 
     autoupdate.upstream = "https://github.com/pi-hole/FTL"
     autoupdate.strategy = "latest_github_release"
