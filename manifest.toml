@@ -19,7 +19,7 @@ code = "https://github.com/pi-hole/pi-hole"
 fund = "https://pi-hole.net/donate/#donate"
 
 [integration]
-yunohost = ">= 11.2.4"
+yunohost = ">= 12.1.38"
 architectures = "all"
 multi_instance = false
 ldap = "not_relevant"
